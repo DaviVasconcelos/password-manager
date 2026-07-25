@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "PasswordManager.UI (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "PasswordManager.UI (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
