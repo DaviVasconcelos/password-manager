@@ -9,7 +9,14 @@ public class Vault
 
     private Vault() { }
 
-    public static Vault CreateNew() => new() { Id = Guid.NewGuid() };
+    public static Vault CreateNew()
+    {
+        var vault = new Vault();
+
+        vault.Id = Guid.NewGuid();
+
+        return vault;
+    }
 
     public VaultItem AddItem(string title, string password, string category,
         string? username = null, string? url = null, string? notes = null)
@@ -21,9 +28,20 @@ public class Vault
 
     public void RemoveItem(Guid itemId)
     {
-        var item = _items.FirstOrDefault(i => i.Id == itemId);
+        VaultItem? item = null;
+
+        foreach (var i in _items)
+        {
+            if (i.Id == itemId)
+            {
+                item = i;
+                break;
+            }
+        }
+
         if (item is null)
             throw new InvalidOperationException($"Item {itemId} não encontrado no cofre.");
+
         _items.Remove(item);
     }
 }
