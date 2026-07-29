@@ -1,4 +1,6 @@
 namespace PasswordManager.Domain.Tests;
+using PasswordManager.Domain.Entities;
+using FluentAssertions;
 
 public class VaultTests
 {

@@ -3,6 +3,7 @@ namespace PasswordManager.Domain.Entities;
 public class VaultItem
 {
     public Guid Id { get; private set; }
+    public Guid? FolderId { get; private set; }
     public string Title { get; private set; }
     public string? Username { get; private set; }
     public string Password { get; private set; }
@@ -55,5 +56,10 @@ public class VaultItem
         Url = url?.Trim();
         Notes = notes?.Trim();
         UpdatedAt = DateTime.UtcNow;
+    }
+
+    internal void AssignToFolder(Guid? folderId)
+    {
+        FolderId = folderId;
     }
 }

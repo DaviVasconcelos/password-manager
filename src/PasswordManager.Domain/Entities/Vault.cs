@@ -8,6 +8,8 @@ public class Vault
     public IReadOnlyCollection<VaultItem> Items => _items.AsReadOnly();
 
     private Vault() { }
+    private readonly List<VaultFolder> _folders = new();
+    public IReadOnlyCollection<VaultFolder> Folders => _folders.AsReadOnly();
 
     public static Vault CreateNew()
     {
@@ -43,5 +45,43 @@ public class Vault
             throw new InvalidOperationException($"Item {itemId} não encontrado no cofre.");
 
         _items.Remove(item);
+    }
+
+    public VaultFolder AddFolder(string name)
+    {
+        var folder = VaultFolder.Create(name);
+        _folders.Add(folder);
+        return folder;
+    }
+
+    public void RemoveFolder(Guid folderId)
+    {
+        var folder = _folders.FirstOrDefault(f => f.Id == folderId);
+        if (folder is null)
+            throw new InvalidOperationException($"Pasta {folderId} não encontrada no cofre.");
+
+        // folder items sholdnt be deleted when the folder is, just turns to no folder
+        foreach (var item in _items.Where(i => i.FolderId == folderId))
+            item.AssignToFolder(null);
+
+        _folders.Remove(folder);
+    }
+
+    public void AssignItemToFolder(Guid itemId, Guid? folderId)
+    {
+        VaultItem? item = _items.FirstOrDefault(i => i.Id == itemId)
+            ?? throw new InvalidOperationException($"Item {itemId} não encontrado no cofre.");
+
+        if (folderId != null)
+        {
+            bool pastaExiste = _folders.Any(f => f.Id == folderId);
+
+            if (!pastaExiste)
+            {
+                throw new InvalidOperationException($"Pasta {folderId} não encontrada no cofre.");
+            }
+        }
+
+        item.AssignToFolder(folderId);
     }
 }
