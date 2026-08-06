@@ -29,6 +29,36 @@ public class VaultItem
         UpdatedAt = createdAt;
     }
 
+    private VaultItem(Guid id, string title, string password, string category,
+    string? username, string? url, string? notes, Guid? folderId,
+    DateTime createdAt, DateTime updatedAt)
+    {
+        Id = id;
+        Title = title;
+        Password = password;
+        Category = category;
+        Username = username;
+        Url = url;
+        Notes = notes;
+        FolderId = folderId;
+        CreatedAt = createdAt;
+        UpdatedAt = updatedAt;
+    }
+
+    /// <summary>
+    /// Reconstrói um VaultItem a partir de dados já persistidos (usado pela
+    /// Infrastructure ao desserializar o cofre). Diferente de Create: não
+    /// valida nem normaliza campos, pois assume que os dados já passaram
+    /// por validação no momento em que foram salvos originalmente.
+    /// </summary>
+    public static VaultItem Rehydrate(Guid id, string title, string password, string category,
+        string? username, string? url, string? notes, Guid? folderId,
+        DateTime createdAt, DateTime updatedAt)
+    {
+        return new VaultItem(id, title, password, category, username, url, notes,
+            folderId, createdAt, updatedAt);
+    }
+
     public static VaultItem Create(string title, string password, string category,
         string? username = null, string? url = null, string? notes = null)
     {

@@ -84,4 +84,18 @@ public class Vault
 
         item.AssignToFolder(folderId);
     }
+
+    /// <summary>
+    /// Reconstrói um Vault a partir de dados já persistidos (usado pela
+    /// Infrastructure ao carregar do storage). Diferente de CreateNew: não
+    /// gera nova identidade, apenas remonta o agregado com itens e pastas
+    /// já existentes.
+    /// </summary>
+    public static Vault Rehydrate(Guid id, IEnumerable<VaultItem> items, IEnumerable<VaultFolder> folders)
+    {
+        var vault = new Vault { Id = id };
+        vault._items.AddRange(items);
+        vault._folders.AddRange(folders);
+        return vault;
+    }
 }

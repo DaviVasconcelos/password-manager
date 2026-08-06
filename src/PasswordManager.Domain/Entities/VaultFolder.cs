@@ -30,4 +30,9 @@ public class VaultFolder
 
         Name = name.Trim();
     }
+
+    internal static VaultFolder Rehydrate(Guid id, string name, DateTime createdAt)
+    {
+        return new VaultFolder(id, name, createdAt);
+    }
 }
