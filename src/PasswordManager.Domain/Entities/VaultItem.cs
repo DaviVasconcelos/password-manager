@@ -4,17 +4,16 @@ public class VaultItem
 {
     public Guid Id { get; private set; }
     public Guid? FolderId { get; private set; }
-    public string Title { get; private set; }
+    public string Title { get; private set; } = string.Empty;
     public string? Username { get; private set; }
-    public string Password { get; private set; }
+    public string Password { get; private set; } = string.Empty;
     public string? Url { get; private set; }
     public string? Notes { get; private set; }
-    public string Category { get; private set; }
+    public string Category { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
-    private VaultItem() { } // EF Core needs 
-
+    private VaultItem() { } // EF Core needs
     private VaultItem(Guid id, string title, string password, string category,
         string? username, string? url, string? notes, DateTime createdAt)
     {
@@ -51,7 +50,7 @@ public class VaultItem
     /// valida nem normaliza campos, pois assume que os dados já passaram
     /// por validação no momento em que foram salvos originalmente.
     /// </summary>
-    public static VaultItem Rehydrate(Guid id, string title, string password, string category,
+    internal static VaultItem Rehydrate(Guid id, string title, string password, string category,
         string? username, string? url, string? notes, Guid? folderId,
         DateTime createdAt, DateTime updatedAt)
     {

@@ -66,4 +66,57 @@ public class VaultTests
 
         vault.Items.Should().BeAssignableTo<IReadOnlyCollection<VaultItem>>();
     }
+
+    public class VaultRehydrateTests
+    {
+        [Fact]
+        public void Rehydrate_Should_Set_Id_Items_And_Folders()
+        {
+            var vaultId = Guid.NewGuid();
+            var folder = VaultFolder.Rehydrate(Guid.NewGuid(), "Trabalho", DateTime.UtcNow);
+            var item = VaultItem.Rehydrate(
+                Guid.NewGuid(), "Gmail", "pass", "Email",
+                null, null, null, folder.Id, DateTime.UtcNow, DateTime.UtcNow);
+
+            var vault = Vault.Rehydrate(vaultId, new[] { item }, new[] { folder });
+
+            vault.Id.Should().Be(vaultId);
+            vault.Items.Should().ContainSingle().Which.Id.Should().Be(item.Id);
+            vault.Folders.Should().ContainSingle().Which.Id.Should().Be(folder.Id);
+        }
+
+        [Fact]
+        public void Rehydrate_With_Empty_Collections_Should_Create_Empty_Vault()
+        {
+            var vault = Vault.Rehydrate(Guid.NewGuid(), Enumerable.Empty<VaultItem>(),
+                Enumerable.Empty<VaultFolder>());
+
+            vault.Items.Should().BeEmpty();
+            vault.Folders.Should().BeEmpty();
+        }
+
+        [Fact]
+        public void Rehydrate_Should_Preserve_Item_Folder_Association()
+        {
+            var folder = VaultFolder.Rehydrate(Guid.NewGuid(), "Pessoal", DateTime.UtcNow);
+            var item = VaultItem.Rehydrate(
+                Guid.NewGuid(), "Netflix", "pass", "Streaming",
+                null, null, null, folder.Id, DateTime.UtcNow, DateTime.UtcNow);
+
+            var vault = Vault.Rehydrate(Guid.NewGuid(), new[] { item }, new[] { folder });
+
+            vault.Items.Single().FolderId.Should().Be(folder.Id);
+        }
+
+        [Fact]
+        public void Rehydrate_Should_Keep_Items_Externally_ReadOnly()
+        {
+            // Mesma garantia de imutabilidade externa que já vale para CreateNew.
+            var vault = Vault.Rehydrate(Guid.NewGuid(),
+                Enumerable.Empty<VaultItem>(), Enumerable.Empty<VaultFolder>());
+
+            vault.Items.Should().BeAssignableTo<IReadOnlyCollection<VaultItem>>();
+            vault.Folders.Should().BeAssignableTo<IReadOnlyCollection<VaultFolder>>();
+        }
+    }
 }
