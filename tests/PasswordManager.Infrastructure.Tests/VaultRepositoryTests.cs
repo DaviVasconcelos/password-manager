@@ -35,7 +35,7 @@ public class VaultRepositoryTests : IDisposable
     public async Task ExistsAsync_QuandoHaCofrePersistido_DeveRetornarTrue()
     {
         var repository = CriarRepositorio();
-        await repository.SaveAsync(Vault.CreateNew(), SenhaMestra, Ct);
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
 
         var exists = await repository.ExistsAsync(Ct);
 
@@ -43,17 +43,32 @@ public class VaultRepositoryTests : IDisposable
     }
 
     [Fact]
-    public async Task SaveAsync_ComVaultNovo_DevePersistirUmRegistroUnicoComSaltEBlob()
+    public async Task CreateAsync_ComVaultNovo_DevePersistirUmRegistroUnicoComSaltEBlob()
     {
         var repository = CriarRepositorio();
-        await repository.SaveAsync(Vault.CreateNew(), SenhaMestra, Ct);
+        var salt = _cryptoService.GenerateSalt();
+        var chave = DerivarChave(SenhaMestra, salt);
+
+        await repository.CreateAsync(Vault.CreateNew(), chave, salt, Ct);
 
         var registro = ObterUnicoRegistro();
-
         registro.Should().NotBeNull();
         registro!.SchemaVersion.Should().Be(1);
-        registro.Salt.Should().NotBeEmpty();
+        registro.Salt.Should().Equal(salt);
         registro.EncryptedBlob.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task CreateAsync_QuandoJaExisteCofre_DeveLancarInvalidOperationException()
+    {
+        var repository = CriarRepositorio();
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
+        var outroSalt = _cryptoService.GenerateSalt();
+
+        var act = () => repository.CreateAsync(Vault.CreateNew(), DerivarChave(SenhaMestra, outroSalt), outroSalt, Ct);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        ObterUnicoRegistro().Should().NotBeNull();
     }
 
     [Fact]
@@ -62,14 +77,14 @@ public class VaultRepositoryTests : IDisposable
         var repository = CriarRepositorio();
         var vault = Vault.CreateNew();
         vault.AddItem("GitHub", "senha123", "Dev");
-        await repository.SaveAsync(vault, SenhaMestra, Ct);
+        await CriarCofreAsync(repository, vault, SenhaMestra);
         vault.AddItem("Gmail", "senha456", "Email");
-        await repository.SaveAsync(vault, SenhaMestra, Ct);
+        await SalvarAsync(repository, vault, SenhaMestra);
 
         using var contexto = _store.CriarContexto();
         contexto.Vaults.Count().Should().Be(1);
 
-        var carregado = await repository.LoadAsync(SenhaMestra, Ct);
+        var carregado = await CarregarAsync(repository, SenhaMestra);
         carregado.Should().NotBeNull();
         carregado!.Items.Should().HaveCount(2);
     }
@@ -78,13 +93,46 @@ public class VaultRepositoryTests : IDisposable
     public async Task SaveAsync_QuandoRegistroJaExiste_DeveManterOSaltAnterior()
     {
         var repository = CriarRepositorio();
-        await repository.SaveAsync(Vault.CreateNew(), SenhaMestra, Ct);
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
         var saltInicial = ObterUnicoRegistro()!.Salt;
 
-        await repository.SaveAsync(Vault.CreateNew(), SenhaMestra, Ct);
-        var saltFinal = ObterUnicoRegistro()!.Salt;
+        await SalvarAsync(repository, Vault.CreateNew(), SenhaMestra);
 
+        var saltFinal = ObterUnicoRegistro()!.Salt;
         saltInicial.Should().Equal(saltFinal);
+    }
+
+    [Fact]
+    public async Task SaveAsync_QuandoNaoExisteCofre_DeveLancarInvalidOperationException()
+    {
+        var repository = CriarRepositorio();
+        var salSemCofre = _cryptoService.GenerateSalt();
+
+        var act = () => repository.SaveAsync(Vault.CreateNew(), DerivarChave(SenhaMestra, salSemCofre), Ct);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task GetSaltAsync_QuandoNaoHaCofre_DeveRetornarNull()
+    {
+        var repository = CriarRepositorio();
+
+        var salt = await repository.GetSaltAsync(Ct);
+
+        salt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSaltAsync_QuandoHaCofre_DeveRetornarOSaltPersistido()
+    {
+        var repository = CriarRepositorio();
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
+        var saltPersistido = ObterUnicoRegistro()!.Salt;
+
+        var salt = await repository.GetSaltAsync(Ct);
+
+        salt.Should().Equal(saltPersistido);
     }
 
     [Fact]
@@ -92,7 +140,7 @@ public class VaultRepositoryTests : IDisposable
     {
         var repository = CriarRepositorio();
 
-        var carregado = await repository.LoadAsync(SenhaMestra, Ct);
+        var carregado = await repository.LoadAsync(DerivarChave(SenhaMestra, _cryptoService.GenerateSalt()), Ct);
 
         carregado.Should().BeNull();
     }
@@ -108,10 +156,9 @@ public class VaultRepositoryTests : IDisposable
         var gmail = vault.AddItem("Gmail", "senha456", "Email");
         var pasta = vault.AddFolder("Trabalho");
         vault.AssignItemToFolder(github.Id, pasta.Id);
+        await CriarCofreAsync(repository, vault, SenhaMestra);
 
-        await repository.SaveAsync(vault, SenhaMestra, Ct);
-
-        var carregado = await repository.LoadAsync(SenhaMestra, Ct);
+        var carregado = await CarregarAsync(repository, SenhaMestra);
 
         carregado.Should().NotBeNull();
         carregado!.Id.Should().Be(vault.Id);
@@ -137,27 +184,22 @@ public class VaultRepositoryTests : IDisposable
     public async Task SaveAsync_ELoadAsync_RoundTripComVaultVazio_DeveRetornarVaultSemItens()
     {
         var repository = CriarRepositorio();
-        var vault = Vault.CreateNew();
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
 
-        await repository.SaveAsync(vault, SenhaMestra, Ct);
-
-        var carregado = await repository.LoadAsync(SenhaMestra, Ct);
+        var carregado = await CarregarAsync(repository, SenhaMestra);
 
         carregado.Should().NotBeNull();
-        carregado!.Id.Should().Be(vault.Id);
-        carregado.Items.Should().BeEmpty();
+        carregado!.Items.Should().BeEmpty();
         carregado.Folders.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task LoadAsync_ComSenhaMestraErrada_DeveLancarCryptographicIntegrityException()
+    public async Task LoadAsync_ComChaveErrada_DeveLancarCryptographicIntegrityException()
     {
         var repository = CriarRepositorio();
-        var vault = Vault.CreateNew();
-        vault.AddItem("GitHub", "senha123", "Dev");
-        await repository.SaveAsync(vault, "senha-original", Ct);
+        await CriarCofreAsync(repository, Vault.CreateNew(), "senha-original");
 
-        var act = () => repository.LoadAsync("senha-errada", Ct);
+        var act = () => CarregarAsync(repository, "senha-errada");
 
         await act.Should().ThrowAsync<CryptographicIntegrityException>();
     }
@@ -166,7 +208,7 @@ public class VaultRepositoryTests : IDisposable
     public async Task LoadAsync_ComBlobAdulteradoNoBanco_DeveLancarCryptographicIntegrityException()
     {
         var repository = CriarRepositorio();
-        await repository.SaveAsync(Vault.CreateNew(), SenhaMestra, Ct);
+        await CriarCofreAsync(repository, Vault.CreateNew(), SenhaMestra);
 
         using (var contexto = _store.CriarContexto())
         {
@@ -177,9 +219,45 @@ public class VaultRepositoryTests : IDisposable
             await contexto.SaveChangesAsync(Ct);
         }
 
-        var act = () => repository.LoadAsync(SenhaMestra, Ct);
+        var act = () => CarregarAsync(repository, SenhaMestra);
 
         await act.Should().ThrowAsync<CryptographicIntegrityException>();
+    }
+
+    [Fact]
+    public async Task ChangeMasterPasswordAsync_DeveRotacionarSaltEChaveAntigaDeixaDeAbrir()
+    {
+        var repository = CriarRepositorio();
+        var vault = Vault.CreateNew();
+        vault.AddItem("GitHub", "senha123", "Dev");
+        await CriarCofreAsync(repository, vault, "senha-antiga");
+        var saltAntigo = ObterUnicoRegistro()!.Salt;
+
+        var novoSalt = _cryptoService.GenerateSalt();
+        var novaChave = DerivarChave("senha-nova", novoSalt);
+        await repository.ChangeMasterPasswordAsync(vault, novaChave, novoSalt, Ct);
+
+        var saltFinal = ObterUnicoRegistro()!.Salt;
+        saltFinal.Should().NotEqual(saltAntigo, "o salt deve ser rotacionado na troca de senha");
+
+        var carregadoComNova = await CarregarAsync(repository, "senha-nova");
+        carregadoComNova.Should().NotBeNull();
+        carregadoComNova!.Items.Should().ContainSingle().Which.Title.Should().Be("GitHub");
+
+        var actAntiga = () => CarregarAsync(repository, "senha-antiga");
+        await actAntiga.Should().ThrowAsync<CryptographicIntegrityException>();
+    }
+
+    [Fact]
+    public async Task ChangeMasterPasswordAsync_QuandoNaoExisteCofre_DeveLancarInvalidOperationException()
+    {
+        var repository = CriarRepositorio();
+        var salSemCofre = _cryptoService.GenerateSalt();
+
+        var act = () => repository.ChangeMasterPasswordAsync(
+            Vault.CreateNew(), DerivarChave("senha-nova", salSemCofre), salSemCofre, Ct);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -187,7 +265,7 @@ public class VaultRepositoryTests : IDisposable
     {
         var repository = CriarRepositorio();
 
-        var act = () => repository.SaveAsync(null!, SenhaMestra, Ct);
+        var act = () => repository.SaveAsync(null!, DerivarChave(SenhaMestra, _cryptoService.GenerateSalt()), Ct);
 
         await act.Should().ThrowAsync<ArgumentNullException>();
     }
@@ -196,6 +274,26 @@ public class VaultRepositoryTests : IDisposable
     {
         var contexto = _store.CriarContexto();
         return new VaultRepository(contexto, _cryptoService);
+    }
+
+    private byte[] DerivarChave(string senha, byte[] salt) => _cryptoService.DeriveKey(senha, salt);
+
+    private async Task CriarCofreAsync(VaultRepository repository, Vault vault, string senha)
+    {
+        var salt = _cryptoService.GenerateSalt();
+        await repository.CreateAsync(vault, DerivarChave(senha, salt), salt, Ct);
+    }
+
+    private async Task SalvarAsync(VaultRepository repository, Vault vault, string senha)
+    {
+        var salt = ObterUnicoRegistro()!.Salt;
+        await repository.SaveAsync(vault, DerivarChave(senha, salt), Ct);
+    }
+
+    private async Task<Vault?> CarregarAsync(VaultRepository repository, string senha)
+    {
+        var salt = ObterUnicoRegistro()!.Salt;
+        return await repository.LoadAsync(DerivarChave(senha, salt), Ct);
     }
 
     private VaultRecord? ObterUnicoRegistro()

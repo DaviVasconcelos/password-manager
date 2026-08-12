@@ -10,9 +10,14 @@ namespace PasswordManager.Infrastructure.Persistence;
 /// <summary>
 /// Implementa o <see cref="IVaultRepository"/> conforme o ADR 0003: o cofre
 /// inteiro é serializado em JSON, criptografado com AES-256-GCM e persistido
-/// como um único registro no SQLite (upsert). Busca e filtro ocorrem em
-/// memória após a descriptografia.
+/// como um único registro no SQLite. Busca e filtro ocorrem em memória após
+/// a descriptografia.
 /// </summary>
+/// <remarks>
+/// O repositório recebe a chave já derivada pela Application (nunca a senha
+/// mestra em si) e é responsável apenas por criptografar/descriptografar
+/// o blob e serializar/desserializar o agregado.
+/// </remarks>
 public sealed class VaultRepository : IVaultRepository
 {
     private const int CurrentSchemaVersion = 1;
@@ -32,8 +37,20 @@ public sealed class VaultRepository : IVaultRepository
         _cryptoService = cryptoService;
     }
 
-    public async Task<Vault?> LoadAsync(string masterPassword, CancellationToken ct = default)
+    public async Task<byte[]?> GetSaltAsync(CancellationToken ct = default)
     {
+        var record = await _dbContext.Vaults
+            .AsNoTracking()
+            .SingleOrDefaultAsync(r => r.Id == SingletonRecordId, ct)
+            .ConfigureAwait(false);
+
+        return record?.Salt;
+    }
+
+    public async Task<Vault?> LoadAsync(byte[] key, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(key);
+
         var record = await _dbContext.Vaults
             .AsNoTracking()
             .SingleOrDefaultAsync(r => r.Id == SingletonRecordId, ct)
@@ -46,7 +63,6 @@ public sealed class VaultRepository : IVaultRepository
             throw new InvalidOperationException(
                 $"O cofre usa uma versão de schema ({record.SchemaVersion}) mais recente do que a suportada ({CurrentSchemaVersion}).");
 
-        var key = _cryptoService.DeriveKey(masterPassword, record.Salt);
         var json = _cryptoService.Decrypt(record.EncryptedBlob, key);
         var data = JsonSerializer.Deserialize<VaultData>(json, JsonOptions)
             ?? throw new InvalidOperationException("Falha ao desserializar o cofre.");
@@ -54,36 +70,70 @@ public sealed class VaultRepository : IVaultRepository
         return VaultDataMapper.ToVault(data);
     }
 
-    public async Task SaveAsync(Vault vault, string masterPassword, CancellationToken ct = default)
+    public async Task SaveAsync(Vault vault, byte[] key, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(vault);
+        ArgumentNullException.ThrowIfNull(key);
 
         var existing = await _dbContext.Vaults
             .SingleOrDefaultAsync(r => r.Id == SingletonRecordId, ct)
             .ConfigureAwait(false);
 
-        var salt = existing?.Salt ?? _cryptoService.GenerateSalt();
-        var key = _cryptoService.DeriveKey(masterPassword, salt);
-        var json = JsonSerializer.Serialize(VaultDataMapper.FromVault(vault), JsonOptions);
-        var encryptedBlob = _cryptoService.Encrypt(Encoding.UTF8.GetBytes(json), key);
+        if (existing is null)
+            throw new InvalidOperationException(
+                "Não existe cofre persistido para atualizar; use CreateAsync para criar o cofre.");
+
+        existing.SchemaVersion = CurrentSchemaVersion;
+        existing.EncryptedBlob = Criptografar(vault, key);
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task CreateAsync(Vault vault, byte[] key, byte[] salt, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(vault);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(salt);
+
+        var existing = await _dbContext.Vaults
+            .SingleOrDefaultAsync(r => r.Id == SingletonRecordId, ct)
+            .ConfigureAwait(false);
+
+        if (existing is not null)
+            throw new InvalidOperationException(
+                "Já existe um cofre persistido nesta instalação; não é possível criar outro.");
+
+        _dbContext.Vaults.Add(new VaultRecord
+        {
+            Id = SingletonRecordId,
+            SchemaVersion = CurrentSchemaVersion,
+            Salt = salt,
+            EncryptedBlob = Criptografar(vault, key),
+            UpdatedAt = DateTime.UtcNow
+        });
+
+        await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task ChangeMasterPasswordAsync(Vault vault, byte[] newKey, byte[] newSalt, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(vault);
+        ArgumentNullException.ThrowIfNull(newKey);
+        ArgumentNullException.ThrowIfNull(newSalt);
+
+        var existing = await _dbContext.Vaults
+            .SingleOrDefaultAsync(r => r.Id == SingletonRecordId, ct)
+            .ConfigureAwait(false);
 
         if (existing is null)
-        {
-            _dbContext.Vaults.Add(new VaultRecord
-            {
-                Id = SingletonRecordId,
-                SchemaVersion = CurrentSchemaVersion,
-                Salt = salt,
-                EncryptedBlob = encryptedBlob,
-                UpdatedAt = DateTime.UtcNow
-            });
-        }
-        else
-        {
-            existing.SchemaVersion = CurrentSchemaVersion;
-            existing.EncryptedBlob = encryptedBlob;
-            existing.UpdatedAt = DateTime.UtcNow;
-        }
+            throw new InvalidOperationException(
+                "Não existe cofre persistido para alterar a senha mestra; use CreateAsync para criar o cofre.");
+
+        existing.SchemaVersion = CurrentSchemaVersion;
+        existing.Salt = newSalt;
+        existing.EncryptedBlob = Criptografar(vault, newKey);
+        existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync(ct).ConfigureAwait(false);
     }
@@ -93,5 +143,11 @@ public sealed class VaultRepository : IVaultRepository
         return _dbContext.Vaults
             .AsNoTracking()
             .AnyAsync(ct);
+    }
+
+    private byte[] Criptografar(Vault vault, byte[] key)
+    {
+        var json = JsonSerializer.Serialize(VaultDataMapper.FromVault(vault), JsonOptions);
+        return _cryptoService.Encrypt(Encoding.UTF8.GetBytes(json), key);
     }
 }
