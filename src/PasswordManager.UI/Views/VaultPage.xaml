@@ -27,7 +27,7 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="Cofre de senhas" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Trancar" Command="{x:Bind ViewModel.TrancarCommand}" />
+            <Button Grid.Column="1" Content="Trancar" Command="{x:Bind ViewModel.LockCommand}" />
         </Grid>
 
         <Grid Grid.Row="1" ColumnSpacing="8">
@@ -40,7 +40,7 @@
                      Text="{x:Bind ViewModel.TermoBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                      PlaceholderText="Buscar por título, usuário, URL, notas ou categoria..." />
             <ComboBox Grid.Column="1"
-                      ItemsSource="{x:Bind ViewModel.OpcoesPasta}"
+                      ItemsSource="{x:Bind ViewModel.FolderOptions}"
                       SelectedItem="{x:Bind ViewModel.OpcaoPastaSelecionada, Mode=TwoWay}"
                       DisplayMemberPath="Nome"
                       VerticalAlignment="Center" />
@@ -49,7 +49,7 @@
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
             <Button Content="Novo item" Click="OnNovoItemClick" />
-            <Button Content="Editar" IsEnabled="{x:Bind ViewModel.PodeEditarItem, Mode=OneWay}" Click="OnEditarItemClick" />
+            <Button Content="Editar" IsEnabled="{x:Bind ViewModel.CanEditItem, Mode=OneWay}" Click="OnEditarItemClick" />
             <Button Content="Copiar senha" Command="{x:Bind ViewModel.CopiarSenhaCommand}" />
             <Button Content="Excluir" Command="{x:Bind ViewModel.RemoverItemCommand}" />
             <TextBlock Text="Senha copiada (área de transferência será limpa em 30 s)."
@@ -59,7 +59,7 @@
         </StackPanel>
 
         <ListView Grid.Row="3"
-                  ItemsSource="{x:Bind ViewModel.ItensExibidos}"
+                  ItemsSource="{x:Bind ViewModel.DisplayedItems}"
                   SelectedItem="{x:Bind ViewModel.ItemSelecionado, Mode=TwoWay}"
                   SelectionMode="Single"
                   DoubleTapped="OnItemDoubleTapped">

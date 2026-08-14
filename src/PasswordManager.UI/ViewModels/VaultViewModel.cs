@@ -14,7 +14,7 @@ namespace PasswordManager.UI.ViewModels;
 /// <summary>
 /// Representa uma opção de pasta (ou "todas as pastas") em filtros/combos.
 /// </summary>
-public sealed record FolderOption(string Nome, VaultFolder? Pasta);
+public sealed record OpcoesPasta(string Nome, VaultFolder? Pasta);
 
 /// <summary>
 /// ViewModel da tela principal: lista de itens com busca e filtro por pasta,
@@ -28,7 +28,7 @@ public partial class VaultViewModel : ObservableObject
     private readonly DispatcherQueueTimer _timerLimparClipboard;
 
     public ObservableCollection<VaultItem> DisplayedItems { get; } = new();
-    public ObservableCollection<FolderOption> FolderOptions { get; } = new();
+    public ObservableCollection<OpcoesPasta> FolderOptions { get; } = new();
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(CanEditItem))]
@@ -40,7 +40,7 @@ public partial class VaultViewModel : ObservableObject
     private string? termoBusca;
 
     [ObservableProperty]
-    private FolderOption? opcaoPastaSelecionada;
+    private OpcoesPasta? opcaoPastaSelecionada;
 
     [ObservableProperty]
     private bool senhaCopiada;
@@ -62,7 +62,7 @@ public partial class VaultViewModel : ObservableObject
 
     partial void OnTermoBuscaChanged(string? value) => AddFilter();
 
-    partial void OnOpcaoPastaSelecionadaChanged(FolderOption? value) => AddFilter();
+    partial void OnOpcaoPastaSelecionadaChanged(OpcoesPasta? value) => AddFilter();
 
     public void Inicializar() => ReloadFolders();
 
@@ -75,10 +75,10 @@ public partial class VaultViewModel : ObservableObject
         var selected = OpcaoPastaSelecionada?.Pasta?.Id;
 
         FolderOptions.Clear();
-        FolderOptions.Add(new FolderOption("Todas as pastas", null));
+        FolderOptions.Add(new OpcoesPasta("Todas as pastas", null));
 
         foreach (var pasta in _sessionService.CurrentVault.Folders)
-            FolderOptions.Add(new FolderOption(pasta.Name, pasta));
+            FolderOptions.Add(new OpcoesPasta(pasta.Name, pasta));
 
         OpcaoPastaSelecionada = selected is null
             ? FolderOptions.First()

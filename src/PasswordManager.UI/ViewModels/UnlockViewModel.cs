@@ -29,7 +29,7 @@ public partial class UnlockViewModel : ObservableObject
     private string? erro;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TitleMode))]
+    [NotifyPropertyChangedFor(nameof(TituloModo))]
     private bool modoCriar;
 
     [ObservableProperty]
@@ -42,7 +42,7 @@ public partial class UnlockViewModel : ObservableObject
     /// </summary>
     public event Action? Unlocked;
 
-    public string TitleMode => ModoCriar ? "Criar novo cofre" : "Desbloquear cofre";
+    public string TituloModo => ModoCriar ? "Criar novo cofre" : "Desbloquear cofre";
 
     public UnlockViewModel(IVaultSessionService sessionService)
     {

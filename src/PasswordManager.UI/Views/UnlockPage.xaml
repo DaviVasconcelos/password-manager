@@ -33,11 +33,11 @@
                        Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
 
             <Button Content="Desbloquear"
-                    Command="{x:Bind ViewModel.DesbloquearCommand}"
+                    Command="{x:Bind ViewModel.UnlockCommand}"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolInvertidoParaVisibilidade}}" />
 
             <Button Content="Criar cofre"
-                    Command="{x:Bind ViewModel.CriarCommand}"
+                    Command="{x:Bind ViewModel.CreateCommand}"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
             <ProgressRing IsActive="{x:Bind ViewModel.Ocupado, Mode=OneWay}" Width="32" Height="32" HorizontalAlignment="Center" />

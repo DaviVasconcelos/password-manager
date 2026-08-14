@@ -8,8 +8,8 @@ public interface IPasswordGenerator
 {
     /// <summary>
     /// Gera uma senha com o comprimento e as classes de caracteres
-    /// informadas. Valores padrão: 20 caracteres com todas as classes.
+    /// informadas. Valores padrão: 16 caracteres com todas as classes.
     /// </summary>
-    string Generate(int length = 20, bool includeLowercase = true, bool includeUppercase = true,
+    string Generate(int length = 16, bool includeLowercase = true, bool includeUppercase = true,
         bool includeDigits = true, bool includeSymbols = true);
 }
