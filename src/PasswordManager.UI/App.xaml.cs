@@ -58,19 +58,19 @@ namespace PasswordManager.UI
 
             services.AddSingleton<VaultDbContext>(_ =>
             {
-                var caminhoBanco = Path.Combine(
+                var bankPath = Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "PasswordManager", "vault.db");
 
-                Directory.CreateDirectory(Path.GetDirectoryName(caminhoBanco)!);
+                Directory.CreateDirectory(Path.GetDirectoryName(bankPath)!);
 
                 var options = new DbContextOptionsBuilder<VaultDbContext>()
-                    .UseSqlite($"Data Source={caminhoBanco}")
+                    .UseSqlite($"Data Source={bankPath}")
                     .Options;
 
-                var contexto = new VaultDbContext(options);
-                contexto.Database.EnsureCreated();
-                return contexto;
+                var context = new VaultDbContext(options);
+                context.Database.EnsureCreated();
+                return context;
             });
 
             services.AddSingleton<IVaultRepository, VaultRepository>();

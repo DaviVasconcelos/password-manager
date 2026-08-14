@@ -40,13 +40,13 @@ public sealed partial class VaultPage : Page
     private async void OnNovoItemClick(object sender, RoutedEventArgs e)
     {
         var editor = new ItemEditorContent();
-        editor.ViewModel.CarregarParaCriacao(ViewModel.OpcoesPasta);
+        editor.ViewModel.CarregarParaCriacao(ViewModel.FolderOptions);
 
         var dialogo = CriarDialogo("Novo item", editor);
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
-        await ViewModel.AdicionarItemAsync(
+        await ViewModel.AddItemAsync(
             editor.ViewModel.Titulo,
             editor.ViewModel.Senha,
             editor.ViewModel.Categoria,
@@ -71,13 +71,13 @@ public sealed partial class VaultPage : Page
     private async Task EditarItemAsync(VaultItem item)
     {
         var editor = new ItemEditorContent();
-        editor.ViewModel.CarregarParaEdicao(item, ViewModel.OpcoesPasta);
+        editor.ViewModel.CarregarParaEdicao(item, ViewModel.FolderOptions);
 
         var dialogo = CriarDialogo("Editar item", editor);
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
-        await ViewModel.AtualizarItemAsync(
+        await ViewModel.ReloadItemAsync(
             item.Id,
             editor.ViewModel.Titulo,
             editor.ViewModel.Senha,
@@ -99,7 +99,7 @@ public sealed partial class VaultPage : Page
         };
 
         await dialogo.ShowAsync();
-        ViewModel.AtualizarPastas();
+        ViewModel.ReloadFolders();
     }
 
     private ContentDialog CriarDialogo(string titulo, object conteudo)

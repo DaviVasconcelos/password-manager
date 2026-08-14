@@ -16,410 +16,410 @@ public class VaultSessionServiceTests
     private VaultSessionService CriarServico() => new(_repository, _cryptoService);
 
     [Fact]
-    public void Desbloqueado_QuandoSessaoInicial_DeveRetornarFalse()
+    public void Unlocked_QuandoSessaoInicial_DeveRetornarFalse()
     {
         var servico = CriarServico();
 
-        servico.Desbloqueado.Should().BeFalse();
+        servico.Unlocked.Should().BeFalse();
     }
 
     [Fact]
-    public void VaultAtual_QuandoSessaoTrancada_DeveLancarInvalidOperationException()
+    public void CurrentVault_QuandoSessaoTrancada_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.VaultAtual;
+        var act = () => servico.CurrentVault;
 
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task CriarAsync_QuandoNaoHaCofre_DeveCriarPersistirEDesbloquear()
+    public async Task CreateAsync_QuandoNaoHaCofre_DeveCriarPersistirEDesbloquear()
     {
         var servico = CriarServico();
 
-        var vault = await servico.CriarAsync(SenhaMestra);
+        var vault = await servico.CreateAsync(SenhaMestra);
 
         vault.Should().NotBeNull();
-        servico.Desbloqueado.Should().BeTrue();
-        servico.VaultAtual.Should().BeSameAs(vault);
+        servico.Unlocked.Should().BeTrue();
+        servico.CurrentVault.Should().BeSameAs(vault);
         _repository.VaultPersistido.Should().BeSameAs(vault);
         _repository.SaltPersistido.Should().NotBeNull();
     }
 
     [Fact]
-    public async Task CriarAsync_QuandoJaHaCofre_DeveLancarInvalidOperationException()
+    public async Task CreateAsync_QuandoJaHaCofre_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        servico.Trancar();
+        await servico.CreateAsync(SenhaMestra);
+        servico.Lock();
 
-        var act = () => servico.CriarAsync("outra-senha");
+        var act = () => servico.CreateAsync("outra-senha");
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task CriarAsync_QuandoJaDesbloqueado_DeveLancarInvalidOperationException()
+    public async Task CreateAsync_QuandoJaUnlocked_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        var act = () => servico.CriarAsync("outra-senha");
+        var act = () => servico.CreateAsync("outra-senha");
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task CriarAsync_ComSenhaVazia_DeveLancarArgumentExceptionESemDesbloquear()
+    public async Task CreateAsync_ComSenhaVazia_DeveLancarArgumentExceptionESemDesbloquear()
     {
         var servico = CriarServico();
 
-        var act = () => servico.CriarAsync(string.Empty);
+        var act = () => servico.CreateAsync(string.Empty);
 
         await act.Should().ThrowAsync<ArgumentException>();
-        servico.Desbloqueado.Should().BeFalse();
+        servico.Unlocked.Should().BeFalse();
     }
 
     [Fact]
-    public async Task DesbloquearAsync_ComSenhaCorreta_DeveCarregarVaultEDesbloquear()
+    public async Task UnlockAsync_ComSenhaCorreta_DeveCarregarVaultEDesbloquear()
     {
         var servico = CriarServico();
-        var criado = await servico.CriarAsync(SenhaMestra);
-        servico.Trancar();
+        var criado = await servico.CreateAsync(SenhaMestra);
+        servico.Lock();
 
-        var vault = await servico.DesbloquearAsync(SenhaMestra);
+        var vault = await servico.UnlockAsync(SenhaMestra);
 
         vault.Should().NotBeNull();
         vault.Id.Should().Be(criado.Id);
-        servico.Desbloqueado.Should().BeTrue();
+        servico.Unlocked.Should().BeTrue();
     }
 
     [Fact]
-    public async Task DesbloquearAsync_ComSenhaErrada_DeveLancarIntegrityExceptionEManterSessaoTrancada()
+    public async Task UnlockAsync_ComSenhaErrada_DeveLancarIntegrityExceptionEManterSessaoTrancada()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        servico.Trancar();
+        await servico.CreateAsync(SenhaMestra);
+        servico.Lock();
 
-        var act = () => servico.DesbloquearAsync("senha-errada");
+        var act = () => servico.UnlockAsync("senha-errada");
 
         await act.Should().ThrowAsync<CryptographicIntegrityException>();
-        servico.Desbloqueado.Should().BeFalse();
+        servico.Unlocked.Should().BeFalse();
     }
 
     [Fact]
-    public async Task DesbloquearAsync_QuandoNaoHaCofre_DeveLancarInvalidOperationException()
+    public async Task UnlockAsync_QuandoNaoHaCofre_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.DesbloquearAsync(SenhaMestra);
+        var act = () => servico.UnlockAsync(SenhaMestra);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task DesbloquearAsync_QuandoJaDesbloqueado_DeveLancarInvalidOperationException()
+    public async Task UnlockAsync_QuandoJaUnlocked_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        var act = () => servico.DesbloquearAsync(SenhaMestra);
+        var act = () => servico.UnlockAsync(SenhaMestra);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task Trancar_QuandoDesbloqueado_DeveLimparVaultEEstado()
+    public async Task Lock_QuandoUnlocked_DeveLimparVaultEEstado()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        servico.Trancar();
+        servico.Lock();
 
-        servico.Desbloqueado.Should().BeFalse();
-        var act = () => servico.VaultAtual;
+        servico.Unlocked.Should().BeFalse();
+        var act = () => servico.CurrentVault;
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task Trancar_QuandoJaTrancado_DeveSerInofensivo()
+    public async Task Lock_QuandoJaTrancado_DeveSerInofensivo()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        servico.Trancar();
+        await servico.CreateAsync(SenhaMestra);
+        servico.Lock();
 
-        var act = () => servico.Trancar();
+        var act = () => servico.Lock();
 
         act.Should().NotThrow();
     }
 
     [Fact]
-    public async Task TrocarSenhaMestraAsync_QuandoDesbloqueado_DeveRotacionarSaltEChave()
+    public async Task ChangeMasterPasswordAsync_QuandoUnlocked_DeveRotacionarSaltEChave()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
         var saltAntigo = _repository.SaltPersistido!;
 
-        await servico.TrocarSenhaMestraAsync(NovaSenha);
+        await servico.ChangeMasterPasswordAsync(NovaSenha);
 
         var saltNovo = _repository.SaltPersistido!;
         saltNovo.Should().NotEqual(saltAntigo);
 
-        servico.Trancar();
-        (await servico.DesbloquearAsync(NovaSenha)).Should().NotBeNull();
+        servico.Lock();
+        (await servico.UnlockAsync(NovaSenha)).Should().NotBeNull();
 
-        servico.Trancar();
-        var act = () => servico.DesbloquearAsync(SenhaMestra);
+        servico.Lock();
+        var act = () => servico.UnlockAsync(SenhaMestra);
         await act.Should().ThrowAsync<CryptographicIntegrityException>();
     }
 
     [Fact]
-    public async Task TrocarSenhaMestraAsync_QuandoTrancado_DeveLancarInvalidOperationException()
+    public async Task ChangeMasterPasswordAsync_QuandoTrancado_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.TrocarSenhaMestraAsync(NovaSenha);
+        var act = () => servico.ChangeMasterPasswordAsync(NovaSenha);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task TrocarSenhaMestraAsync_ComSenhaVazia_DeveLancarArgumentExceptionESemAlterarSalt()
+    public async Task ChangeMasterPasswordAsync_ComSenhaVazia_DeveLancarArgumentExceptionESemAlterarSalt()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
         var saltAntigo = _repository.SaltPersistido!;
 
-        var act = () => servico.TrocarSenhaMestraAsync(string.Empty);
+        var act = () => servico.ChangeMasterPasswordAsync(string.Empty);
 
         await act.Should().ThrowAsync<ArgumentException>();
         _repository.SaltPersistido.Should().Equal(saltAntigo);
     }
 
     [Fact]
-    public async Task SalvarAsync_QuandoDesbloqueado_DevePersistirVaultComChaveRetida()
+    public async Task SaveAsync_QuandoUnlocked_DevePersistirVaultComChaveRetida()
     {
         var servico = CriarServico();
-        var vault = await servico.CriarAsync(SenhaMestra);
+        var vault = await servico.CreateAsync(SenhaMestra);
         vault.AddItem("GitHub", "senha123", "Dev");
 
-        await servico.SalvarAsync();
+        await servico.SaveAsync();
 
-        servico.Trancar();
-        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
         recarregado.Items.Should().ContainSingle().Which.Title.Should().Be("GitHub");
     }
 
     [Fact]
-    public async Task SalvarAsync_QuandoTrancado_DeveLancarInvalidOperationException()
+    public async Task SaveAsync_QuandoTrancado_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.SalvarAsync();
+        var act = () => servico.SaveAsync();
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task ExisteCofreAsync_QuandoNaoHaCofre_DeveRetornarFalse()
+    public async Task VaultExistsAsync_QuandoNaoHaCofre_DeveRetornarFalse()
     {
         var servico = CriarServico();
 
-        (await servico.ExisteCofreAsync()).Should().BeFalse();
+        (await servico.VaultExistsAsync()).Should().BeFalse();
     }
 
     [Fact]
-    public async Task ExisteCofreAsync_QuandoHaCofre_DeveRetornarTrue()
+    public async Task VaultExistsAsync_QuandoHaCofre_DeveRetornarTrue()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        (await servico.ExisteCofreAsync()).Should().BeTrue();
+        (await servico.VaultExistsAsync()).Should().BeTrue();
     }
 
     [Fact]
-    public async Task AdicionarItemAsync_QuandoDesbloqueado_DeveAdicionarEPersistir()
+    public async Task AddItemAsync_QuandoUnlocked_DeveAdicionarEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
 
-        servico.VaultAtual.Items.Should().Contain(item);
-        servico.Trancar();
-        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        servico.CurrentVault.Items.Should().Contain(item);
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
         recarregado.Items.Should().ContainSingle().Which.Id.Should().Be(item.Id);
     }
 
     [Fact]
-    public async Task AdicionarItemAsync_QuandoTrancado_DeveLancarInvalidOperationException()
+    public async Task AddItemAsync_QuandoTrancado_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        var act = () => servico.AddItemAsync("GitHub", "senha123", "Dev");
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task AtualizarItemAsync_QuandoDesbloqueado_DeveAtualizarEPersistir()
+    public async Task ReloadItemAsync_QuandoUnlocked_DeveAtualizarEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.CreateAsync(SenhaMestra);
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
 
-        await servico.AtualizarItemAsync(item.Id, "GitHub Enterprise", "nova-senha", "Trabalho");
+        await servico.ReloadItemAsync(item.Id, "GitHub Enterprise", "nova-senha", "Trabalho");
 
-        var atualizado = servico.VaultAtual.Items.Single(i => i.Id == item.Id);
+        var atualizado = servico.CurrentVault.Items.Single(i => i.Id == item.Id);
         atualizado.Title.Should().Be("GitHub Enterprise");
         atualizado.Password.Should().Be("nova-senha");
         atualizado.Category.Should().Be("Trabalho");
     }
 
     [Fact]
-    public async Task AtualizarItemAsync_ComIdInexistente_DeveLancarInvalidOperationException()
+    public async Task ReloadItemAsync_ComIdInexistente_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        var act = () => servico.AtualizarItemAsync(Guid.NewGuid(), "Título", "senha", "Categoria");
+        var act = () => servico.ReloadItemAsync(Guid.NewGuid(), "Título", "senha", "Categoria");
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
-    public async Task RemoverItemAsync_QuandoDesbloqueado_DeveRemoverEPersistir()
+    public async Task RemoveItemAsync_QuandoUnlocked_DeveRemoverEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.CreateAsync(SenhaMestra);
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
 
-        await servico.RemoverItemAsync(item.Id);
+        await servico.RemoveItemAsync(item.Id);
 
-        servico.VaultAtual.Items.Should().BeEmpty();
-        servico.Trancar();
-        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        servico.CurrentVault.Items.Should().BeEmpty();
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
         recarregado.Items.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task AdicionarPastaAsync_QuandoDesbloqueado_DeveAdicionarEPersistir()
+    public async Task AddFolderAsync_QuandoUnlocked_DeveAdicionarEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
+        await servico.CreateAsync(SenhaMestra);
 
-        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+        var pasta = await servico.AddFolderAsync("Trabalho");
 
-        servico.VaultAtual.Folders.Should().Contain(pasta);
-        servico.Trancar();
-        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        servico.CurrentVault.Folders.Should().Contain(pasta);
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
         recarregado.Folders.Should().ContainSingle().Which.Id.Should().Be(pasta.Id);
     }
 
     [Fact]
-    public async Task RenomearPastaAsync_QuandoDesbloqueado_DeveRenomearEPersistir()
+    public async Task RenameFolderAsync_QuandoUnlocked_DeveRenomearEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+        await servico.CreateAsync(SenhaMestra);
+        var pasta = await servico.AddFolderAsync("Trabalho");
 
-        await servico.RenomearPastaAsync(pasta.Id, "Pessoal");
+        await servico.RenameFolderAsync(pasta.Id, "Pessoal");
 
-        servico.VaultAtual.Folders.Single().Name.Should().Be("Pessoal");
+        servico.CurrentVault.Folders.Single().Name.Should().Be("Pessoal");
     }
 
     [Fact]
-    public async Task RemoverPastaAsync_QuandoDesbloqueado_DeveRemoverPastaEDesassociarItens()
+    public async Task RemoverPastaAsync_QuandoUnlocked_DeveRemoverPastaEDesassociarItens()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var pasta = await servico.AdicionarPastaAsync("Trabalho");
-        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
-        await servico.AtribuirItemAPastaAsync(item.Id, pasta.Id);
+        await servico.CreateAsync(SenhaMestra);
+        var pasta = await servico.AddFolderAsync("Trabalho");
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
+        await servico.AssignItemToFolderAsync(item.Id, pasta.Id);
 
-        await servico.RemoverPastaAsync(pasta.Id);
+        await servico.RemoveFolderAsync(pasta.Id);
 
-        servico.VaultAtual.Folders.Should().BeEmpty();
-        servico.VaultAtual.Items.Single().FolderId.Should().BeNull();
+        servico.CurrentVault.Folders.Should().BeEmpty();
+        servico.CurrentVault.Items.Single().FolderId.Should().BeNull();
     }
 
     [Fact]
-    public async Task AtribuirItemAPastaAsync_QuandoDesbloqueado_DeveAssociarEPersistir()
+    public async Task AssignItemToFolderAsync_QuandoUnlocked_DeveAssociarEPersistir()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var pasta = await servico.AdicionarPastaAsync("Trabalho");
-        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.CreateAsync(SenhaMestra);
+        var pasta = await servico.AddFolderAsync("Trabalho");
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
 
-        await servico.AtribuirItemAPastaAsync(item.Id, pasta.Id);
+        await servico.AssignItemToFolderAsync(item.Id, pasta.Id);
 
-        servico.VaultAtual.Items.Single(i => i.Id == item.Id).FolderId.Should().Be(pasta.Id);
-        servico.Trancar();
-        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        servico.CurrentVault.Items.Single(i => i.Id == item.Id).FolderId.Should().Be(pasta.Id);
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
         recarregado.Items.Single(i => i.Id == item.Id).FolderId.Should().Be(pasta.Id);
     }
 
     [Fact]
-    public async Task BuscarItens_SemFiltros_DeveRetornarTodosOsItens()
+    public async Task SearchItems_SemFiltros_DeveRetornarTodosOsItens()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
-        await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
+        await servico.CreateAsync(SenhaMestra);
+        await servico.AddItemAsync("GitHub", "senha123", "Dev");
+        await servico.AddItemAsync("Gmail", "senha456", "Email");
 
-        var resultado = servico.BuscarItens();
+        var resultado = servico.SearchItems();
 
         resultado.Should().HaveCount(2);
     }
 
     [Fact]
-    public async Task BuscarItens_ComTermoNoTitulo_DeveFiltrar()
+    public async Task SearchItems_ComTermoNoTitulo_DeveFiltrar()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
-        await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
+        await servico.CreateAsync(SenhaMestra);
+        await servico.AddItemAsync("GitHub", "senha123", "Dev");
+        await servico.AddItemAsync("Gmail", "senha456", "Email");
 
-        var resultado = servico.BuscarItens(termo: "git");
+        var resultado = servico.SearchItems(termo: "git");
 
         resultado.Should().ContainSingle().Which.Title.Should().Be("GitHub");
     }
 
     [Fact]
-    public async Task BuscarItens_ComTermoNoUsuario_DeveFiltrar()
+    public async Task SearchItems_ComTermoNoUsuario_DeveFiltrar()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev", username: "davi@acme");
-        await servico.AdicionarItemAsync("Gmail", "senha456", "Email", username: "joao@acme");
+        await servico.CreateAsync(SenhaMestra);
+        await servico.AddItemAsync("GitHub", "senha123", "Dev", username: "davi@acme");
+        await servico.AddItemAsync("Gmail", "senha456", "Email", username: "joao@acme");
 
-        var resultado = servico.BuscarItens(termo: "davi");
+        var resultado = servico.SearchItems(termo: "davi");
 
         resultado.Should().ContainSingle().Which.Username.Should().Be("davi@acme");
     }
 
     [Fact]
-    public async Task BuscarItens_ComPasta_DeveFiltrarPorPasta()
+    public async Task SearchItems_ComPasta_DeveFiltrarPorPasta()
     {
         var servico = CriarServico();
-        await servico.CriarAsync(SenhaMestra);
-        var pasta = await servico.AdicionarPastaAsync("Trabalho");
-        var itemNaPasta = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
-        var itemSolto = await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
-        await servico.AtribuirItemAPastaAsync(itemNaPasta.Id, pasta.Id);
+        await servico.CreateAsync(SenhaMestra);
+        var pasta = await servico.AddFolderAsync("Trabalho");
+        var itemNaPasta = await servico.AddItemAsync("GitHub", "senha123", "Dev");
+        var itemSolto = await servico.AddItemAsync("Gmail", "senha456", "Email");
+        await servico.AssignItemToFolderAsync(itemNaPasta.Id, pasta.Id);
 
-        var resultado = servico.BuscarItens(pastaId: pasta.Id);
+        var resultado = servico.SearchItems(pastaId: pasta.Id);
 
         resultado.Should().ContainSingle().Which.Id.Should().Be(itemNaPasta.Id);
     }
 
     [Fact]
-    public void BuscarItens_QuandoTrancado_DeveLancarInvalidOperationException()
+    public void SearchItems_QuandoTrancado_DeveLancarInvalidOperationException()
     {
         var servico = CriarServico();
 
-        var act = () => servico.BuscarItens();
+        var act = () => servico.SearchItems();
 
         act.Should().Throw<InvalidOperationException>();
     }

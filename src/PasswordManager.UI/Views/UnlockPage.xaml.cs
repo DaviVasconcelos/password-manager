@@ -18,7 +18,7 @@ public sealed partial class UnlockPage : Page
     {
         ViewModel = App.Services.GetRequiredService<UnlockViewModel>();
         InitializeComponent();
-        ViewModel.Desbloqueado += OnDesbloqueado;
+        ViewModel.Unlocked += OnDesbloqueado;
 
         SenhaMestraBox.PasswordChanged += (_, _) => ViewModel.SenhaMestra = SenhaMestraBox.Password;
         ConfirmacaoBox.PasswordChanged += (_, _) => ViewModel.ConfirmacaoSenha = ConfirmacaoBox.Password;
@@ -30,7 +30,7 @@ public sealed partial class UnlockPage : Page
 
         try
         {
-            await ViewModel.InicializarAsync();
+            await ViewModel.InitializeAsync();
         }
         catch (Exception ex)
         {

@@ -25,19 +25,19 @@ public sealed class VaultSessionService : IVaultSessionService
         _cryptoService = cryptoService;
     }
 
-    public bool Desbloqueado => _vault is not null;
+    public bool Unlocked => _vault is not null;
 
-    public Vault VaultAtual =>
+    public Vault CurrentVault =>
         _vault ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes de acessá-lo.");
 
-    public async Task<bool> ExisteCofreAsync(CancellationToken ct = default)
+    public async Task<bool> VaultExistsAsync(CancellationToken ct = default)
         => await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false);
 
-    public async Task<Vault> CriarAsync(string senhaMestra, CancellationToken ct = default)
+    public async Task<Vault> CreateAsync(string senhaMestra, CancellationToken ct = default)
     {
         ValidarSenhaMestra(senhaMestra);
 
-        if (Desbloqueado)
+        if (Unlocked)
             throw new InvalidOperationException("A sessão já está desbloqueada; tranque o cofre antes de criar outro.");
 
         if (await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false))
@@ -53,11 +53,11 @@ public sealed class VaultSessionService : IVaultSessionService
         return vault;
     }
 
-    public async Task<Vault> DesbloquearAsync(string senhaMestra, CancellationToken ct = default)
+    public async Task<Vault> UnlockAsync(string senhaMestra, CancellationToken ct = default)
     {
         ValidarSenhaMestra(senhaMestra);
 
-        if (Desbloqueado)
+        if (Unlocked)
             throw new InvalidOperationException("A sessão já está desbloqueada; tranque o cofre antes de desbloquear novamente.");
 
         var salt = await _vaultRepository.GetSaltAsync(ct).ConfigureAwait(false)
@@ -71,7 +71,7 @@ public sealed class VaultSessionService : IVaultSessionService
         return vault;
     }
 
-    public void Trancar()
+    public void Lock()
     {
         if (_chave is not null)
         {
@@ -82,11 +82,11 @@ public sealed class VaultSessionService : IVaultSessionService
         _vault = null;
     }
 
-    public async Task TrocarSenhaMestraAsync(string novaSenhaMestra, CancellationToken ct = default)
+    public async Task ChangeMasterPasswordAsync(string novaSenhaMestra, CancellationToken ct = default)
     {
         ValidarSenhaMestra(novaSenhaMestra);
 
-        var vault = VaultAtual;
+        var vault = CurrentVault;
         var novoSalt = _cryptoService.GenerateSalt();
         var novaChave = _cryptoService.DeriveKey(novaSenhaMestra, novoSalt);
 
@@ -95,63 +95,63 @@ public sealed class VaultSessionService : IVaultSessionService
         SubstituirChave(novaChave);
     }
 
-    public async Task SalvarAsync(CancellationToken ct = default)
+    public async Task SaveAsync(CancellationToken ct = default)
     {
-        var vault = VaultAtual;
+        var vault = CurrentVault;
         var chave = _chave ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes.");
 
         await _vaultRepository.SaveAsync(vault, chave, ct).ConfigureAwait(false);
     }
 
-    public async Task<VaultItem> AdicionarItemAsync(string title, string password, string category,
+    public async Task<VaultItem> AddItemAsync(string title, string password, string category,
         string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
     {
-        var item = VaultAtual.AddItem(title, password, category, username, url, notes);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        var item = CurrentVault.AddItem(title, password, category, username, url, notes);
+        await SaveAsync(ct).ConfigureAwait(false);
         return item;
     }
 
-    public async Task AtualizarItemAsync(Guid itemId, string title, string password, string category,
+    public async Task ReloadItemAsync(Guid itemId, string title, string password, string category,
         string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
     {
-        VaultAtual.UpdateItem(itemId, title, password, category, username, url, notes);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        CurrentVault.UpdateItem(itemId, title, password, category, username, url, notes);
+        await SaveAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task RemoverItemAsync(Guid itemId, CancellationToken ct = default)
+    public async Task RemoveItemAsync(Guid itemId, CancellationToken ct = default)
     {
-        VaultAtual.RemoveItem(itemId);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        CurrentVault.RemoveItem(itemId);
+        await SaveAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task<VaultFolder> AdicionarPastaAsync(string name, CancellationToken ct = default)
+    public async Task<VaultFolder> AddFolderAsync(string name, CancellationToken ct = default)
     {
-        var pasta = VaultAtual.AddFolder(name);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        var pasta = CurrentVault.AddFolder(name);
+        await SaveAsync(ct).ConfigureAwait(false);
         return pasta;
     }
 
-    public async Task RenomearPastaAsync(Guid folderId, string name, CancellationToken ct = default)
+    public async Task RenameFolderAsync(Guid folderId, string name, CancellationToken ct = default)
     {
-        VaultAtual.RenameFolder(folderId, name);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        CurrentVault.RenameFolder(folderId, name);
+        await SaveAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task RemoverPastaAsync(Guid folderId, CancellationToken ct = default)
+    public async Task RemoveFolderAsync(Guid folderId, CancellationToken ct = default)
     {
-        VaultAtual.RemoveFolder(folderId);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        CurrentVault.RemoveFolder(folderId);
+        await SaveAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task AtribuirItemAPastaAsync(Guid itemId, Guid? folderId, CancellationToken ct = default)
+    public async Task AssignItemToFolderAsync(Guid itemId, Guid? folderId, CancellationToken ct = default)
     {
-        VaultAtual.AssignItemToFolder(itemId, folderId);
-        await SalvarAsync(ct).ConfigureAwait(false);
+        CurrentVault.AssignItemToFolder(itemId, folderId);
+        await SaveAsync(ct).ConfigureAwait(false);
     }
 
-    public IReadOnlyList<VaultItem> BuscarItens(string? termo = null, Guid? pastaId = null)
+    public IReadOnlyList<VaultItem> SearchItems(string? termo = null, Guid? pastaId = null)
     {
-        IEnumerable<VaultItem> itens = VaultAtual.Items;
+        IEnumerable<VaultItem> itens = CurrentVault.Items;
 
         if (pastaId is not null)
             itens = itens.Where(i => i.FolderId == pastaId);

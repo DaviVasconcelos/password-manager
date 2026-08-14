@@ -18,7 +18,7 @@ public partial class ItemEditorViewModel : ObservableObject
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IPasswordStrengthEvaluator _strengthEvaluator;
 
-    public ObservableCollection<OpcaoPasta> OpcoesPasta { get; } = new();
+    public ObservableCollection<FolderOption> FolderOptions { get; } = new();
 
     [ObservableProperty]
     private string titulo = string.Empty;
@@ -44,7 +44,7 @@ public partial class ItemEditorViewModel : ObservableObject
     private ForcaSenha forcaSenha = ForcaSenha.Fraca;
 
     [ObservableProperty]
-    private OpcaoPasta? pastaSelecionada;
+    private FolderOption? pastaSelecionada;
 
     public Guid? ItemId { get; private set; }
 
@@ -63,7 +63,7 @@ public partial class ItemEditorViewModel : ObservableObject
 
     partial void OnSenhaChanged(string value) => ForcaSenha = _strengthEvaluator.Avaliar(value);
 
-    public void CarregarParaEdicao(VaultItem item, IEnumerable<OpcaoPasta> opcoesPasta)
+    public void CarregarParaEdicao(VaultItem item, IEnumerable<FolderOption> opcoesPasta)
     {
         ItemId = item.Id;
         Titulo = item.Title;
@@ -75,28 +75,28 @@ public partial class ItemEditorViewModel : ObservableObject
         CarregarOpcoes(opcoesPasta, item.FolderId);
     }
 
-    public void CarregarParaCriacao(IEnumerable<OpcaoPasta> opcoesPasta, Guid? pastaSugerida = null)
+    public void CarregarParaCriacao(IEnumerable<FolderOption> opcoesPasta, Guid? pastaSugerida = null)
     {
         ItemId = null;
         Senha = _passwordGenerator.Generate();
         CarregarOpcoes(opcoesPasta, pastaSugerida);
     }
 
-    private void CarregarOpcoes(IEnumerable<OpcaoPasta> opcoes, Guid? pastaId)
+    private void CarregarOpcoes(IEnumerable<FolderOption> opcoes, Guid? pastaId)
     {
-        OpcoesPasta.Clear();
-        OpcoesPasta.Add(new OpcaoPasta("Sem pasta", null));
+        FolderOptions.Clear();
+        FolderOptions.Add(new FolderOption("Sem pasta", null));
 
         foreach (var opcao in opcoes.Where(o => o.Pasta is not null))
-            OpcoesPasta.Add(opcao);
+            FolderOptions.Add(opcao);
 
         PastaSelecionada = pastaId is null
-            ? OpcoesPasta.First()
-            : OpcoesPasta.FirstOrDefault(o => o.Pasta?.Id == pastaId) ?? OpcoesPasta.First();
+            ? FolderOptions.First()
+            : FolderOptions.FirstOrDefault(o => o.Pasta?.Id == pastaId) ?? FolderOptions.First();
     }
 
     [RelayCommand]
-    private void GerarSenha()
+    private void GeneratePassword()
     {
         Senha = _passwordGenerator.Generate();
     }

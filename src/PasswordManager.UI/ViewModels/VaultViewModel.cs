@@ -14,7 +14,7 @@ namespace PasswordManager.UI.ViewModels;
 /// <summary>
 /// Representa uma opção de pasta (ou "todas as pastas") em filtros/combos.
 /// </summary>
-public sealed record OpcaoPasta(string Nome, VaultFolder? Pasta);
+public sealed record FolderOption(string Nome, VaultFolder? Pasta);
 
 /// <summary>
 /// ViewModel da tela principal: lista de itens com busca e filtro por pasta,
@@ -22,16 +22,16 @@ public sealed record OpcaoPasta(string Nome, VaultFolder? Pasta);
 /// </summary>
 public partial class VaultViewModel : ObservableObject
 {
-    private const int TempoLimpezaClipboardSegundos = 30;
+    private const int ClipboardCleanTimeInSeconds = 30;
 
     private readonly IVaultSessionService _sessionService;
     private readonly DispatcherQueueTimer _timerLimparClipboard;
 
-    public ObservableCollection<VaultItem> ItensExibidos { get; } = new();
-    public ObservableCollection<OpcaoPasta> OpcoesPasta { get; } = new();
+    public ObservableCollection<VaultItem> DisplayedItems { get; } = new();
+    public ObservableCollection<FolderOption> FolderOptions { get; } = new();
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(PodeEditarItem))]
+    [NotifyPropertyChangedFor(nameof(CanEditItem))]
     [NotifyCanExecuteChangedFor(nameof(RemoverItemCommand))]
     [NotifyCanExecuteChangedFor(nameof(CopiarSenhaCommand))]
     private VaultItem? itemSelecionado;
@@ -40,7 +40,7 @@ public partial class VaultViewModel : ObservableObject
     private string? termoBusca;
 
     [ObservableProperty]
-    private OpcaoPasta? opcaoPastaSelecionada;
+    private FolderOption? opcaoPastaSelecionada;
 
     [ObservableProperty]
     private bool senhaCopiada;
@@ -50,88 +50,88 @@ public partial class VaultViewModel : ObservableObject
     /// </summary>
     public event Action? Trancado;
 
-    public bool PodeEditarItem => ItemSelecionado is not null;
+    public bool CanEditItem => ItemSelecionado is not null;
 
     public VaultViewModel(IVaultSessionService sessionService)
     {
         _sessionService = sessionService;
         _timerLimparClipboard = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _timerLimparClipboard.Interval = TimeSpan.FromSeconds(TempoLimpezaClipboardSegundos);
-        _timerLimparClipboard.Tick += OnTimerLimparClipboardTick;
+        _timerLimparClipboard.Interval = TimeSpan.FromSeconds(ClipboardCleanTimeInSeconds);
+        _timerLimparClipboard.Tick += OnTimerCleanClipboardTick;
     }
 
-    partial void OnTermoBuscaChanged(string? value) => AplicarFiltro();
+    partial void OnTermoBuscaChanged(string? value) => AddFilter();
 
-    partial void OnOpcaoPastaSelecionadaChanged(OpcaoPasta? value) => AplicarFiltro();
+    partial void OnOpcaoPastaSelecionadaChanged(FolderOption? value) => AddFilter();
 
-    public void Inicializar() => AtualizarPastas();
+    public void Inicializar() => ReloadFolders();
 
     /// <summary>
     /// Reconstrói as opções de pasta (mantendo a seleção quando possível)
     /// e reaplica o filtro.
     /// </summary>
-    public void AtualizarPastas()
+    public void ReloadFolders()
     {
-        var selecionada = OpcaoPastaSelecionada?.Pasta?.Id;
+        var selected = OpcaoPastaSelecionada?.Pasta?.Id;
 
-        OpcoesPasta.Clear();
-        OpcoesPasta.Add(new OpcaoPasta("Todas as pastas", null));
+        FolderOptions.Clear();
+        FolderOptions.Add(new FolderOption("Todas as pastas", null));
 
-        foreach (var pasta in _sessionService.VaultAtual.Folders)
-            OpcoesPasta.Add(new OpcaoPasta(pasta.Name, pasta));
+        foreach (var pasta in _sessionService.CurrentVault.Folders)
+            FolderOptions.Add(new FolderOption(pasta.Name, pasta));
 
-        OpcaoPastaSelecionada = selecionada is null
-            ? OpcoesPasta.First()
-            : OpcoesPasta.FirstOrDefault(o => o.Pasta?.Id == selecionada) ?? OpcoesPasta.First();
+        OpcaoPastaSelecionada = selected is null
+            ? FolderOptions.First()
+            : FolderOptions.FirstOrDefault(o => o.Pasta?.Id == selected) ?? FolderOptions.First();
 
-        AplicarFiltro();
+        AddFilter();
     }
 
-    private void AplicarFiltro()
+    private void AddFilter()
     {
-        var pastaId = OpcaoPastaSelecionada?.Pasta?.Id;
-        var itens = _sessionService.BuscarItens(TermoBusca, pastaId);
+        var folderId = OpcaoPastaSelecionada?.Pasta?.Id;
+        var items = _sessionService.SearchItems(TermoBusca, folderId);
 
-        ItensExibidos.Clear();
-        foreach (var item in itens)
-            ItensExibidos.Add(item);
+        DisplayedItems.Clear();
+        foreach (var item in items)
+            DisplayedItems.Add(item);
     }
 
-    public async Task AdicionarItemAsync(string title, string password, string category,
+    public async Task AddItemAsync(string title, string password, string category,
         string? username = null, string? url = null, string? notes = null, Guid? pastaId = null)
     {
-        var item = await _sessionService.AdicionarItemAsync(title, password, category, username, url, notes);
+        var item = await _sessionService.AddItemAsync(title, password, category, username, url, notes);
 
         if (pastaId is not null)
-            await _sessionService.AtribuirItemAPastaAsync(item.Id, pastaId);
+            await _sessionService.AssignItemToFolderAsync(item.Id, pastaId);
 
-        AplicarFiltro();
+        AddFilter();
     }
 
-    public async Task AtualizarItemAsync(Guid itemId, string title, string password, string category,
+    public async Task ReloadItemAsync(Guid itemId, string title, string password, string category,
         string? username = null, string? url = null, string? notes = null, Guid? pastaId = null)
     {
-        await _sessionService.AtualizarItemAsync(itemId, title, password, category, username, url, notes);
-        await _sessionService.AtribuirItemAPastaAsync(itemId, pastaId);
-        AplicarFiltro();
+        await _sessionService.ReloadItemAsync(itemId, title, password, category, username, url, notes);
+        await _sessionService.AssignItemToFolderAsync(itemId, pastaId);
+        AddFilter();
     }
 
     public async Task AdicionarPastaAsync(string name)
     {
-        await _sessionService.AdicionarPastaAsync(name);
-        AtualizarPastas();
+        await _sessionService.AddFolderAsync(name);
+        ReloadFolders();
     }
 
     public async Task RenomearPastaAsync(Guid folderId, string name)
     {
-        await _sessionService.RenomearPastaAsync(folderId, name);
-        AtualizarPastas();
+        await _sessionService.RenameFolderAsync(folderId, name);
+        ReloadFolders();
     }
 
     public async Task RemoverPastaAsync(Guid folderId)
     {
-        await _sessionService.RemoverPastaAsync(folderId);
-        AtualizarPastas();
+        await _sessionService.RemoveFolderAsync(folderId);
+        ReloadFolders();
     }
 
     [RelayCommand]
@@ -140,12 +140,12 @@ public partial class VaultViewModel : ObservableObject
         if (ItemSelecionado is null)
             return;
 
-        await _sessionService.RemoverItemAsync(ItemSelecionado.Id);
+        await _sessionService.RemoveItemAsync(ItemSelecionado.Id);
         ItemSelecionado = null;
-        AplicarFiltro();
+        AddFilter();
     }
 
-    private bool CanRemoverItem() => ItemSelecionado is not null;
+    private bool CanRemoveItem() => ItemSelecionado is not null;
 
     [RelayCommand]
     private void CopiarSenha()
@@ -161,22 +161,22 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Start();
     }
 
-    private bool CanCopiarSenha() => ItemSelecionado is not null;
+    private bool CanCopyPassword() => ItemSelecionado is not null;
 
     [RelayCommand]
-    private void Trancar()
+    private void Lock()
     {
         _timerLimparClipboard.Stop();
-        _sessionService.Trancar();
+        _sessionService.Lock();
         SenhaCopiada = false;
         Trancado?.Invoke();
     }
 
-    private void OnTimerLimparClipboardTick(DispatcherQueueTimer sender, object args)
+    private void OnTimerCleanClipboardTick(DispatcherQueueTimer sender, object args)
     {
-        var pacote = new DataPackage();
-        pacote.SetText(string.Empty);
-        Clipboard.SetContent(pacote);
+        var package = new DataPackage();
+        package.SetText(string.Empty);
+        Clipboard.SetContent(package);
         SenhaCopiada = false;
         _timerLimparClipboard.Stop();
     }

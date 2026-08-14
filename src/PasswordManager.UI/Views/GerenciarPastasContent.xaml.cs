@@ -19,45 +19,45 @@ public sealed partial class GerenciarPastasContent : UserControl
     {
         InitializeComponent();
         _sessionService = App.Services.GetRequiredService<IVaultSessionService>();
-        RecarregarPastas();
+        ReloadFolders();
     }
 
-    private void RecarregarPastas()
+    private void ReloadFolders()
     {
-        PastasList.ItemsSource = _sessionService.VaultAtual.Folders.ToList();
+        PastasList.ItemsSource = _sessionService.CurrentVault.Folders.ToList();
         PastasList.SelectedItem = null;
     }
 
-    private async void OnAdicionarClick(object sender, RoutedEventArgs e)
+    private async void OnAddClick(object sender, RoutedEventArgs e)
     {
-        var nome = NomePastaBox.Text.Trim();
-        if (string.IsNullOrEmpty(nome))
+        var name = FolderBoxName.Text.Trim();
+        if (string.IsNullOrEmpty(name))
             return;
 
-        await _sessionService.AdicionarPastaAsync(nome);
-        NomePastaBox.Text = string.Empty;
-        RecarregarPastas();
+        await _sessionService.AddFolderAsync(name);
+        FolderBoxName.Text = string.Empty;
+        ReloadFolders();
     }
 
-    private async void OnRenomearClick(object sender, RoutedEventArgs e)
+    private async void OnRenameClick(object sender, RoutedEventArgs e)
     {
         if (PastasList.SelectedItem is not VaultFolder pasta)
             return;
 
-        var novoNome = NomePastaBox.Text.Trim();
-        if (string.IsNullOrEmpty(novoNome))
+        var newName = FolderBoxName.Text.Trim();
+        if (string.IsNullOrEmpty(newName))
             return;
 
-        await _sessionService.RenomearPastaAsync(pasta.Id, novoNome);
-        RecarregarPastas();
+        await _sessionService.RenameFolderAsync(pasta.Id, newName);
+        ReloadFolders();
     }
 
-    private async void OnExcluirClick(object sender, RoutedEventArgs e)
+    private async void OnDeleteClick(object sender, RoutedEventArgs e)
     {
-        if (PastasList.SelectedItem is not VaultFolder pasta)
+        if (PastasList.SelectedItem is not VaultFolder folder)
             return;
 
-        await _sessionService.RemoverPastaAsync(pasta.Id);
-        RecarregarPastas();
+        await _sessionService.RemoveFolderAsync(folder.Id);
+        ReloadFolders();
     }
 }

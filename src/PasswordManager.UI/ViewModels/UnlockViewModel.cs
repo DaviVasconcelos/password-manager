@@ -17,44 +17,44 @@ public partial class UnlockViewModel : ObservableObject
     private readonly IVaultSessionService _sessionService;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DesbloquearCommand))]
-    [NotifyCanExecuteChangedFor(nameof(CriarCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UnlockCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     private string senhaMestra = string.Empty;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(CriarCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     private string confirmacaoSenha = string.Empty;
 
     [ObservableProperty]
     private string? erro;
 
     [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(TituloModo))]
+    [NotifyPropertyChangedFor(nameof(TitleMode))]
     private bool modoCriar;
 
     [ObservableProperty]
-    [NotifyCanExecuteChangedFor(nameof(DesbloquearCommand))]
-    [NotifyCanExecuteChangedFor(nameof(CriarCommand))]
+    [NotifyCanExecuteChangedFor(nameof(UnlockCommand))]
+    [NotifyCanExecuteChangedFor(nameof(CreateCommand))]
     private bool ocupado;
 
     /// <summary>
     /// Disparado na thread da UI após desbloquear/criar com sucesso.
     /// </summary>
-    public event Action? Desbloqueado;
+    public event Action? Unlocked;
 
-    public string TituloModo => ModoCriar ? "Criar novo cofre" : "Desbloquear cofre";
+    public string TitleMode => ModoCriar ? "Criar novo cofre" : "Desbloquear cofre";
 
     public UnlockViewModel(IVaultSessionService sessionService)
     {
         _sessionService = sessionService;
     }
 
-    public async Task InicializarAsync()
+    public async Task InitializeAsync()
     {
         Ocupado = true;
         try
         {
-            ModoCriar = !await _sessionService.ExisteCofreAsync();
+            ModoCriar = !await _sessionService.VaultExistsAsync();
         }
         finally
         {
@@ -62,20 +62,20 @@ public partial class UnlockViewModel : ObservableObject
         }
     }
 
-    private bool CanDesbloquear() => !Ocupado && !string.IsNullOrWhiteSpace(SenhaMestra);
+    private bool CanUnlock() => !Ocupado && !string.IsNullOrWhiteSpace(SenhaMestra);
 
-    private bool CanCriar() => !Ocupado && !string.IsNullOrWhiteSpace(SenhaMestra)
+    private bool CanCreate() => !Ocupado && !string.IsNullOrWhiteSpace(SenhaMestra)
         && !string.IsNullOrWhiteSpace(ConfirmacaoSenha);
 
     [RelayCommand]
-    private async Task DesbloquearAsync()
+    private async Task UnlockAsync()
     {
         Erro = null;
         Ocupado = true;
         try
         {
-            await Task.Run(async () => await _sessionService.DesbloquearAsync(SenhaMestra));
-            Desbloqueado?.Invoke();
+            await Task.Run(async () => await _sessionService.UnlockAsync(SenhaMestra));
+            Unlocked?.Invoke();
         }
         catch (CryptographicIntegrityException)
         {
@@ -92,7 +92,7 @@ public partial class UnlockViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task CriarAsync()
+    private async Task CreateAsync()
     {
         if (SenhaMestra != ConfirmacaoSenha)
         {
@@ -104,8 +104,8 @@ public partial class UnlockViewModel : ObservableObject
         Ocupado = true;
         try
         {
-            await Task.Run(async () => await _sessionService.CriarAsync(SenhaMestra));
-            Desbloqueado?.Invoke();
+            await Task.Run(async () => await _sessionService.CreateAsync(SenhaMestra));
+            Unlocked?.Invoke();
         }
         catch (InvalidOperationException ex)
         {
