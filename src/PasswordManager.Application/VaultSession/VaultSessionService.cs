@@ -30,6 +30,9 @@ public sealed class VaultSessionService : IVaultSessionService
     public Vault VaultAtual =>
         _vault ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes de acessá-lo.");
 
+    public async Task<bool> ExisteCofreAsync(CancellationToken ct = default)
+        => await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false);
+
     public async Task<Vault> CriarAsync(string senhaMestra, CancellationToken ct = default)
     {
         ValidarSenhaMestra(senhaMestra);
@@ -98,6 +101,73 @@ public sealed class VaultSessionService : IVaultSessionService
         var chave = _chave ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes.");
 
         await _vaultRepository.SaveAsync(vault, chave, ct).ConfigureAwait(false);
+    }
+
+    public async Task<VaultItem> AdicionarItemAsync(string title, string password, string category,
+        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
+    {
+        var item = VaultAtual.AddItem(title, password, category, username, url, notes);
+        await SalvarAsync(ct).ConfigureAwait(false);
+        return item;
+    }
+
+    public async Task AtualizarItemAsync(Guid itemId, string title, string password, string category,
+        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
+    {
+        VaultAtual.UpdateItem(itemId, title, password, category, username, url, notes);
+        await SalvarAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task RemoverItemAsync(Guid itemId, CancellationToken ct = default)
+    {
+        VaultAtual.RemoveItem(itemId);
+        await SalvarAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task<VaultFolder> AdicionarPastaAsync(string name, CancellationToken ct = default)
+    {
+        var pasta = VaultAtual.AddFolder(name);
+        await SalvarAsync(ct).ConfigureAwait(false);
+        return pasta;
+    }
+
+    public async Task RenomearPastaAsync(Guid folderId, string name, CancellationToken ct = default)
+    {
+        VaultAtual.RenameFolder(folderId, name);
+        await SalvarAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task RemoverPastaAsync(Guid folderId, CancellationToken ct = default)
+    {
+        VaultAtual.RemoveFolder(folderId);
+        await SalvarAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task AtribuirItemAPastaAsync(Guid itemId, Guid? folderId, CancellationToken ct = default)
+    {
+        VaultAtual.AssignItemToFolder(itemId, folderId);
+        await SalvarAsync(ct).ConfigureAwait(false);
+    }
+
+    public IReadOnlyList<VaultItem> BuscarItens(string? termo = null, Guid? pastaId = null)
+    {
+        IEnumerable<VaultItem> itens = VaultAtual.Items;
+
+        if (pastaId is not null)
+            itens = itens.Where(i => i.FolderId == pastaId);
+
+        if (!string.IsNullOrWhiteSpace(termo))
+        {
+            var t = termo.Trim();
+            itens = itens.Where(i =>
+                i.Title.Contains(t, StringComparison.OrdinalIgnoreCase)
+                || (i.Username?.Contains(t, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (i.Url?.Contains(t, StringComparison.OrdinalIgnoreCase) ?? false)
+                || (i.Notes?.Contains(t, StringComparison.OrdinalIgnoreCase) ?? false)
+                || i.Category.Contains(t, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return itens.ToList();
     }
 
     private void DefinirSessao(byte[] chave, Vault vault)

@@ -20,6 +20,12 @@ public interface IVaultSessionService
     Vault VaultAtual { get; }
 
     /// <summary>
+    /// Indica se já existe um cofre persistido (usado pela UI para decidir
+    /// entre "criar" e "desbloquear" no primeiro acesso).
+    /// </summary>
+    Task<bool> ExisteCofreAsync(CancellationToken ct = default);
+
+    /// <summary>
     /// Cria um novo cofre, gera o salt de derivação, persiste o registro
     /// e deixa a sessão desbloqueada. Lança exceção se já existir cofre
     /// persistido ou se a sessão já estiver desbloqueada.
@@ -52,4 +58,55 @@ public interface IVaultSessionService
     /// chave retida em memória. Exige sessão desbloqueada.
     /// </summary>
     Task SalvarAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Adiciona um item ao cofre e persiste imediatamente.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    Task<VaultItem> AdicionarItemAsync(string title, string password, string category,
+        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Atualiza um item existente e persiste imediatamente.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    Task AtualizarItemAsync(Guid itemId, string title, string password, string category,
+        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default);
+
+    /// <summary>
+    /// Remove um item do cofre e persiste imediatamente.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    Task RemoverItemAsync(Guid itemId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Adiciona uma pasta ao cofre e persiste imediatamente.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    Task<VaultFolder> AdicionarPastaAsync(string name, CancellationToken ct = default);
+
+    /// <summary>
+    /// Renomeia uma pasta e persiste imediatamente.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    Task RenomearPastaAsync(Guid folderId, string name, CancellationToken ct = default);
+
+    /// <summary>
+    /// Remove uma pasta (sem apagar os itens dela — eles ficam sem pasta)
+    /// e persiste imediatamente. Exige sessão desbloqueada.
+    /// </summary>
+    Task RemoverPastaAsync(Guid folderId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Associa um item a uma pasta (ou o desassocia, com folderId nulo)
+    /// e persiste imediatamente. Exige sessão desbloqueada.
+    /// </summary>
+    Task AtribuirItemAPastaAsync(Guid itemId, Guid? folderId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Filtra os itens do cofre em memória por termo (título, usuário, URL,
+    /// notas ou categoria) e/ou por pasta. Operação somente leitura.
+    /// Exige sessão desbloqueada.
+    /// </summary>
+    IReadOnlyList<VaultItem> BuscarItens(string? termo = null, Guid? pastaId = null);
 }

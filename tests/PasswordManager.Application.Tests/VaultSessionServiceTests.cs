@@ -220,4 +220,207 @@ public class VaultSessionServiceTests
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
+
+    [Fact]
+    public async Task ExisteCofreAsync_QuandoNaoHaCofre_DeveRetornarFalse()
+    {
+        var servico = CriarServico();
+
+        (await servico.ExisteCofreAsync()).Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ExisteCofreAsync_QuandoHaCofre_DeveRetornarTrue()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+
+        (await servico.ExisteCofreAsync()).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task AdicionarItemAsync_QuandoDesbloqueado_DeveAdicionarEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+
+        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+
+        servico.VaultAtual.Items.Should().Contain(item);
+        servico.Trancar();
+        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        recarregado.Items.Should().ContainSingle().Which.Id.Should().Be(item.Id);
+    }
+
+    [Fact]
+    public async Task AdicionarItemAsync_QuandoTrancado_DeveLancarInvalidOperationException()
+    {
+        var servico = CriarServico();
+
+        var act = () => servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task AtualizarItemAsync_QuandoDesbloqueado_DeveAtualizarEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+
+        await servico.AtualizarItemAsync(item.Id, "GitHub Enterprise", "nova-senha", "Trabalho");
+
+        var atualizado = servico.VaultAtual.Items.Single(i => i.Id == item.Id);
+        atualizado.Title.Should().Be("GitHub Enterprise");
+        atualizado.Password.Should().Be("nova-senha");
+        atualizado.Category.Should().Be("Trabalho");
+    }
+
+    [Fact]
+    public async Task AtualizarItemAsync_ComIdInexistente_DeveLancarInvalidOperationException()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+
+        var act = () => servico.AtualizarItemAsync(Guid.NewGuid(), "Título", "senha", "Categoria");
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task RemoverItemAsync_QuandoDesbloqueado_DeveRemoverEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+
+        await servico.RemoverItemAsync(item.Id);
+
+        servico.VaultAtual.Items.Should().BeEmpty();
+        servico.Trancar();
+        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        recarregado.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task AdicionarPastaAsync_QuandoDesbloqueado_DeveAdicionarEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+
+        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+
+        servico.VaultAtual.Folders.Should().Contain(pasta);
+        servico.Trancar();
+        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        recarregado.Folders.Should().ContainSingle().Which.Id.Should().Be(pasta.Id);
+    }
+
+    [Fact]
+    public async Task RenomearPastaAsync_QuandoDesbloqueado_DeveRenomearEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+
+        await servico.RenomearPastaAsync(pasta.Id, "Pessoal");
+
+        servico.VaultAtual.Folders.Single().Name.Should().Be("Pessoal");
+    }
+
+    [Fact]
+    public async Task RemoverPastaAsync_QuandoDesbloqueado_DeveRemoverPastaEDesassociarItens()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.AtribuirItemAPastaAsync(item.Id, pasta.Id);
+
+        await servico.RemoverPastaAsync(pasta.Id);
+
+        servico.VaultAtual.Folders.Should().BeEmpty();
+        servico.VaultAtual.Items.Single().FolderId.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AtribuirItemAPastaAsync_QuandoDesbloqueado_DeveAssociarEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+        var item = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+
+        await servico.AtribuirItemAPastaAsync(item.Id, pasta.Id);
+
+        servico.VaultAtual.Items.Single(i => i.Id == item.Id).FolderId.Should().Be(pasta.Id);
+        servico.Trancar();
+        var recarregado = await servico.DesbloquearAsync(SenhaMestra);
+        recarregado.Items.Single(i => i.Id == item.Id).FolderId.Should().Be(pasta.Id);
+    }
+
+    [Fact]
+    public async Task BuscarItens_SemFiltros_DeveRetornarTodosOsItens()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
+
+        var resultado = servico.BuscarItens();
+
+        resultado.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task BuscarItens_ComTermoNoTitulo_DeveFiltrar()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
+
+        var resultado = servico.BuscarItens(termo: "git");
+
+        resultado.Should().ContainSingle().Which.Title.Should().Be("GitHub");
+    }
+
+    [Fact]
+    public async Task BuscarItens_ComTermoNoUsuario_DeveFiltrar()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        await servico.AdicionarItemAsync("GitHub", "senha123", "Dev", username: "davi@acme");
+        await servico.AdicionarItemAsync("Gmail", "senha456", "Email", username: "joao@acme");
+
+        var resultado = servico.BuscarItens(termo: "davi");
+
+        resultado.Should().ContainSingle().Which.Username.Should().Be("davi@acme");
+    }
+
+    [Fact]
+    public async Task BuscarItens_ComPasta_DeveFiltrarPorPasta()
+    {
+        var servico = CriarServico();
+        await servico.CriarAsync(SenhaMestra);
+        var pasta = await servico.AdicionarPastaAsync("Trabalho");
+        var itemNaPasta = await servico.AdicionarItemAsync("GitHub", "senha123", "Dev");
+        var itemSolto = await servico.AdicionarItemAsync("Gmail", "senha456", "Email");
+        await servico.AtribuirItemAPastaAsync(itemNaPasta.Id, pasta.Id);
+
+        var resultado = servico.BuscarItens(pastaId: pasta.Id);
+
+        resultado.Should().ContainSingle().Which.Id.Should().Be(itemNaPasta.Id);
+    }
+
+    [Fact]
+    public void BuscarItens_QuandoTrancado_DeveLancarInvalidOperationException()
+    {
+        var servico = CriarServico();
+
+        var act = () => servico.BuscarItens();
+
+        act.Should().Throw<InvalidOperationException>();
+    }
 }
