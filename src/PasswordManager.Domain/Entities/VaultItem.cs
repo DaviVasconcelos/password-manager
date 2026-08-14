@@ -73,10 +73,14 @@ public class VaultItem
     }
 
     public void UpdateDetails(string title, string password, string category,
-        string? username, string? url, string? notes)
+        string? username = null, string? url = null, string? notes = null)
     {
         if (string.IsNullOrWhiteSpace(title))
             throw new ArgumentException("Título não pode ser vazio.", nameof(title));
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentException("Senha não pode ser vazia.", nameof(password));
+        if (string.IsNullOrWhiteSpace(category))
+            throw new ArgumentException("Categoria não pode ser vazia.", nameof(category));
 
         Title = title.Trim();
         Password = password;

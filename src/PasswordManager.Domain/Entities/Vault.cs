@@ -47,6 +47,15 @@ public class Vault
         _items.Remove(item);
     }
 
+    public void UpdateItem(Guid itemId, string title, string password, string category,
+        string? username = null, string? url = null, string? notes = null)
+    {
+        var item = _items.FirstOrDefault(i => i.Id == itemId)
+            ?? throw new InvalidOperationException($"Item {itemId} não encontrado no cofre.");
+
+        item.UpdateDetails(title, password, category, username, url, notes);
+    }
+
     public VaultFolder AddFolder(string name)
     {
         var folder = VaultFolder.Create(name);
@@ -65,6 +74,14 @@ public class Vault
             item.AssignToFolder(null);
 
         _folders.Remove(folder);
+    }
+
+    public void RenameFolder(Guid folderId, string name)
+    {
+        var folder = _folders.FirstOrDefault(f => f.Id == folderId)
+            ?? throw new InvalidOperationException($"Pasta {folderId} não encontrada no cofre.");
+
+        folder.Rename(name);
     }
 
     public void AssignItemToFolder(Guid itemId, Guid? folderId)

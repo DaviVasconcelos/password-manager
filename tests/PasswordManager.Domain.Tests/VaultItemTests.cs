@@ -24,6 +24,62 @@ public class VaultItemTests
         act.Should().Throw<ArgumentException>();
     }
 
+    [Fact]
+    public void UpdateDetails_ComDadosValidos_DeveAtualizarCampos()
+    {
+        var item = VaultItem.Create("GitHub", "senha123", "Dev", username: "davi");
+
+        item.UpdateDetails("GitHub Enterprise", "nova-senha", "Trabalho",
+            username: "davi@acme", url: "https://github.com", notes: "mudou");
+
+        item.Title.Should().Be("GitHub Enterprise");
+        item.Password.Should().Be("nova-senha");
+        item.Category.Should().Be("Trabalho");
+        item.Username.Should().Be("davi@acme");
+        item.Url.Should().Be("https://github.com");
+        item.Notes.Should().Be("mudou");
+        item.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void UpdateDetails_ComTituloInvalido_DeveLancarExcecao(string? titulo)
+    {
+        var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+        var act = () => item.UpdateDetails(titulo!, "senha123", "Dev");
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void UpdateDetails_ComSenhaInvalida_DeveLancarExcecao(string? senha)
+    {
+        var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+        var act = () => item.UpdateDetails("GitHub", senha!, "Dev");
+
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    [InlineData(null)]
+    public void UpdateDetails_ComCategoriaInvalida_DeveLancarExcecao(string? categoria)
+    {
+        var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+        var act = () => item.UpdateDetails("GitHub", "senha123", categoria!);
+
+        act.Should().Throw<ArgumentException>();
+    }
+
     public class VaultItemRehydrateTests
     {
         [Fact]
