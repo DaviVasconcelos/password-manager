@@ -1,35 +1,35 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
-using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
-using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
-using Microsoft.UI.Xaml.Shapes;
+using PasswordManager.Application.Abstractions;
+using PasswordManager.Application.PasswordGeneration;
+using PasswordManager.Application.VaultSession;
+using PasswordManager.Infrastructure.Cryptography;
+using PasswordManager.Infrastructure.Persistence;
+using PasswordManager.UI.ViewModels;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.ApplicationModel;
-using Windows.ApplicationModel.Activation;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace PasswordManager.UI
 {
     /// <summary>
-    /// Provides application-specific behavior to supplement the default Application class.
+    /// Composition root da aplicação: registra as dependências (crypto,
+    /// persistência e sessão) e as ViewModels no container de DI.
     /// </summary>
     public partial class App : Microsoft.UI.Xaml.Application
     {
+        private static IServiceProvider? _serviceProvider;
         private Window? _window;
 
         /// <summary>
-        /// Initializes the singleton application object.  This is the first line of authored code
+        /// Container de DI da aplicação (inicializado em OnLaunched).
+        /// </summary>
+        public static IServiceProvider Services =>
+            _serviceProvider ?? throw new InvalidOperationException(
+                "O provedor de serviços ainda não foi inicializado.");
+
+        /// <summary>
+        /// Initializes the singleton application object. This is the first line of authored code
         /// executed, and as such is the logical equivalent of main() or WinMain().
         /// </summary>
         public App()
@@ -40,11 +40,49 @@ namespace PasswordManager.UI
         /// <summary>
         /// Invoked when the application is launched.
         /// </summary>
-        /// <param name="args">Details about the launch request and process.</param>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            _serviceProvider = ConfigureServices();
+
             _window = new MainWindow();
             _window.Activate();
+        }
+
+        private static IServiceProvider ConfigureServices()
+        {
+            var services = new ServiceCollection();
+
+            services.AddSingleton<ICryptoService, CryptoService>();
+            services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
+            services.AddSingleton<IPasswordStrengthEvaluator, PasswordStrengthEvaluator>();
+
+            services.AddSingleton<VaultDbContext>(_ =>
+            {
+                var caminhoBanco = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PasswordManager", "vault.db");
+
+                Directory.CreateDirectory(Path.GetDirectoryName(caminhoBanco)!);
+
+                var options = new DbContextOptionsBuilder<VaultDbContext>()
+                    .UseSqlite($"Data Source={caminhoBanco}")
+                    .Options;
+
+                var contexto = new VaultDbContext(options);
+                contexto.Database.EnsureCreated();
+                return contexto;
+            });
+
+            services.AddSingleton<IVaultRepository, VaultRepository>();
+            services.AddSingleton<IVaultSessionService, VaultSessionService>();
+
+            services.AddTransient<UnlockViewModel>();
+            services.AddTransient<VaultViewModel>();
+            services.AddTransient<ItemEditorViewModel>();
+
+            services.AddSingleton<MainWindow>();
+
+            return services.BuildServiceProvider();
         }
     }
 }

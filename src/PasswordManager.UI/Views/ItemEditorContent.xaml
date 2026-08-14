@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PasswordManager.UI.Views.ItemEditorContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <StackPanel Spacing="12" Width="440">
+        <TextBox Header="Título" Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
+        <TextBox Header="Usuário" Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
+        <TextBox Header="Categoria" Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <PasswordBox x:Name="SenhaBox"
+                         Header="Senha"
+                         Width="300"
+                         PasswordRevealMode="Hidden" />
+            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
+                <Button Content="Gerar" Command="{x:Bind ViewModel.GerarSenhaCommand}" />
+                <Button Content="Mostrar/Ocultar" Click="OnAlternarVisibilidadeClick" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Text="{x:Bind ViewModel.ForcaSenhaTexto, Mode=OneWay}"
+                   Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+
+        <TextBox Header="URL" Text="{x:Bind ViewModel.Url, Mode=TwoWay}" />
+        <TextBox Header="Notas"
+                 Text="{x:Bind ViewModel.Notas, Mode=TwoWay}"
+                 AcceptsReturn="True"
+                 Height="80"
+                 TextWrapping="Wrap" />
+        <ComboBox Header="Pasta"
+                  ItemsSource="{x:Bind ViewModel.OpcoesPasta}"
+                  SelectedItem="{x:Bind ViewModel.PastaSelecionada, Mode=TwoWay}"
+                  DisplayMemberPath="Nome" />
+    </StackPanel>
+</UserControl>
