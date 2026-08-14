@@ -33,10 +33,10 @@ tests/
 
 ## Roadmap
 
-- [ ] Domain
-- [ ] Testes
-- [ ] Infrastructure
-- [ ] UI
+- [x] Domain
+- [x] Testes
+- [x] Infrastructure
+- [x] UI
 - [ ] Export/Import
 - [ ] CI/CD
 
