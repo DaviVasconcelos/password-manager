@@ -31,4 +31,32 @@ Local password manager (Clean Architecture, C#). WinUI 3 desktop app; SQLite/EF 
 
 ## Current state
 
-- Implemented: Domain entities (`Vault` + `MergeFrom`) + 57 domain tests; Infrastructure `CryptoService` + `VaultRepository` (SQLite/EF Core, ADR 0003) + `ExportImportService` (.vault, ADR 0005) + 52 infrastructure tests; Application `VaultSessionService` (criar/desbloquear/trancar/trocar senha mestra/salvar/CRUD/busca/exportar/importar) + `PasswordGenerator`/`PasswordStrengthEvaluator` + fakes + 57 application tests. UI funcional (WinUI 3 + CommunityToolkit.Mvvm + DI): `UnlockPage` (criar/desbloquear/importar backup na primeira execução) e `VaultPage` (lista, busca, filtro por pasta, CRUD via diálogos, copiar senha com limpeza em 30 s, gerador + força, exportar/importar `.vault` com substituir ou mesclar). Persistência real em `LocalAppData\PasswordManager\vault.db` via `EnsureCreated`. No EF migration yet (tool `dotnet-ef` not installed; schema is created with `EnsureCreated`). CI/CD ativo (ADR 0006): GitHub Actions em `windows-latest` compila a solution e roda os 166 testes em cada push/PR, publicando os TRX como artefato.
+- Implemented: Domain entities (`Vault` + `MergeFrom`) + 57 domain tests; Infrastructure `CryptoService` + `VaultRepository` (SQLite/EF Core, ADR 0003) + `ExportImportService` (.vault, ADR 0005) + `AppSettingsService` (settings JSON) + 58 infrastructure tests; Application `VaultSessionService` (criar/desbloquear/trancar/trocar senha mestra/salvar/CRUD/busca/exportar/importar) + `PasswordGenerator`/`PasswordStrengthEvaluator` + `AppSettings` (validação) + fakes + 66 application tests. UI funcional (WinUI 3 + CommunityToolkit.Mvvm + DI): `UnlockPage` (criar/desbloquear/importar backup na primeira execução) e `VaultPage` (lista, busca, filtro por pasta, CRUD via diálogos, copiar senha com limpeza em 30 s configurável, gerador + força com defaults configuráveis, auto-lock por inatividade, trocar senha mestra, exportar/importar `.vault` com substituir ou mesclar) + `SettingsContent` (Configurações). Persistência real em `LocalAppData\PasswordManager\vault.db` via `EnsureCreated` e configurações em `LocalAppData\PasswordManager\settings.json`. No EF migration yet (tool `dotnet-ef` not installed; schema is created with `EnsureCreated`). CI/CD ativo (ADR 0006): GitHub Actions em `windows-latest` compila a solution e roda os 181 testes em cada push/PR, publicando os TRX como artefato.
+
+## Roadmap (documentado)
+
+Ordem de execução sugerida: A → B → C → D. Itens concluídos ficam marcados e as decisões tomadas ficam registradas em cada item.
+
+### Fase A — Robustez/UX do núcleo
+
+1. **IMPLEMENTADO** — Tela de Configurações (timeout de auto-lock, tempo de limpeza do clipboard — antes fixo em 30 s — e defaults do gerador de senha). **Decisão**: configurações persistem em **JSON local simples** (sem segredos), fora do cofre criptografado — `IAppSettingsService` (Application) + `AppSettingsService` (Infrastructure) gravando `LocalAppData\PasswordManager\settings.json`; `SettingsViewModel` + `SettingsContent` (diálogo) na UI; gerador de senha usa os defaults configurados via `ItemEditorViewModel`.
+2. **IMPLEMENTADO** — Auto-lock por inatividade usando o `Lock()` existente. **Decisão**: tranca **somente por inatividade** (não por perda de foco ou minimizar), timeout padrão **2 minutos**. `VaultViewModel` reinicia um `DispatcherQueueTimer` a cada atividade (pointer/key na `VaultPage`).
+3. **IMPLEMENTADO** — Trocar senha mestra na UI. `ChangeMasterPasswordAsync` agora exige a **senha atual** (verificada por derivação de chave + comparação em tempo constante com a chave retida; senha errada lança `CryptographicIntegrityException`) e a nova senha; diálogo na `VaultPage` pede atual + nova + confirmação.
+4. Tema claro/escuro/sistema. **Decisão**: **ADIADO** — implementar depois da Fase A.
+
+### Fase B — Engenharia
+
+5. Migrations EF Core no lugar de `EnsureCreated` (schema versionado). **Decisão**: **investir agora** (exige instalar a tool `dotnet-ef`).
+6. Testes de ViewModels: desacoplar os ViewModels de tipos WinUI para torná-los testáveis e cobrir com xUnit/FluentAssertions. **Decisão**: **incluir**.
+7. Recursos/i18n (UI atualmente com textos hardcoded em pt-BR).
+
+### Fase C — Features de produto
+
+8. Import CSV (Bitwarden/LastPass/1Password). **Decisão**: **ADIADO para futuramente** — ADR 0005 segue sem CSV.
+9. TOTP/2FA. **Decisão**: **incluir**; o secret fica criptografado dentro do item do cofre; a UI gera o código de 6 dígitos; geração de QR é enhancement futuro (entrada manual do secret primeiro).
+10. Favoritos / tags / health check de senhas (força, reuso, expiração).
+
+### Fase D — Distribuição
+
+11. Empacotamento MSIX + assinatura e build da UI no pipeline (CI hoje só cobre os test projects).
+12. Auto-update / backup automático / lembretes de backup.
