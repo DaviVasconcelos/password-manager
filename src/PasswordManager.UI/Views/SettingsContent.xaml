@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UserControl
+    x:Class="PasswordManager.UI.Views.SettingsContent"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Width="380" Spacing="12" Padding="0,4">
+            <TextBlock Text="Auto-lock" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock Text="Tranca o cofre automaticamente após o tempo de inatividade." TextWrapping="Wrap" />
+            <ComboBox Header="Tempo de inatividade (minutos)"
+                      ItemsSource="{x:Bind ViewModel.OpcoesTimeoutAutoLock}"
+                      SelectedItem="{x:Bind ViewModel.TimeoutAutoLockMinutes, Mode=TwoWay}" />
+
+            <TextBlock Text="Área de transferência" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock Text="Tempo até a senha copiada ser removida da área de transferência." TextWrapping="Wrap" />
+            <ComboBox Header="Limpeza da área de transferência (segundos)"
+                      ItemsSource="{x:Bind ViewModel.OpcoesLimpezaClipboard}"
+                      SelectedItem="{x:Bind ViewModel.ClipboardCleanTimeSeconds, Mode=TwoWay}" />
+
+            <TextBlock Text="Gerador de senha" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock Text="Valores padrão usados ao gerar uma nova senha." TextWrapping="Wrap" />
+            <ComboBox Header="Tamanho da senha"
+                      ItemsSource="{x:Bind ViewModel.OpcoesTamanhoSenha}"
+                      SelectedItem="{x:Bind ViewModel.PasswordGeneratorLength, Mode=TwoWay}" />
+            <ToggleSwitch Header="Minúsculas (a-z)" IsOn="{x:Bind ViewModel.IncludeLowercase, Mode=TwoWay}" />
+            <ToggleSwitch Header="Maiúsculas (A-Z)" IsOn="{x:Bind ViewModel.IncludeUppercase, Mode=TwoWay}" />
+            <ToggleSwitch Header="Números (0-9)" IsOn="{x:Bind ViewModel.IncludeDigits, Mode=TwoWay}" />
+            <ToggleSwitch Header="Símbolos (!@#...)" IsOn="{x:Bind ViewModel.IncludeSymbols, Mode=TwoWay}" />
+
+            <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
+                       Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                       TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

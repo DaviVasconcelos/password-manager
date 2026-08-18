@@ -30,6 +30,8 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
                 <Button Content="Exportar..." Click="OnExportarClick" />
                 <Button Content="Importar..." Click="OnImportarClick" />
+                <Button Content="Configurações..." Click="OnConfiguracoesClick" />
+                <Button Content="Trocar senha mestra..." Click="OnTrocarSenhaMestraClick" />
                 <Button Content="Trancar" Command="{x:Bind ViewModel.LockCommand}" />
             </StackPanel>
         </Grid>

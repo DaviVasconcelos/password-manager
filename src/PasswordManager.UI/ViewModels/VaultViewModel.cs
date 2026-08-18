@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Dispatching;
+using PasswordManager.Application.Settings;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Domain.Entities;
 using Windows.ApplicationModel.DataTransfer;
@@ -22,10 +23,13 @@ public sealed record OpcoesPasta(string Nome, VaultFolder? Pasta);
 /// </summary>
 public partial class VaultViewModel : ObservableObject
 {
-    private const int ClipboardCleanTimeInSeconds = 30;
-
     private readonly IVaultSessionService _sessionService;
+    private readonly IAppSettingsService _settingsService;
     private readonly DispatcherQueueTimer _timerLimparClipboard;
+    private readonly DispatcherQueueTimer _timerInatividade;
+
+    private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(2);
+    private TimeSpan _tempoLimparClipboard = TimeSpan.FromSeconds(30);
 
     public ObservableCollection<VaultItem> DisplayedItems { get; } = new();
     public ObservableCollection<OpcoesPasta> FolderOptions { get; } = new();
@@ -52,19 +56,51 @@ public partial class VaultViewModel : ObservableObject
 
     public bool CanEditItem => ItemSelecionado is not null;
 
-    public VaultViewModel(IVaultSessionService sessionService)
+    public VaultViewModel(IVaultSessionService sessionService, IAppSettingsService settingsService)
     {
         _sessionService = sessionService;
+        _settingsService = settingsService;
         _timerLimparClipboard = DispatcherQueue.GetForCurrentThread().CreateTimer();
-        _timerLimparClipboard.Interval = TimeSpan.FromSeconds(ClipboardCleanTimeInSeconds);
         _timerLimparClipboard.Tick += OnTimerCleanClipboardTick;
+        _timerInatividade = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _timerInatividade.Tick += OnTimerInatividadeTick;
     }
 
     partial void OnTermoBuscaChanged(string? value) => AddFilter();
 
     partial void OnOpcaoPastaSelecionadaChanged(OpcoesPasta? value) => AddFilter();
 
-    public void Inicializar() => ReloadFolders();
+    public void Inicializar()
+    {
+        AplicarConfiguracoes();
+        ReloadFolders();
+    }
+
+    /// <summary>
+    /// Aplica as configurações persistidas (timeouts de auto-lock e de
+    /// limpeza do clipboard) e reinicia o timer de inatividade.
+    /// </summary>
+    public void AplicarConfiguracoes()
+    {
+        var settings = _settingsService.Get();
+        _timeoutInatividade = TimeSpan.FromMinutes(settings.AutoLockTimeoutMinutes);
+        _tempoLimparClipboard = TimeSpan.FromSeconds(settings.ClipboardCleanTimeSeconds);
+        ReiniciarTimerInatividade();
+    }
+
+    /// <summary>
+    /// Registra atividade do usuário, reiniciando o timer de inatividade.
+    /// </summary>
+    public void NotificarAtividade() => ReiniciarTimerInatividade();
+
+    /// <summary>
+    /// Para os timers da página (usado ao navegar para fora do cofre).
+    /// </summary>
+    public void PararTimers()
+    {
+        _timerLimparClipboard.Stop();
+        _timerInatividade.Stop();
+    }
 
     /// <summary>
     /// Reconstrói as opções de pasta (mantendo a seleção quando possível)
@@ -176,19 +212,43 @@ public partial class VaultViewModel : ObservableObject
         Clipboard.SetContent(pacote);
 
         SenhaCopiada = true;
+        _timerLimparClipboard.Stop();
+        _timerLimparClipboard.Interval = _tempoLimparClipboard;
         _timerLimparClipboard.Start();
     }
 
     private bool CanCopyPassword() => ItemSelecionado is not null;
 
     [RelayCommand]
-    private void Lock()
+    private void Lock() => Trancar();
+
+    /// <summary>
+    /// Tranca a sessão, zera a flag de senha copiada e notifica a UI.
+    /// </summary>
+    private void Trancar()
     {
         _timerLimparClipboard.Stop();
+        _timerInatividade.Stop();
         _sessionService.Lock();
         SenhaCopiada = false;
         Trancado?.Invoke();
     }
+
+    private void ReiniciarTimerInatividade()
+    {
+        _timerInatividade.Stop();
+        _timerInatividade.Interval = _timeoutInatividade;
+        _timerInatividade.Start();
+    }
+
+    private void OnTimerInatividadeTick(DispatcherQueueTimer sender, object args) => Trancar();
+
+    /// <summary>
+    /// Troca a senha mestra exigindo a senha atual (verificada pelo serviço
+    /// de sessão por derivação de chave).
+    /// </summary>
+    public Task TrocarSenhaMestraAsync(string senhaAtual, string novaSenhaMestra)
+        => _sessionService.ChangeMasterPasswordAsync(senhaAtual, novaSenhaMestra);
 
     private void OnTimerCleanClipboardTick(DispatcherQueueTimer sender, object args)
     {

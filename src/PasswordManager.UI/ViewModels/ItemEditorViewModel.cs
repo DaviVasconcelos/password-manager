@@ -5,6 +5,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PasswordManager.Application.PasswordGeneration;
+using PasswordManager.Application.Settings;
 using PasswordManager.Domain.Entities;
 
 namespace PasswordManager.UI.ViewModels;
@@ -17,6 +18,7 @@ public partial class ItemEditorViewModel : ObservableObject
 {
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IPasswordStrengthEvaluator _strengthEvaluator;
+    private readonly IAppSettingsService _settingsService;
 
     public ObservableCollection<OpcoesPasta> OpcoesPasta { get; } = new();
 
@@ -55,10 +57,14 @@ public partial class ItemEditorViewModel : ObservableObject
         _ => "Fraca"
     };
 
-    public ItemEditorViewModel(IPasswordGenerator passwordGenerator, IPasswordStrengthEvaluator strengthEvaluator)
+    public ItemEditorViewModel(
+        IPasswordGenerator passwordGenerator,
+        IPasswordStrengthEvaluator strengthEvaluator,
+        IAppSettingsService settingsService)
     {
         _passwordGenerator = passwordGenerator;
         _strengthEvaluator = strengthEvaluator;
+        _settingsService = settingsService;
     }
 
     partial void OnSenhaChanged(string value) => ForcaSenha = _strengthEvaluator.Avaliar(value);
@@ -78,7 +84,7 @@ public partial class ItemEditorViewModel : ObservableObject
     public void CarregarParaCriacao(IEnumerable<OpcoesPasta> opcoesPasta, Guid? pastaSugerida = null)
     {
         ItemId = null;
-        Senha = _passwordGenerator.Generate();
+        Senha = GerarSenhaComDefaults();
         CarregarOpcoes(opcoesPasta, pastaSugerida);
     }
 
@@ -96,8 +102,20 @@ public partial class ItemEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void GerarSenha()
+    private void GerarSenha() => Senha = GerarSenhaComDefaults();
+
+    /// <summary>
+    /// Gera uma senha usando os defaults configurados nas preferências da
+    /// aplicação.
+    /// </summary>
+    private string GerarSenhaComDefaults()
     {
-        Senha = _passwordGenerator.Generate();
+        var settings = _settingsService.Get();
+        return _passwordGenerator.Generate(
+            settings.PasswordGeneratorLength,
+            settings.PasswordGeneratorIncludeLowercase,
+            settings.PasswordGeneratorIncludeUppercase,
+            settings.PasswordGeneratorIncludeDigits,
+            settings.PasswordGeneratorIncludeSymbols);
     }
 }

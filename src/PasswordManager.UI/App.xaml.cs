@@ -3,10 +3,12 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.PasswordGeneration;
+using PasswordManager.Application.Settings;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Infrastructure.Cryptography;
 using PasswordManager.Infrastructure.ExportImport;
 using PasswordManager.Infrastructure.Persistence;
+using PasswordManager.Infrastructure.Settings;
 using PasswordManager.UI.ViewModels;
 using System;
 using System.IO;
@@ -61,17 +63,18 @@ namespace PasswordManager.UI
         {
             var services = new ServiceCollection();
 
+            var appDataDir = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "PasswordManager");
+            Directory.CreateDirectory(appDataDir);
+
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
             services.AddSingleton<IPasswordStrengthEvaluator, PasswordStrengthEvaluator>();
 
             services.AddSingleton<VaultDbContext>(_ =>
             {
-                var bankPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "PasswordManager", "vault.db");
-
-                Directory.CreateDirectory(Path.GetDirectoryName(bankPath)!);
+                var bankPath = Path.Combine(appDataDir, "vault.db");
 
                 var options = new DbContextOptionsBuilder<VaultDbContext>()
                     .UseSqlite($"Data Source={bankPath}")
@@ -82,6 +85,9 @@ namespace PasswordManager.UI
                 return context;
             });
 
+            services.AddSingleton<IAppSettingsService>(_ =>
+                new AppSettingsService(Path.Combine(appDataDir, "settings.json")));
+
             services.AddSingleton<IVaultRepository, VaultRepository>();
             services.AddSingleton<IExportImportService, ExportImportService>();
             services.AddSingleton<IVaultSessionService, VaultSessionService>();
@@ -89,6 +95,7 @@ namespace PasswordManager.UI
             services.AddTransient<UnlockViewModel>();
             services.AddTransient<VaultViewModel>();
             services.AddTransient<ItemEditorViewModel>();
+            services.AddTransient<SettingsViewModel>();
 
             services.AddSingleton<MainWindow>();
 

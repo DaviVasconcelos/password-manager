@@ -29,6 +29,10 @@ public sealed partial class VaultPage : Page
         ViewModel = App.Services.GetRequiredService<VaultViewModel>();
         InitializeComponent();
         ViewModel.Trancado += OnTrancado;
+
+        PointerMoved += OnPointerMoved;
+        PointerPressed += OnPointerPressed;
+        KeyDown += OnKeyDown;
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -36,6 +40,18 @@ public sealed partial class VaultPage : Page
         base.OnNavigatedTo(e);
         ViewModel.Inicializar();
     }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e)
+    {
+        base.OnNavigatedFrom(e);
+        ViewModel.PararTimers();
+    }
+
+    private void OnPointerMoved(object sender, PointerRoutedEventArgs e) => ViewModel.NotificarAtividade();
+
+    private void OnPointerPressed(object sender, PointerRoutedEventArgs e) => ViewModel.NotificarAtividade();
+
+    private void OnKeyDown(object sender, KeyRoutedEventArgs e) => ViewModel.NotificarAtividade();
 
     private void OnTrancado()
     {
@@ -105,6 +121,104 @@ public sealed partial class VaultPage : Page
 
         await dialogo.ShowAsync();
         ViewModel.ReloadFolders();
+    }
+
+    private async void OnConfiguracoesClick(object sender, RoutedEventArgs e)
+    {
+        var content = new SettingsContent();
+        content.ViewModel.Carregar();
+
+        var dialogo = new ContentDialog
+        {
+            Title = "Configurações",
+            Content = content,
+            PrimaryButtonText = "Salvar",
+            CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        dialogo.PrimaryButtonClick += async (_, args) =>
+        {
+            if (!await content.ViewModel.SalvarAsync())
+                args.Cancel = true;
+        };
+
+        if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
+            ViewModel.AplicarConfiguracoes();
+    }
+
+    private async void OnTrocarSenhaMestraClick(object sender, RoutedEventArgs e)
+    {
+        var senhaAtualBox = new PasswordBox
+        {
+            PlaceholderText = "Senha mestra atual",
+            PasswordRevealMode = PasswordRevealMode.Peek
+        };
+        var novaSenhaBox = new PasswordBox
+        {
+            PlaceholderText = "Nova senha mestra",
+            PasswordRevealMode = PasswordRevealMode.Peek
+        };
+        var confirmacaoBox = new PasswordBox
+        {
+            PlaceholderText = "Confirme a nova senha",
+            PasswordRevealMode = PasswordRevealMode.Peek
+        };
+        var erro = new TextBlock
+        {
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Red),
+            TextWrapping = TextWrapping.Wrap
+        };
+
+        var painel = new StackPanel { Spacing = 8 };
+        painel.Children.Add(new TextBlock
+        {
+            Text = "Digite a senha mestra atual e confirme a nova senha. O cofre será re-criptografado com um novo salt.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        painel.Children.Add(senhaAtualBox);
+        painel.Children.Add(novaSenhaBox);
+        painel.Children.Add(confirmacaoBox);
+        painel.Children.Add(erro);
+
+        var dialogo = new ContentDialog
+        {
+            Title = "Trocar senha mestra",
+            Content = painel,
+            PrimaryButtonText = "Alterar",
+            CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        dialogo.PrimaryButtonClick += async (_, args) =>
+        {
+            if (novaSenhaBox.Password != confirmacaoBox.Password)
+            {
+                erro.Text = "As novas senhas não conferem.";
+                args.Cancel = true;
+                return;
+            }
+
+            try
+            {
+                await Task.Run(async () => await ViewModel.TrocarSenhaMestraAsync(
+                    senhaAtualBox.Password, novaSenhaBox.Password));
+            }
+            catch (CryptographicIntegrityException)
+            {
+                erro.Text = "A senha mestra atual está incorreta.";
+                args.Cancel = true;
+            }
+            catch (Exception ex)
+            {
+                erro.Text = ex.Message;
+                args.Cancel = true;
+            }
+        };
+
+        await dialogo.ShowAsync();
     }
 
     private ContentDialog CriarDialogo(string titulo, object conteudo)
