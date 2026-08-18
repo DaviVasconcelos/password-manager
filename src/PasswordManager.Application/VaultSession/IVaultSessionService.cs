@@ -49,9 +49,12 @@ public interface IVaultSessionService
 
     /// <summary>
     /// Troca a senha mestra, rotacionando o salt e re-criptografando o cofre.
-    /// Exige sessão desbloqueada.
+    /// Verifica a senha atual por derivação de chave (comparação em tempo
+    /// constante com a chave retida); lança
+    /// <see cref="PasswordManager.Application.Exceptions.CryptographicIntegrityException"/>
+    /// se a senha atual estiver incorreta. Exige sessão desbloqueada.
     /// </summary>
-    Task ChangeMasterPasswordAsync(string novaSenhaMestra, CancellationToken ct = default);
+    Task ChangeMasterPasswordAsync(string senhaAtual, string novaSenhaMestra, CancellationToken ct = default);
 
     /// <summary>
     /// Persiste o estado atual do <see cref="Vault"/> da sessão usando a

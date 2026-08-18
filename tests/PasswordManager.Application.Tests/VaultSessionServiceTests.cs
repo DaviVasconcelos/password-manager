@@ -163,7 +163,7 @@ public class VaultSessionServiceTests
         await servico.CreateAsync(SenhaMestra);
         var saltAntigo = _repository.SaltPersistido!;
 
-        await servico.ChangeMasterPasswordAsync(NovaSenha);
+        await servico.ChangeMasterPasswordAsync(SenhaMestra, NovaSenha);
 
         var saltNovo = _repository.SaltPersistido!;
         saltNovo.Should().NotEqual(saltAntigo);
@@ -181,7 +181,7 @@ public class VaultSessionServiceTests
     {
         var servico = CriarServico();
 
-        var act = () => servico.ChangeMasterPasswordAsync(NovaSenha);
+        var act = () => servico.ChangeMasterPasswordAsync(SenhaMestra, NovaSenha);
 
         await act.Should().ThrowAsync<InvalidOperationException>();
     }
@@ -193,9 +193,22 @@ public class VaultSessionServiceTests
         await servico.CreateAsync(SenhaMestra);
         var saltAntigo = _repository.SaltPersistido!;
 
-        var act = () => servico.ChangeMasterPasswordAsync(string.Empty);
+        var act = () => servico.ChangeMasterPasswordAsync(string.Empty, NovaSenha);
 
         await act.Should().ThrowAsync<ArgumentException>();
+        _repository.SaltPersistido.Should().Equal(saltAntigo);
+    }
+
+    [Fact]
+    public async Task ChangeMasterPasswordAsync_ComSenhaAtualIncorreta_DeveLancarCryptographicIntegrityException()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        var saltAntigo = _repository.SaltPersistido!;
+
+        var act = () => servico.ChangeMasterPasswordAsync("senha-errada", NovaSenha);
+
+        await act.Should().ThrowAsync<CryptographicIntegrityException>();
         _repository.SaltPersistido.Should().Equal(saltAntigo);
     }
 

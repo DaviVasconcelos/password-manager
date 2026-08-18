@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using PasswordManager.Application.Abstractions;
+using PasswordManager.Application.Exceptions;
 using PasswordManager.Domain.Entities;
 
 namespace PasswordManager.Application.VaultSession;
@@ -87,11 +88,27 @@ public sealed class VaultSessionService : IVaultSessionService
         _vault = null;
     }
 
-    public async Task ChangeMasterPasswordAsync(string novaSenhaMestra, CancellationToken ct = default)
+    public async Task ChangeMasterPasswordAsync(string senhaAtual, string novaSenhaMestra, CancellationToken ct = default)
     {
+        ValidarSenhaMestra(senhaAtual);
         ValidarSenhaMestra(novaSenhaMestra);
 
         var vault = CurrentVault;
+        var chaveRetida = _chave ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes.");
+
+        var saltAtual = await _vaultRepository.GetSaltAsync(ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
+
+        var chaveDerivadaDaSenhaAtual = _cryptoService.DeriveKey(senhaAtual, saltAtual);
+        if (chaveDerivadaDaSenhaAtual.Length != chaveRetida.Length
+            || !CryptographicOperations.FixedTimeEquals(chaveDerivadaDaSenhaAtual, chaveRetida))
+        {
+            CryptographicOperations.ZeroMemory(chaveDerivadaDaSenhaAtual);
+            throw new CryptographicIntegrityException("A senha mestra atual está incorreta.");
+        }
+
+        CryptographicOperations.ZeroMemory(chaveDerivadaDaSenhaAtual);
+
         var novoSalt = _cryptoService.GenerateSalt();
         var novaChave = _cryptoService.DeriveKey(novaSenhaMestra, novoSalt);
 
