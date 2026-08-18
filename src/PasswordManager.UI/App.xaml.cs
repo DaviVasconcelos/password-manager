@@ -5,6 +5,7 @@ using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.PasswordGeneration;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Infrastructure.Cryptography;
+using PasswordManager.Infrastructure.ExportImport;
 using PasswordManager.Infrastructure.Persistence;
 using PasswordManager.UI.ViewModels;
 using System;
@@ -14,7 +15,8 @@ namespace PasswordManager.UI
 {
     /// <summary>
     /// Composition root da aplicação: registra as dependências (crypto,
-    /// persistência e sessão) e as ViewModels no container de DI.
+    /// persistência, export/import e sessão) e as ViewModels no container
+    /// de DI.
     /// </summary>
     public partial class App : Microsoft.UI.Xaml.Application
     {
@@ -27,6 +29,12 @@ namespace PasswordManager.UI
         public static IServiceProvider Services =>
             _serviceProvider ?? throw new InvalidOperationException(
                 "O provedor de serviços ainda não foi inicializado.");
+
+        /// <summary>
+        /// Handle da janela principal, usado para inicializar os file
+        /// pickers (FileSavePicker/FileOpenPicker) no WinUI 3.
+        /// </summary>
+        public static IntPtr MainWindowHandle { get; private set; }
 
         /// <summary>
         /// Initializes the singleton application object. This is the first line of authored code
@@ -45,6 +53,7 @@ namespace PasswordManager.UI
             _serviceProvider = ConfigureServices();
 
             _window = new MainWindow();
+            MainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
             _window.Activate();
         }
 
@@ -74,6 +83,7 @@ namespace PasswordManager.UI
             });
 
             services.AddSingleton<IVaultRepository, VaultRepository>();
+            services.AddSingleton<IExportImportService, ExportImportService>();
             services.AddSingleton<IVaultSessionService, VaultSessionService>();
 
             services.AddTransient<UnlockViewModel>();

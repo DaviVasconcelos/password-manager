@@ -103,6 +103,50 @@ public class Vault
     }
 
     /// <summary>
+    /// Mescla as pastas e itens de outro cofre (ex.: importado de um backup)
+    /// neste cofre, mantendo os invariantes do agregado. Pastas com o mesmo
+    /// nome (ignorando caixa) são reutilizadas; itens com mesmo título e
+    /// usuário (ignorando caixa) são ignorados para evitar duplicatas. O
+    /// cofre importado não é alterado.
+    /// </summary>
+    public void MergeFrom(Vault imported)
+    {
+        ArgumentNullException.ThrowIfNull(imported);
+
+        var mapeamentoDePastas = new Dictionary<Guid, Guid>();
+
+        foreach (var pasta in imported.Folders)
+        {
+            var existente = _folders.FirstOrDefault(f =>
+                string.Equals(f.Name, pasta.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (existente is not null)
+                mapeamentoDePastas[pasta.Id] = existente.Id;
+            else
+                mapeamentoDePastas[pasta.Id] = AddFolder(pasta.Name).Id;
+        }
+
+        foreach (var item in imported.Items)
+        {
+            bool jaExiste = _items.Any(i =>
+                string.Equals(i.Title, item.Title, StringComparison.OrdinalIgnoreCase)
+                && string.Equals(i.Username, item.Username, StringComparison.OrdinalIgnoreCase));
+
+            if (jaExiste)
+                continue;
+
+            var novo = AddItem(item.Title, item.Password, item.Category,
+                item.Username, item.Url, item.Notes);
+
+            if (item.FolderId is not null
+                && mapeamentoDePastas.TryGetValue(item.FolderId.Value, out var pastaMapeada))
+            {
+                AssignItemToFolder(novo.Id, pastaMapeada);
+            }
+        }
+    }
+
+    /// <summary>
     /// Reconstrói um Vault a partir de dados já persistidos (usado pela
     /// Infrastructure ao carregar do storage). Diferente de CreateNew: não
     /// gera nova identidade, apenas remonta o agregado com itens e pastas

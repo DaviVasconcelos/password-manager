@@ -1,6 +1,7 @@
 using PasswordManager.Application.Exceptions;
 using PasswordManager.Application.Tests.Fakes;
 using PasswordManager.Application.VaultSession;
+using PasswordManager.Domain.Entities;
 using FluentAssertions;
 
 namespace PasswordManager.Application.Tests;
@@ -12,8 +13,9 @@ public class VaultSessionServiceTests
 
     private readonly FakeVaultRepository _repository = new();
     private readonly FakeCryptoService _cryptoService = new();
+    private readonly FakeExportImportService _exportImportService = new();
 
-    private VaultSessionService CriarServico() => new(_repository, _cryptoService);
+    private VaultSessionService CriarServico() => new(_repository, _cryptoService, _exportImportService);
 
     [Fact]
     public void Unlocked_QuandoSessaoInicial_DeveRetornarFalse()
@@ -422,5 +424,141 @@ public class VaultSessionServiceTests
         var act = () => servico.SearchItems();
 
         act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task ExportAsync_QuandoUnlocked_DeveExportarOCofreAtualComASenha()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+
+        var dados = await servico.ExportAsync(SenhaMestra);
+
+        dados.Should().NotBeEmpty();
+        _exportImportService.VaultExportado.Should().BeSameAs(servico.CurrentVault);
+    }
+
+    [Fact]
+    public async Task ExportAsync_QuandoTrancado_DeveLancarInvalidOperationException()
+    {
+        var servico = CriarServico();
+
+        var act = () => servico.ExportAsync(SenhaMestra);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task ExportAsync_ComSenhaVazia_DeveLancarArgumentException()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+
+        var act = () => servico.ExportAsync(string.Empty);
+
+        await act.Should().ThrowAsync<ArgumentException>();
+    }
+
+    [Fact]
+    public async Task ImportAsync_QuandoUnlockedComReplace_DeveSubstituirOCofreAtualEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        await servico.AddItemAsync("GitHub", "senha123", "Dev");
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("Gmail", "senha456", "Email");
+        _exportImportService.VaultParaImportar = importado;
+
+        await servico.ImportAsync(new byte[] { 1, 2, 3 }, SenhaMestra, replace: true);
+
+        servico.CurrentVault.Should().BeSameAs(importado);
+        servico.CurrentVault.Items.Should().ContainSingle().Which.Title.Should().Be("Gmail");
+
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
+        recarregado.Items.Should().ContainSingle().Which.Title.Should().Be("Gmail");
+    }
+
+    [Fact]
+    public async Task ImportAsync_QuandoUnlockedComMerge_DeveMesclarEPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        await servico.AddItemAsync("GitHub", "senha123", "Dev");
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("Gmail", "senha456", "Email");
+        importado.AddFolder("Trabalho");
+        _exportImportService.VaultParaImportar = importado;
+
+        await servico.ImportAsync(new byte[] { 1, 2, 3 }, SenhaMestra, replace: false);
+
+        servico.CurrentVault.Items.Should().HaveCount(2);
+        servico.CurrentVault.Folders.Should().ContainSingle().Which.Name.Should().Be("Trabalho");
+
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
+        recarregado.Items.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task ImportAsync_ComSenhaErrada_DeveLancarIntegrityExceptionESemAlterarOCofre()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        _exportImportService.SenhaEsperada = SenhaMestra;
+        var vaultOriginal = servico.CurrentVault;
+
+        var act = () => servico.ImportAsync(new byte[] { 1, 2, 3 }, "senha-errada", replace: true);
+
+        await act.Should().ThrowAsync<CryptographicIntegrityException>();
+        servico.CurrentVault.Should().BeSameAs(vaultOriginal);
+        servico.CurrentVault.Items.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ImportAsync_QuandoTrancadoESemCofre_DeveCriarOCofreAPartirDoArquivo()
+    {
+        var servico = CriarServico();
+        _exportImportService.SenhaEsperada = SenhaMestra;
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("Gmail", "senha456", "Email");
+        _exportImportService.VaultParaImportar = importado;
+
+        await servico.ImportAsync(new byte[] { 1, 2, 3 }, SenhaMestra, replace: true);
+
+        servico.Unlocked.Should().BeTrue();
+        servico.CurrentVault.Should().BeSameAs(importado);
+        _repository.VaultPersistido.Should().BeSameAs(importado);
+
+        servico.Lock();
+        var recarregado = await servico.UnlockAsync(SenhaMestra);
+        recarregado.Items.Should().ContainSingle().Which.Title.Should().Be("Gmail");
+    }
+
+    [Fact]
+    public async Task ImportAsync_QuandoTrancadoEJaExisteCofre_DeveLancarInvalidOperationException()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        servico.Lock();
+
+        var act = () => servico.ImportAsync(new byte[] { 1, 2, 3 }, SenhaMestra, replace: true);
+
+        await act.Should().ThrowAsync<InvalidOperationException>();
+        servico.Unlocked.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ImportAsync_ComDadosNulos_DeveLancarArgumentNullException()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+
+        var act = () => servico.ImportAsync(null!, SenhaMestra, replace: true);
+
+        await act.Should().ThrowAsync<ArgumentNullException>();
     }
 }

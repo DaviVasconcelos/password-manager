@@ -3,10 +3,15 @@ using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
+using PasswordManager.Application.Exceptions;
 using PasswordManager.Domain.Entities;
 using PasswordManager.UI.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Windows.Storage.Streams;
 
 namespace PasswordManager.UI.Views;
 
@@ -113,5 +118,168 @@ public sealed partial class VaultPage : Page
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
+    }
+
+    private async void OnExportarClick(object sender, RoutedEventArgs e)
+    {
+        var arquivo = await EscolherDestinoExportacaoAsync();
+        if (arquivo is null)
+            return;
+
+        var senha = await PedirSenhaAsync(
+            "Exportar cofre",
+            "Digite a senha mestra para criptografar o arquivo de backup.");
+        if (senha is null)
+            return;
+
+        try
+        {
+            var dados = await ViewModel.ExportarAsync(senha);
+            await FileIO.WriteBytesAsync(arquivo, dados);
+        }
+        catch (Exception ex)
+        {
+            await MostrarErroAsync($"Falha ao exportar: {ex.Message}");
+        }
+    }
+
+    private async void OnImportarClick(object sender, RoutedEventArgs e)
+    {
+        var arquivo = await EscolherOrigemImportacaoAsync();
+        if (arquivo is null)
+            return;
+
+        var dados = await PedirDadosImportacaoAsync();
+        if (dados.Senha is null)
+            return;
+
+        try
+        {
+            var buffer = await FileIO.ReadBufferAsync(arquivo);
+            var conteudo = new byte[buffer.Length];
+            DataReader.FromBuffer(buffer).ReadBytes(conteudo);
+            await ViewModel.ImportarAsync(conteudo, dados.Senha, dados.Substituir);
+            await MostrarInfoAsync(dados.Substituir
+                ? "Cofre substituído pelo conteúdo do arquivo."
+                : "Cofre mesclado com o conteúdo do arquivo.");
+        }
+        catch (CryptographicIntegrityException)
+        {
+            await MostrarErroAsync("Senha mestra incorreta ou arquivo corrompido.");
+        }
+        catch (InvalidOperationException ex)
+        {
+            await MostrarErroAsync(ex.Message);
+        }
+    }
+
+    private async Task<StorageFile?> EscolherDestinoExportacaoAsync()
+    {
+        var picker = new FileSavePicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, App.MainWindowHandle);
+        picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
+        picker.FileTypeChoices.Add("Cofre PasswordManager (.vault)", new List<string> { ".vault" });
+        picker.SuggestedFileName = $"cofre-{DateTime.Now:yyyyMMdd}.vault";
+
+        return await picker.PickSaveFileAsync();
+    }
+
+    private async Task<StorageFile?> EscolherOrigemImportacaoAsync()
+    {
+        var picker = new FileOpenPicker();
+        WinRT.Interop.InitializeWithWindow.Initialize(picker, App.MainWindowHandle);
+        picker.FileTypeFilter.Add(".vault");
+
+        return await picker.PickSingleFileAsync();
+    }
+
+    private async Task<string?> PedirSenhaAsync(string titulo, string mensagem)
+    {
+        var senhaBox = new PasswordBox
+        {
+            PlaceholderText = "Senha mestra",
+            PasswordRevealMode = PasswordRevealMode.Peek
+        };
+
+        var painel = new StackPanel { Spacing = 8 };
+        painel.Children.Add(new TextBlock { Text = mensagem, TextWrapping = TextWrapping.Wrap });
+        painel.Children.Add(senhaBox);
+
+        var dialogo = new ContentDialog
+        {
+            Title = titulo,
+            Content = painel,
+            PrimaryButtonText = "Continuar",
+            CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+            return null;
+
+        return senhaBox.Password;
+    }
+
+    private async Task<(string? Senha, bool Substituir)> PedirDadosImportacaoAsync()
+    {
+        var senhaBox = new PasswordBox
+        {
+            PlaceholderText = "Senha mestra",
+            PasswordRevealMode = PasswordRevealMode.Peek
+        };
+        var radioMesclar = new RadioButton { Content = "Mesclar com o cofre atual", IsChecked = true };
+        var radioSubstituir = new RadioButton { Content = "Substituir o cofre atual", IsChecked = false };
+
+        var painel = new StackPanel { Spacing = 8 };
+        painel.Children.Add(new TextBlock
+        {
+            Text = "Digite a senha mestra usada para criptografar o arquivo e escolha como aplicar.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        painel.Children.Add(senhaBox);
+        painel.Children.Add(radioMesclar);
+        painel.Children.Add(radioSubstituir);
+
+        var dialogo = new ContentDialog
+        {
+            Title = "Importar cofre",
+            Content = painel,
+            PrimaryButtonText = "Importar",
+            CloseButtonText = "Cancelar",
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+            return (null, false);
+
+        return (senhaBox.Password, radioSubstituir.IsChecked == true);
+    }
+
+    private async Task MostrarErroAsync(string mensagem)
+    {
+        var dialogo = new ContentDialog
+        {
+            Title = "Erro",
+            Content = mensagem,
+            CloseButtonText = "OK",
+            XamlRoot = XamlRoot
+        };
+
+        await dialogo.ShowAsync();
+    }
+
+    private async Task MostrarInfoAsync(string mensagem)
+    {
+        var dialogo = new ContentDialog
+        {
+            Title = "Importação concluída",
+            Content = mensagem,
+            CloseButtonText = "OK",
+            XamlRoot = XamlRoot
+        };
+
+        await dialogo.ShowAsync();
     }
 }

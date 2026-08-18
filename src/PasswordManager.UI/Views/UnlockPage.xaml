@@ -40,6 +40,10 @@
                     Command="{x:Bind ViewModel.CreateCommand}"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
+            <Button Content="Importar backup..."
+                    Click="OnImportarBackupClick"
+                    Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
+
             <ProgressRing IsActive="{x:Bind ViewModel.Ocupado, Mode=OneWay}" Width="32" Height="32" HorizontalAlignment="Center" />
         </StackPanel>
     </Grid>

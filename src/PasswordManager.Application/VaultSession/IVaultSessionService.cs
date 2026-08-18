@@ -109,4 +109,24 @@ public interface IVaultSessionService
     /// Exige sessão desbloqueada.
     /// </summary>
     IReadOnlyList<VaultItem> SearchItems(string? termo = null, Guid? pastaId = null);
+
+    /// <summary>
+    /// Serializa e criptografa o cofre atual para o formato .vault usando a
+    /// senha mestra informada (re-digitada pelo usuário). Exige sessão
+    /// desbloqueada. O resultado são bytes prontos para escrita em arquivo
+    /// pela UI.
+    /// </summary>
+    Task<byte[]> ExportAsync(string masterPassword, CancellationToken ct = default);
+
+    /// <summary>
+    /// Importa um arquivo .vault, validando-o com a senha mestra informada.
+    /// Com a sessão desbloqueada, <paramref name="replace"/> decide entre
+    /// substituir o cofre atual ou mesclar com ele (ADR 0005). Com a sessão
+    /// trancada, só é permitido quando ainda não há cofre persistido —
+    /// nesse caso o cofre importado vira o cofre local (primeira execução).
+    /// Lança
+    /// <see cref="PasswordManager.Application.Exceptions.CryptographicIntegrityException"/>
+    /// se a senha estiver errada ou o arquivo estiver corrompido.
+    /// </summary>
+    Task ImportAsync(byte[] fileData, string masterPassword, bool replace, CancellationToken ct = default);
 }

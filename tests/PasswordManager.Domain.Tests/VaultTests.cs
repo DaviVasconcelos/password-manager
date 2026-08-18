@@ -121,6 +121,125 @@ public class VaultTests
     }
 
     [Fact]
+    public void MergeFrom_ComItensEPastasNovas_DeveAdicionarTodos()
+    {
+        var vault = Vault.CreateNew();
+        vault.AddItem("GitHub", "senha123", "Dev");
+        vault.AddFolder("Trabalho");
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("Gmail", "senha456", "Email");
+        importado.AddFolder("Pessoal");
+
+        vault.MergeFrom(importado);
+
+        vault.Items.Should().HaveCount(2);
+        vault.Folders.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void MergeFrom_ComItemDuplicadoMesmoTituloEUsuario_DeveIgnorarOItem()
+    {
+        var vault = Vault.CreateNew();
+        vault.AddItem("GitHub", "senha123", "Dev", username: "davi");
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("GitHub", "outra-senha", "Dev", username: "davi");
+
+        vault.MergeFrom(importado);
+
+        vault.Items.Should().ContainSingle()
+            .Which.Password.Should().Be("senha123");
+    }
+
+    [Fact]
+    public void MergeFrom_ComMesmoTituloMasUsuarioDiferente_DeveAdicionar()
+    {
+        var vault = Vault.CreateNew();
+        vault.AddItem("GitHub", "senha123", "Dev", username: "davi");
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("GitHub", "senha456", "Dev", username: "outro");
+
+        vault.MergeFrom(importado);
+
+        vault.Items.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public void MergeFrom_ComPastaDeMesmoNome_DeveReutilizarAPastaExistente()
+    {
+        var vault = Vault.CreateNew();
+        var pasta = vault.AddFolder("Trabalho");
+
+        var importado = Vault.CreateNew();
+        importado.AddFolder("trabalho");
+
+        vault.MergeFrom(importado);
+
+        vault.Folders.Should().ContainSingle().Which.Id.Should().Be(pasta.Id);
+    }
+
+    [Fact]
+    public void MergeFrom_ComItemEmPastaImportada_DeveAssociarItemAPastaPorNome()
+    {
+        var vault = Vault.CreateNew();
+
+        var importado = Vault.CreateNew();
+        var pasta = importado.AddFolder("Trabalho");
+        var item = importado.AddItem("GitHub", "senha123", "Dev");
+        importado.AssignItemToFolder(item.Id, pasta.Id);
+
+        vault.MergeFrom(importado);
+
+        var itemNovo = vault.Items.Single(i => i.Title == "GitHub");
+        var pastaNova = vault.Folders.Single(f => f.Name == "Trabalho");
+        itemNovo.FolderId.Should().Be(pastaNova.Id);
+    }
+
+    [Fact]
+    public void MergeFrom_ComItemEmPastaJaExistente_DeveAssociarAPastaExistente()
+    {
+        var vault = Vault.CreateNew();
+        var pasta = vault.AddFolder("Trabalho");
+
+        var importado = Vault.CreateNew();
+        var pastaImportada = importado.AddFolder("trabalho");
+        var item = importado.AddItem("GitHub", "senha123", "Dev");
+        importado.AssignItemToFolder(item.Id, pastaImportada.Id);
+
+        vault.MergeFrom(importado);
+
+        var itemNovo = vault.Items.Single(i => i.Title == "GitHub");
+        itemNovo.FolderId.Should().Be(pasta.Id);
+        vault.Folders.Should().ContainSingle().Which.Id.Should().Be(pasta.Id);
+    }
+
+    [Fact]
+    public void MergeFrom_NaoDeveAlterarOCofreImportado()
+    {
+        var vault = Vault.CreateNew();
+
+        var importado = Vault.CreateNew();
+        importado.AddItem("GitHub", "senha123", "Dev");
+
+        vault.MergeFrom(importado);
+
+        importado.Items.Should().ContainSingle();
+        importado.Folders.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void MergeFrom_ComCofreNulo_DeveLancarArgumentNullException()
+    {
+        var vault = Vault.CreateNew();
+
+        var act = () => vault.MergeFrom(null!);
+
+        act.Should().Throw<ArgumentNullException>();
+    }
+
+    [Fact]
     public void Items_DeveSerReadOnly_NaoPermitindoMutacaoExterna()
     {
         var vault = Vault.CreateNew();

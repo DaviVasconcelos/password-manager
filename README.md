@@ -37,7 +37,7 @@ tests/
 - [x] Testes
 - [x] Infrastructure
 - [x] UI
-- [ ] Export/Import
+- [x] Export/Import (arquivo `.vault` criptografado; sem CSV nesta etapa)
 - [ ] CI/CD
 
 ## Licença

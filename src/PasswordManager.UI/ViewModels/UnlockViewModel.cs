@@ -116,4 +116,32 @@ public partial class UnlockViewModel : ObservableObject
             Ocupado = false;
         }
     }
+
+    /// <summary>
+    /// Importa um backup .vault na primeira execução (ainda não existe
+    /// cofre local): o cofre do arquivo vira o cofre da instalação e a
+    /// sessão fica desbloqueada com a mesma senha mestra do arquivo.
+    /// </summary>
+    public async Task ImportarAsync(byte[] fileData, string masterPassword)
+    {
+        Erro = null;
+        Ocupado = true;
+        try
+        {
+            await Task.Run(async () => await _sessionService.ImportAsync(fileData, masterPassword, replace: true));
+            Unlocked?.Invoke();
+        }
+        catch (CryptographicIntegrityException)
+        {
+            Erro = "Senha mestra incorreta ou arquivo corrompido.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            Erro = ex.Message;
+        }
+        finally
+        {
+            Ocupado = false;
+        }
+    }
 }

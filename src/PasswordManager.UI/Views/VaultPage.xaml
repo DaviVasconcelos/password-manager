@@ -27,7 +27,11 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="Cofre de senhas" Style="{StaticResource TitleTextBlockStyle}" VerticalAlignment="Center" />
-            <Button Grid.Column="1" Content="Trancar" Command="{x:Bind ViewModel.LockCommand}" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                <Button Content="Exportar..." Click="OnExportarClick" />
+                <Button Content="Importar..." Click="OnImportarClick" />
+                <Button Content="Trancar" Command="{x:Bind ViewModel.LockCommand}" />
+            </StackPanel>
         </Grid>
 
         <Grid Grid.Row="1" ColumnSpacing="8">

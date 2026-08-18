@@ -15,14 +15,19 @@ public sealed class VaultSessionService : IVaultSessionService
 {
     private readonly IVaultRepository _vaultRepository;
     private readonly ICryptoService _cryptoService;
+    private readonly IExportImportService _exportImportService;
 
     private byte[]? _chave;
     private Vault? _vault;
 
-    public VaultSessionService(IVaultRepository vaultRepository, ICryptoService cryptoService)
+    public VaultSessionService(
+        IVaultRepository vaultRepository,
+        ICryptoService cryptoService,
+        IExportImportService exportImportService)
     {
         _vaultRepository = vaultRepository;
         _cryptoService = cryptoService;
+        _exportImportService = exportImportService;
     }
 
     public bool Unlocked => _vault is not null;
@@ -168,6 +173,51 @@ public sealed class VaultSessionService : IVaultSessionService
         }
 
         return itens.ToList();
+    }
+
+    public Task<byte[]> ExportAsync(string masterPassword, CancellationToken ct = default)
+    {
+        ValidarSenhaMestra(masterPassword);
+
+        var vault = CurrentVault;
+        return Task.Run(() => _exportImportService.Export(vault, masterPassword), ct);
+    }
+
+    public async Task ImportAsync(byte[] fileData, string masterPassword, bool replace, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(fileData);
+        ValidarSenhaMestra(masterPassword);
+
+        var importado = await Task.Run(() => _exportImportService.Import(fileData, masterPassword), ct)
+            .ConfigureAwait(false);
+
+        if (Unlocked)
+        {
+            if (replace)
+            {
+                _vault = importado;
+            }
+            else
+            {
+                CurrentVault.MergeFrom(importado);
+            }
+
+            await SaveAsync(ct).ConfigureAwait(false);
+            return;
+        }
+
+        if (await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false))
+        {
+            throw new InvalidOperationException(
+                "Desbloqueie o cofre antes de importar, ou importe na primeira execução para criar o cofre.");
+        }
+
+        var salt = _cryptoService.GenerateSalt();
+        var chave = _cryptoService.DeriveKey(masterPassword, salt);
+
+        await _vaultRepository.CreateAsync(importado, chave, salt, ct).ConfigureAwait(false);
+
+        DefinirSessao(chave, importado);
     }
 
     private void DefinirSessao(byte[] chave, Vault vault)

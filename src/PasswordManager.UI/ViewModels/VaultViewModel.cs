@@ -134,6 +134,24 @@ public partial class VaultViewModel : ObservableObject
         ReloadFolders();
     }
 
+    /// <summary>
+    /// Serializa o cofre atual para bytes no formato .vault usando a senha
+    /// mestra re-digitada pelo usuário. A UI é responsável por gravar os
+    /// bytes no arquivo escolhido.
+    /// </summary>
+    public Task<byte[]> ExportarAsync(string masterPassword)
+        => _sessionService.ExportAsync(masterPassword);
+
+    /// <summary>
+    /// Importa um arquivo .vault, substituindo ou mesclando com o cofre
+    /// atual, e atualiza a lista e as pastas exibidas.
+    /// </summary>
+    public async Task ImportarAsync(byte[] fileData, string masterPassword, bool substituir)
+    {
+        await _sessionService.ImportAsync(fileData, masterPassword, substituir);
+        ReloadFolders();
+    }
+
     [RelayCommand]
     private async Task RemoverItemAsync()
     {
