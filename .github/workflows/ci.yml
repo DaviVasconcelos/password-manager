@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    name: Compilar e testar (Windows)
+    runs-on: windows-latest
+
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v4
+
+      - name: Instalar o SDK do .NET 10 (global.json)
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Garantir o runtime do .NET 8 (testes)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Compilar a solution
+        run: dotnet build PasswordManager.slnx --configuration Debug
+
+      - name: Executar os testes
+        run: dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx --results-directory TestResults
+
+      - name: Enviar os resultados dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-dos-testes
+          path: TestResults/**/*.trx
+          if-no-files-found: warn
+          retention-days: 14
