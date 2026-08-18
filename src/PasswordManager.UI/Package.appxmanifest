@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <Package
   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
@@ -11,7 +11,7 @@
   <Identity
     Name="da5fdcb9-00c2-4650-9224-0625ebd58ab1"
     Publisher="CN=Davi"
-    Version="1.0.0.0" />
+    Version="0.0.0.1" />
 
   <mp:PhoneIdentity PhoneProductId="da5fdcb9-00c2-4650-9224-0625ebd58ab1" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -27,7 +27,7 @@
   </Dependencies>
 
   <Resources>
-    <Resource Language="x-generate"/>
+    <Resource Language="pt-br"/>
   </Resources>
 
   <Applications>
