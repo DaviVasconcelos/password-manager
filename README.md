@@ -38,7 +38,7 @@ tests/
 - [x] Infrastructure
 - [x] UI
 - [x] Export/Import (arquivo `.vault` criptografado; sem CSV nesta etapa)
-- [ ] CI/CD
+- [x] CI/CD (GitHub Actions: build + testes em push/PR — ADR 0006)
 
 ## Licença
 
