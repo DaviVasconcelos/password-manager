@@ -1,0 +1,892 @@
+﻿# Snapshot do Design - PasswordManager
+
+> Gerado automaticamente por scripts/fetch-figma-design.ps1. Regenerar apos alteracoes no Figma.
+
+Arquivo: PasswordManager  |  Versao: 2389462762602660726  |  Modificado: 2026-08-19T15:38:51Z
+
+## Estrutura
+
+### Canvas: Telas
+
+  - **FRAME**: UnlockPage - Claro  cor=#F3F3F3  layout=VERTICAL
+    - **FRAME**: unlock-card-claro  cor=#FFFFFF  layout=VERTICAL
+      - **FRAME**: identity  layout=VERTICAL
+        - **FRAME**: app-logo  cor=#0078D4  layout=VERTICAL
+          - **FRAME**: shield
+            - **VECTOR**: Vector
+        - **TEXT**: title  texto="PasswordManager"  cor=#1A1A1A  tipografia=[28.0 px / 600]
+        - **TEXT**: subtitle  texto="Seu cofre seguro"  cor=#616161  tipografia=[20.0 px / 600]
+      - **FRAME**: form-fields  layout=VERTICAL
+        - **FRAME**: fluent-textbox  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Senha mestra"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: eye-off
+            - **VECTOR**: Vector
+        - **FRAME**: fluent-textbox  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Confirmar senha"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: eye-off
+            - **VECTOR**: Vector
+        - **FRAME**: error-container  layout=HORIZONTAL
+          - **FRAME**: alert-circle
+            - **VECTOR**: Vector
+          - **TEXT**: error-msg  texto="Senha incorreta"  cor=#D13438  tipografia=[12.0 px / 400]
+      - **FRAME**: action-block  layout=VERTICAL
+        - **FRAME**: fluent-button-primary  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Criar cofre"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#FFFFFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Importar backup..."  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **FRAME**: progress-ring-container  layout=HORIZONTAL
+          - **ELLIPSE**: spinner  cor=#000000
+  - **FRAME**: UnlockPage - Escuro  cor=#1C1C1C  layout=VERTICAL
+    - **FRAME**: unlock-card-escuro  cor=#202020  layout=VERTICAL
+      - **FRAME**: identity-escuro  layout=VERTICAL
+        - **FRAME**: app-logo-escuro  cor=#60CDFF  layout=VERTICAL
+          - **FRAME**: shield
+            - **VECTOR**: Vector
+        - **TEXT**: title-escuro  texto="PasswordManager"  cor=#FFFFFF  tipografia=[28.0 px / 600]
+        - **TEXT**: subtitle-escuro  texto="Seu cofre seguro"  cor=#9E9E9E  tipografia=[20.0 px / 600]
+      - **FRAME**: form-fields-escuro  layout=VERTICAL
+        - **FRAME**: fluent-textbox  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Senha mestra"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: eye-off
+            - **VECTOR**: Vector
+        - **FRAME**: fluent-textbox  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Confirmar senha"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: eye-off
+            - **VECTOR**: Vector
+        - **FRAME**: error-container-escuro  layout=HORIZONTAL
+          - **FRAME**: alert-circle
+            - **VECTOR**: Vector
+          - **TEXT**: error-msg-escuro  texto="Senha incorreta"  cor=#FF6767  tipografia=[12.0 px / 400]
+      - **FRAME**: action-block-escuro  layout=VERTICAL
+        - **FRAME**: fluent-button-primary  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Criar cofre"  cor=#000000  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Importar backup..."  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **FRAME**: progress-ring-container-escuro  layout=HORIZONTAL
+          - **ELLIPSE**: spinner-escuro  cor=#000000
+  - **FRAME**: VaultPage - Claro  cor=#FFFFFF  layout=HORIZONTAL
+    - **FRAME**: NavigationView-Claro  cor=#F3F3F3  layout=VERTICAL
+      - **FRAME**: nav-upper  layout=VERTICAL
+        - **FRAME**: nav-brand  layout=HORIZONTAL
+          - **FRAME**: circle-x
+            - **VECTOR**: Vector
+          - **TEXT**: brand-name  texto="PasswordManager"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **FRAME**: nav-items-stack  layout=VERTICAL
+          - **FRAME**: nav-item-Itens  cor=#EAEAEA  layout=HORIZONTAL
+            - **RECTANGLE**: selection-pill  cor=#0078D4
+            - **FRAME**: user-key
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Itens"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **FRAME**: nav-item-Pastas  cor=#000000  layout=HORIZONTAL
+            - **FRAME**: folder-open
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Pastas"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: nav-item-Configurações  cor=#000000  layout=HORIZONTAL
+            - **FRAME**: settings
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Configurações"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+      - **FRAME**: nav-bottom  layout=VERTICAL
+        - **FRAME**: nav-item-Trancar  cor=#000000  layout=HORIZONTAL
+          - **FRAME**: unlock-keyhole
+            - **VECTOR**: Vector
+          - **TEXT**: nav-label  texto="Trancar"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+    - **FRAME**: Content-Area-Claro  cor=#FFFFFF  layout=VERTICAL
+      - **FRAME**: top-controls  layout=HORIZONTAL
+        - **FRAME**: fluent-textbox  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Buscar por titulo, usuario, URL, notas ou categoria..."  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: combobox  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: combo-text  texto="Todas as pastas"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: chevron-down
+            - **VECTOR**: Vector
+        - **FRAME**: fluent-button-primary  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="+ Novo item"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+      - **FRAME**: header-actions  layout=HORIZONTAL
+        - **FRAME**: fluent-button-secondary  cor=#FFFFFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Exportar"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#FFFFFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Importar"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#FFFFFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Trocar senha mestra"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+      - **FRAME**: table-header  cor=#F3F3F3  layout=HORIZONTAL
+        - **TEXT**: th-title  texto="Título"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **TEXT**: th-username  texto="Usuário"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+        - **TEXT**: th-category  texto="Categoria"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+      - **FRAME**: table-body  layout=VERTICAL
+        - **FRAME**: vault-row-Gmail  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Gmail"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao@gmail.com"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#E5E5E5  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Email"  cor=#1A1A1A  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-GitHub  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="GitHub"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="devuser"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#E5E5E5  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Desenvolvimento"  cor=#1A1A1A  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Netflix  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Netflix"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="familia_netflix"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#E5E5E5  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Entretenimento"  cor=#1A1A1A  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Nubank  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Nubank"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao.nubank"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#E5E5E5  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Finanças"  cor=#1A1A1A  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Slack Trabalho  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Slack Trabalho"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao@empresa.com"  cor=#616161  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#E5E5E5  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Comunicação"  cor=#1A1A1A  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#F5F5F5  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+      - **FRAME**: success-toast-claro  cor=#D4EDDA  layout=HORIZONTAL
+        - **FRAME**: check-circle
+          - **VECTOR**: Vector
+        - **TEXT**: toast-text  texto="Senha copiada! (área de transferência limpa em 30 s)"  cor=#0F7B0F  tipografia=[14.0 px / 400]
+        - **FRAME**: x-circle
+          - **VECTOR**: Vector
+  - **FRAME**: VaultPage - Escuro  cor=#202020  layout=HORIZONTAL
+    - **FRAME**: NavigationView-Escuro  cor=#2D2D2D  layout=VERTICAL
+      - **FRAME**: nav-upper-escuro  layout=VERTICAL
+        - **FRAME**: nav-brand-escuro  layout=HORIZONTAL
+          - **FRAME**: circle-x
+            - **VECTOR**: Vector
+          - **TEXT**: brand-name-escuro  texto="PasswordManager"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **FRAME**: nav-items-stack-escuro  layout=VERTICAL
+          - **FRAME**: nav-item-Itens  cor=#3D3D3D  layout=HORIZONTAL
+            - **RECTANGLE**: selection-pill  cor=#60CDFF
+            - **FRAME**: user-key
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Itens"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **FRAME**: nav-item-Pastas  cor=#000000  layout=HORIZONTAL
+            - **FRAME**: folder-open
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Pastas"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: nav-item-Configurações  cor=#000000  layout=HORIZONTAL
+            - **FRAME**: settings
+              - **VECTOR**: Vector
+            - **TEXT**: nav-label  texto="Configurações"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+      - **FRAME**: nav-bottom-escuro  layout=VERTICAL
+        - **FRAME**: nav-item-Trancar  cor=#000000  layout=HORIZONTAL
+          - **FRAME**: unlock-keyhole
+            - **VECTOR**: Vector
+          - **TEXT**: nav-label  texto="Trancar"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+    - **FRAME**: Content-Area-Escuro  cor=#202020  layout=VERTICAL
+      - **FRAME**: top-controls-escuro  layout=HORIZONTAL
+        - **FRAME**: fluent-textbox  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: placeholder-text  texto="Buscar por titulo, usuario, URL, notas ou categoria..."  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: combobox-escuro  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: combo-text-escuro  texto="Todas as pastas"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: chevron-down
+            - **VECTOR**: Vector
+        - **FRAME**: fluent-button-primary  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="+ Novo item"  cor=#000000  tipografia=[14.0 px / 600]
+      - **FRAME**: header-actions-escuro  layout=HORIZONTAL
+        - **FRAME**: fluent-button-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Exportar"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Importar"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **FRAME**: fluent-button-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: button-text  texto="Trocar senha mestra"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+      - **FRAME**: table-header-escuro  cor=#2D2D2D  layout=HORIZONTAL
+        - **TEXT**: th-title-escuro  texto="Título"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **TEXT**: th-username-escuro  texto="Usuário"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+        - **TEXT**: th-category-escuro  texto="Categoria"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+      - **FRAME**: table-body-escuro  layout=VERTICAL
+        - **FRAME**: vault-row-Gmail  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Gmail"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao@gmail.com"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#3D3D3D  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Email"  cor=#FFFFFF  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-GitHub  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="GitHub"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="devuser"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#3D3D3D  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Desenvolvimento"  cor=#FFFFFF  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Netflix  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Netflix"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="familia_netflix"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#3D3D3D  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Entretenimento"  cor=#FFFFFF  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Nubank  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Nubank"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao.nubank"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#3D3D3D  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Finanças"  cor=#FFFFFF  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+        - **FRAME**: vault-row-Slack Trabalho  layout=HORIZONTAL
+          - **FRAME**: col-title  layout=HORIZONTAL
+            - **FRAME**: user-lock
+              - **VECTOR**: Vector
+            - **TEXT**: cell-title  texto="Slack Trabalho"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+          - **TEXT**: col-username  texto="joao@empresa.com"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+          - **FRAME**: col-category  layout=HORIZONTAL
+            - **FRAME**: badge  cor=#3D3D3D  layout=HORIZONTAL
+              - **TEXT**: badge-text  texto="Comunicação"  cor=#FFFFFF  tipografia=[11.0 px / 400]
+            - **FRAME**: row-actions  layout=HORIZONTAL
+              - **FRAME**: act-edit  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: pencil
+                  - **VECTOR**: Vector
+              - **FRAME**: act-copy  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: copy
+                  - **VECTOR**: Vector
+              - **FRAME**: act-delete  cor=#2D2D2D  layout=HORIZONTAL
+                - **FRAME**: trash-2
+                  - **VECTOR**: Vector
+      - **FRAME**: success-toast-escuro  cor=#1E4620  layout=HORIZONTAL
+        - **FRAME**: check-circle
+          - **VECTOR**: Vector
+        - **TEXT**: toast-text-escuro  texto="Senha copiada! (área de transferência limpa em 30 s)"  cor=#6CCB5F  tipografia=[14.0 px / 400]
+        - **FRAME**: x-circle
+          - **VECTOR**: Vector
+  - **FRAME**: ItemEditorContent - Claro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#FFFFFF  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Novo item"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **FRAME**: editor-form-scroll  layout=VERTICAL
+        - **FRAME**: textbox-container-Título  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Título"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#F3F3F3  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Ex: Gmail, Banco..."  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: textbox-container-Usuário  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Usuário"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#F3F3F3  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="usuario@exemplo.com"  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: password-field-group  layout=VERTICAL
+          - **TEXT**: lbl  texto="Senha"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: row  layout=HORIZONTAL
+            - **FRAME**: fluent-textbox-password  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: dots  texto="••••••••••••••••"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: eye
+                - **VECTOR**: Vector
+            - **FRAME**: btn-generate  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: btn-label  texto="Gerar"  cor=#1A1A1A  tipografia=[12.0 px / 600]
+        - **FRAME**: textbox-container-URL  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="URL"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#F3F3F3  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="https://exemplo.com"  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: textbox-container-Notas  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Notas"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#F3F3F3  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Notas adicionais sobre esta conta..."  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: combobox-row  layout=HORIZONTAL
+          - **FRAME**: combobox-container-Categoria  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Categoria"  cor=#616161  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="Trabalho"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+          - **FRAME**: combobox-container-Pasta  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Pasta"  cor=#616161  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="Nenhuma"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+        - **LINE**: separator
+        - **FRAME**: generator-settings  layout=VERTICAL
+          - **FRAME**: slider-container-Tamanho  layout=VERTICAL
+            - **FRAME**: slider-header  layout=HORIZONTAL
+              - **TEXT**: slider-label  texto="Tamanho"  cor=#616161  tipografia=[12.0 px / 500]
+              - **TEXT**: slider-value  texto="16 caracteres"  cor=#1A1A1A  tipografia=[12.0 px / 600]
+            - **FRAME**: slider-track-container  layout=HORIZONTAL
+              - **FRAME**: slider-active  cor=#0078D4  layout=HORIZONTAL
+              - **ELLIPSE**: slider-thumb  cor=#0078D4
+              - **FRAME**: slider-inactive  cor=#E0E0E0  layout=HORIZONTAL
+          - **FRAME**: strength-indicator-section  layout=VERTICAL
+            - **TEXT**: label  texto="Força da senha: Forte"  cor=#616161  tipografia=[11.0 px / 400]
+            - **FRAME**: bar-track  cor=#E0E0E0  layout=HORIZONTAL
+              - **FRAME**: bar-active  cor=#0F7B0F  layout=HORIZONTAL
+          - **FRAME**: toggles-grid  layout=VERTICAL
+            - **FRAME**: toggle-row-Maiúsculas (A-Z)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Maiúsculas (A-Z)"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Minúsculas (a-z)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Minúsculas (a-z)"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Números (0-9)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Números (0-9)"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Símbolos (@#$)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Símbolos (@#$)"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#F3F3F3  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#616161
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-secondary  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Cancelar"  cor=#1A1A1A  tipografia=[14.0 px / 500]
+        - **FRAME**: btn-primary  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Salvar"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+  - **FRAME**: ItemEditorContent - Escuro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#202020  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Novo item"  cor=#FFFFFF  tipografia=[20.0 px / 600]
+      - **FRAME**: editor-form-scroll  layout=VERTICAL
+        - **FRAME**: textbox-container-Título  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Título"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#2D2D2D  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Ex: Gmail, Banco..."  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: textbox-container-Usuário  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Usuário"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#2D2D2D  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="usuario@exemplo.com"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: password-field-group  layout=VERTICAL
+          - **TEXT**: lbl  texto="Senha"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: row  layout=HORIZONTAL
+            - **FRAME**: fluent-textbox-password  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: dots  texto="••••••••••••••••"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: eye
+                - **VECTOR**: Vector
+            - **FRAME**: btn-generate  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: btn-label  texto="Gerar"  cor=#FFFFFF  tipografia=[12.0 px / 600]
+        - **FRAME**: textbox-container-URL  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="URL"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#2D2D2D  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="https://exemplo.com"  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: textbox-container-Notas  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Notas"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#2D2D2D  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Notas adicionais sobre esta conta..."  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: combobox-row  layout=HORIZONTAL
+          - **FRAME**: combobox-container-Categoria  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Categoria"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="Trabalho"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+          - **FRAME**: combobox-container-Pasta  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Pasta"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="Nenhuma"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+        - **LINE**: separator
+        - **FRAME**: generator-settings  layout=VERTICAL
+          - **FRAME**: slider-container-Tamanho  layout=VERTICAL
+            - **FRAME**: slider-header  layout=HORIZONTAL
+              - **TEXT**: slider-label  texto="Tamanho"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+              - **TEXT**: slider-value  texto="16 caracteres"  cor=#FFFFFF  tipografia=[12.0 px / 600]
+            - **FRAME**: slider-track-container  layout=HORIZONTAL
+              - **FRAME**: slider-active  cor=#60CDFF  layout=HORIZONTAL
+              - **ELLIPSE**: slider-thumb  cor=#60CDFF
+              - **FRAME**: slider-inactive  cor=#3D3D3D  layout=HORIZONTAL
+          - **FRAME**: strength-indicator-section  layout=VERTICAL
+            - **TEXT**: label  texto="Força da senha: Forte"  cor=#9E9E9E  tipografia=[11.0 px / 400]
+            - **FRAME**: bar-track  cor=#3D3D3D  layout=HORIZONTAL
+              - **FRAME**: bar-active  cor=#6CCB5F  layout=HORIZONTAL
+          - **FRAME**: toggles-grid  layout=VERTICAL
+            - **FRAME**: toggle-row-Maiúsculas (A-Z)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Maiúsculas (A-Z)"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Minúsculas (a-z)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Minúsculas (a-z)"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Números (0-9)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Números (0-9)"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Símbolos (@#$)  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Símbolos (@#$)"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#2D2D2D  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#9E9E9E
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Cancelar"  cor=#FFFFFF  tipografia=[14.0 px / 500]
+        - **FRAME**: btn-primary  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Salvar"  cor=#000000  tipografia=[14.0 px / 600]
+  - **FRAME**: GerenciarPastasContent - Claro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#FFFFFF  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Gerenciar pastas"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **FRAME**: folders-list  layout=VERTICAL
+        - **FRAME**: folder-row-Pessoal  cor=#FFFFFF  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Pessoal"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Trabalho  cor=#FFFFFF  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Trabalho"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Finanças  cor=#FFFFFF  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Finanças"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Redes Sociais  cor=#FFFFFF  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Redes Sociais"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#F3F3F3  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+      - **FRAME**: new-folder-input-row  layout=HORIZONTAL
+        - **FRAME**: textbox-container-Nova pasta  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Nova pasta"  cor=#616161  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#F3F3F3  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Nome da pasta..."  cor=#616161  tipografia=[14.0 px / 400]
+        - **FRAME**: btn-add-folder  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: btn-label  texto="Adicionar"  cor=#FFFFFF  tipografia=[13.0 px / 600]
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-primary  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Fechar"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+  - **FRAME**: GerenciarPastasContent - Escuro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#202020  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Gerenciar pastas"  cor=#FFFFFF  tipografia=[20.0 px / 600]
+      - **FRAME**: folders-list  layout=VERTICAL
+        - **FRAME**: folder-row-Pessoal  cor=#202020  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Pessoal"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Trabalho  cor=#202020  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Trabalho"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Finanças  cor=#202020  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Finanças"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+        - **FRAME**: folder-row-Redes Sociais  cor=#202020  layout=HORIZONTAL
+          - **FRAME**: folder-info  layout=HORIZONTAL
+            - **FRAME**: folder
+              - **VECTOR**: Vector
+            - **TEXT**: folder-name  texto="Redes Sociais"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+          - **FRAME**: folder-actions  layout=HORIZONTAL
+            - **FRAME**: action-edit  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: pencil
+                - **VECTOR**: Vector
+            - **FRAME**: action-delete  cor=#2D2D2D  layout=HORIZONTAL
+              - **FRAME**: trash
+                - **VECTOR**: Vector
+      - **FRAME**: new-folder-input-row  layout=HORIZONTAL
+        - **FRAME**: textbox-container-Nova pasta  layout=VERTICAL
+          - **TEXT**: textbox-label  texto="Nova pasta"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+          - **FRAME**: textbox-field  cor=#2D2D2D  layout=HORIZONTAL
+            - **TEXT**: text-content  texto="Nome da pasta..."  cor=#9E9E9E  tipografia=[14.0 px / 400]
+        - **FRAME**: btn-add-folder  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: btn-label  texto="Adicionar"  cor=#000000  tipografia=[13.0 px / 600]
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-primary  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Fechar"  cor=#000000  tipografia=[14.0 px / 600]
+  - **FRAME**: SettingsContent - Claro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#FFFFFF  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Configurações"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **FRAME**: settings-scroll  layout=VERTICAL
+        - **FRAME**: section-security  layout=VERTICAL
+          - **TEXT**: section-header  texto="Segurança"  cor=#0078D4  tipografia=[14.0 px / 600]
+          - **FRAME**: combobox-container-Timeout de bloqueio automático  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Timeout de bloqueio automático"  cor=#616161  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="15 min"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+          - **FRAME**: combobox-container-Tempo para limpar área de transferência  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Tempo para limpar área de transferência"  cor=#616161  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#F3F3F3  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="30 s"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+        - **LINE**: separator
+        - **FRAME**: section-generator  layout=VERTICAL
+          - **TEXT**: section-header  texto="Gerador de senhas (padrões)"  cor=#0078D4  tipografia=[14.0 px / 600]
+          - **FRAME**: slider-container-Tamanho padrão  layout=VERTICAL
+            - **FRAME**: slider-header  layout=HORIZONTAL
+              - **TEXT**: slider-label  texto="Tamanho padrão"  cor=#616161  tipografia=[12.0 px / 500]
+              - **TEXT**: slider-value  texto="16 caracteres"  cor=#1A1A1A  tipografia=[12.0 px / 600]
+            - **FRAME**: slider-track-container  layout=HORIZONTAL
+              - **FRAME**: slider-active  cor=#0078D4  layout=HORIZONTAL
+              - **ELLIPSE**: slider-thumb  cor=#0078D4
+              - **FRAME**: slider-inactive  cor=#E0E0E0  layout=HORIZONTAL
+          - **FRAME**: standard-toggles  layout=VERTICAL
+            - **FRAME**: toggle-row-Incluir maiúsculas  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir maiúsculas"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Incluir minúsculas  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir minúsculas"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Incluir números  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir números"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#0078D4  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#FFFFFF
+            - **FRAME**: toggle-row-Incluir símbolos  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir símbolos"  cor=#1A1A1A  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#F3F3F3  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#616161
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-secondary  cor=#F3F3F3  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Cancelar"  cor=#1A1A1A  tipografia=[14.0 px / 500]
+        - **FRAME**: btn-primary  cor=#0078D4  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Salvar"  cor=#FFFFFF  tipografia=[14.0 px / 600]
+  - **FRAME**: SettingsContent - Escuro  cor=#000000  layout=VERTICAL
+    - **FRAME**: fluent-content-dialog  cor=#202020  layout=VERTICAL
+      - **FRAME**: dialog-header  layout=VERTICAL
+        - **TEXT**: title  texto="Configurações"  cor=#FFFFFF  tipografia=[20.0 px / 600]
+      - **FRAME**: settings-scroll  layout=VERTICAL
+        - **FRAME**: section-security  layout=VERTICAL
+          - **TEXT**: section-header  texto="Segurança"  cor=#60CDFF  tipografia=[14.0 px / 600]
+          - **FRAME**: combobox-container-Timeout de bloqueio automático  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Timeout de bloqueio automático"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="15 min"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+          - **FRAME**: combobox-container-Tempo para limpar área de transferência  layout=VERTICAL
+            - **TEXT**: combobox-label  texto="Tempo para limpar área de transferência"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+            - **FRAME**: combobox-field  cor=#2D2D2D  layout=HORIZONTAL
+              - **TEXT**: combo-value  texto="30 s"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: chevron-down
+                - **VECTOR**: Vector
+        - **LINE**: separator
+        - **FRAME**: section-generator  layout=VERTICAL
+          - **TEXT**: section-header  texto="Gerador de senhas (padrões)"  cor=#60CDFF  tipografia=[14.0 px / 600]
+          - **FRAME**: slider-container-Tamanho padrão  layout=VERTICAL
+            - **FRAME**: slider-header  layout=HORIZONTAL
+              - **TEXT**: slider-label  texto="Tamanho padrão"  cor=#9E9E9E  tipografia=[12.0 px / 500]
+              - **TEXT**: slider-value  texto="16 caracteres"  cor=#FFFFFF  tipografia=[12.0 px / 600]
+            - **FRAME**: slider-track-container  layout=HORIZONTAL
+              - **FRAME**: slider-active  cor=#60CDFF  layout=HORIZONTAL
+              - **ELLIPSE**: slider-thumb  cor=#60CDFF
+              - **FRAME**: slider-inactive  cor=#3D3D3D  layout=HORIZONTAL
+          - **FRAME**: standard-toggles  layout=VERTICAL
+            - **FRAME**: toggle-row-Incluir maiúsculas  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir maiúsculas"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Incluir minúsculas  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir minúsculas"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Incluir números  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir números"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#60CDFF  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#000000
+            - **FRAME**: toggle-row-Incluir símbolos  layout=HORIZONTAL
+              - **TEXT**: toggle-label  texto="Incluir símbolos"  cor=#FFFFFF  tipografia=[14.0 px / 400]
+              - **FRAME**: toggle-track  cor=#2D2D2D  layout=HORIZONTAL
+                - **ELLIPSE**: toggle-thumb  cor=#9E9E9E
+      - **FRAME**: dialog-footer  layout=HORIZONTAL
+        - **FRAME**: btn-secondary  cor=#2D2D2D  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Cancelar"  cor=#FFFFFF  tipografia=[14.0 px / 500]
+        - **FRAME**: btn-primary  cor=#60CDFF  layout=HORIZONTAL
+          - **TEXT**: btn-text  texto="Salvar"  cor=#000000  tipografia=[14.0 px / 600]
+
+### Canvas: Design System
+
+  - **FRAME**: tokens  cor=#F3F3F3  layout=VERTICAL
+    - **FRAME**: header-tokens  layout=VERTICAL
+      - **TEXT**: tokens-headline  texto="Windows 11 Fluent 2 Tokens"  cor=#1A1A1A  tipografia=[28.0 px / 600]
+      - **TEXT**: tokens-sub  texto="Paletas de cores coordenadas para temas Claro e Escuro."  cor=#616161  tipografia=[14.0 px / 400]
+    - **FRAME**: swatches-grid  layout=VERTICAL
+      - **FRAME**: header-row  layout=HORIZONTAL
+        - **TEXT**: Token  texto="Token"  cor=#000000  tipografia=[12.0 px / 600]
+        - **TEXT**: Claro  texto="Claro"  cor=#000000  tipografia=[12.0 px / 600]
+        - **TEXT**: Escuro  texto="Escuro"  cor=#000000  tipografia=[12.0 px / 600]
+      - **FRAME**: swatch-row-Accent  layout=HORIZONTAL
+        - **TEXT**: Accent  texto="Accent"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: Accent-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#0078D4
+          - **TEXT**: #0078D4  texto="#0078D4"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: Accent-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#60CDFF
+          - **TEXT**: #60CDFF  texto="#60CDFF"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-Surface  layout=HORIZONTAL
+        - **TEXT**: Surface  texto="Surface"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: Surface-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#FFFFFF
+          - **TEXT**: #FFFFFF  texto="#FFFFFF"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: Surface-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#202020
+          - **TEXT**: #202020  texto="#202020"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-SurfaceAlt  layout=HORIZONTAL
+        - **TEXT**: SurfaceAlt  texto="SurfaceAlt"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: SurfaceAlt-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#F3F3F3
+          - **TEXT**: #F3F3F3  texto="#F3F3F3"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: SurfaceAlt-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#2D2D2D
+          - **TEXT**: #2D2D2D  texto="#2D2D2D"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-TextPrimary  layout=HORIZONTAL
+        - **TEXT**: TextPrimary  texto="TextPrimary"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: TextPrimary-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#1A1A1A
+          - **TEXT**: #1A1A1A  texto="#1A1A1A"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: TextPrimary-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#FFFFFF
+          - **TEXT**: #FFFFFF  texto="#FFFFFF"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-TextSecondary  layout=HORIZONTAL
+        - **TEXT**: TextSecondary  texto="TextSecondary"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: TextSecondary-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#616161
+          - **TEXT**: #616161  texto="#616161"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: TextSecondary-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#9E9E9E
+          - **TEXT**: #9E9E9E  texto="#9E9E9E"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-TextOnAccent  layout=HORIZONTAL
+        - **TEXT**: TextOnAccent  texto="TextOnAccent"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: TextOnAccent-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#FFFFFF
+          - **TEXT**: #FFFFFF  texto="#FFFFFF"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: TextOnAccent-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#000000
+          - **TEXT**: #000000  texto="#000000"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-BorderSubtle  layout=HORIZONTAL
+        - **TEXT**: BorderSubtle  texto="BorderSubtle"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: BorderSubtle-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#E0E0E0
+          - **TEXT**: #E0E0E0  texto="#E0E0E0"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: BorderSubtle-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#3D3D3D
+          - **TEXT**: #3D3D3D  texto="#3D3D3D"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-Danger  layout=HORIZONTAL
+        - **TEXT**: Danger  texto="Danger"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: Danger-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#D13438
+          - **TEXT**: #D13438  texto="#D13438"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: Danger-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#FF6767
+          - **TEXT**: #FF6767  texto="#FF6767"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: swatch-row-Success  layout=HORIZONTAL
+        - **TEXT**: Success  texto="Success"  cor=#000000  tipografia=[13.0 px / 400]
+        - **FRAME**: Success-light  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#0F7B0F
+          - **TEXT**: #0F7B0F  texto="#0F7B0F"  cor=#616161  tipografia=[11.0 px / 400]
+        - **FRAME**: Success-dark  layout=HORIZONTAL
+          - **RECTANGLE**: color  cor=#6CCB5F
+          - **TEXT**: #6CCB5F  texto="#6CCB5F"  cor=#616161  tipografia=[11.0 px / 400]
+  - **FRAME**: tipografia  cor=#FFFFFF  layout=VERTICAL
+    - **FRAME**: header-type  layout=VERTICAL
+      - **TEXT**: type-headline  texto="Segoe UI Variable Scale"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **TEXT**: type-sub  texto="Escala de fontes nativas do Windows 11."  cor=#616161  tipografia=[12.0 px / 400]
+    - **FRAME**: samples-list  layout=VERTICAL
+      - **FRAME**: type-sample-Titulo  layout=VERTICAL
+        - **FRAME**: meta-row  layout=HORIZONTAL
+          - **TEXT**: type-name  texto="Titulo"  cor=#0078D4  tipografia=[12.0 px / 600]
+          - **TEXT**: type-specs  texto="28px • Semibold"  cor=#616161  tipografia=[11.0 px / 400]
+        - **TEXT**: type-demo  texto="Cofre de Senhas"  cor=#1A1A1A  tipografia=[28.0 px / 600]
+      - **FRAME**: type-sample-Subtitulo  layout=VERTICAL
+        - **FRAME**: meta-row  layout=HORIZONTAL
+          - **TEXT**: type-name  texto="Subtitulo"  cor=#0078D4  tipografia=[12.0 px / 600]
+          - **TEXT**: type-specs  texto="20px • Semibold"  cor=#616161  tipografia=[11.0 px / 400]
+        - **TEXT**: type-demo  texto="Contas Pessoais"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **FRAME**: type-sample-Corpo  layout=VERTICAL
+        - **FRAME**: meta-row  layout=HORIZONTAL
+          - **TEXT**: type-name  texto="Corpo"  cor=#0078D4  tipografia=[12.0 px / 600]
+          - **TEXT**: type-specs  texto="14px • Regular"  cor=#616161  tipografia=[11.0 px / 400]
+        - **TEXT**: type-demo  texto="Digite sua senha mestra para desbloquear."  cor=#1A1A1A  tipografia=[14.0 px / 400]
+      - **FRAME**: type-sample-Caption  layout=VERTICAL
+        - **FRAME**: meta-row  layout=HORIZONTAL
+          - **TEXT**: type-name  texto="Caption"  cor=#0078D4  tipografia=[12.0 px / 600]
+          - **TEXT**: type-specs  texto="12px • Regular"  cor=#616161  tipografia=[11.0 px / 400]
+        - **TEXT**: type-demo  texto="Cofre limpo automaticamente em 30 s"  cor=#1A1A1A  tipografia=[12.0 px / 400]
+  - **FRAME**: espacamentos  cor=#FFFFFF  layout=VERTICAL
+    - **FRAME**: header-space  layout=VERTICAL
+      - **TEXT**: space-headline  texto="Espaçamento"  cor=#1A1A1A  tipografia=[20.0 px / 600]
+      - **TEXT**: space-sub  texto="Grid de alinhamento de 4px."  cor=#616161  tipografia=[12.0 px / 400]
+    - **FRAME**: blocks-list  layout=VERTICAL
+      - **FRAME**: spacing-block-4  layout=HORIZONTAL
+        - **RECTANGLE**: visual-block  cor=#0078D4
+        - **FRAME**: label-container  layout=VERTICAL
+          - **TEXT**: pixel-value  texto="4px"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: grid-units  texto="1x Grid (4px)"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: spacing-block-8  layout=HORIZONTAL
+        - **RECTANGLE**: visual-block  cor=#0078D4
+        - **FRAME**: label-container  layout=VERTICAL
+          - **TEXT**: pixel-value  texto="8px"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: grid-units  texto="2x Grid (4px)"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: spacing-block-12  layout=HORIZONTAL
+        - **RECTANGLE**: visual-block  cor=#0078D4
+        - **FRAME**: label-container  layout=VERTICAL
+          - **TEXT**: pixel-value  texto="12px"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: grid-units  texto="3x Grid (4px)"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: spacing-block-16  layout=HORIZONTAL
+        - **RECTANGLE**: visual-block  cor=#0078D4
+        - **FRAME**: label-container  layout=VERTICAL
+          - **TEXT**: pixel-value  texto="16px"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: grid-units  texto="4x Grid (4px)"  cor=#616161  tipografia=[11.0 px / 400]
+      - **FRAME**: spacing-block-24  layout=HORIZONTAL
+        - **RECTANGLE**: visual-block  cor=#0078D4
+        - **FRAME**: label-container  layout=VERTICAL
+          - **TEXT**: pixel-value  texto="24px"  cor=#1A1A1A  tipografia=[14.0 px / 600]
+          - **TEXT**: grid-units  texto="6x Grid (4px)"  cor=#616161  tipografia=[11.0 px / 400]
+

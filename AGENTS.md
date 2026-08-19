@@ -2,6 +2,12 @@
 
 Local password manager (Clean Architecture, C#). WinUI 3 desktop app; SQLite/EF Core storage (ADR 0003) and AES-256-GCM/Argon2id crypto (ADR 0004) implemented. Read `docs/adr/*` before touching domain, persistence, or crypto code.
 
+## Design da UI (Figma)
+
+- Plano de implementação do redesign: `docs/design/design-plan.md`. Fonte de verdade do design: `docs/design/figma-snapshot.md` (regenerável).
+- Para atualizar o snapshot após mudanças no Figma: `powershell -ExecutionPolicy Bypass -File scripts/fetch-figma-design.ps1`. Requer env var `FIGMA_PERSONAL_ACCESS_TOKEN` (nunca commitar o token). Header da Figma REST API: `X-Figma-Token`.
+- O snapshot `figma-snapshot.json` (cru, 10+ MB) é gitignored; só o markdown é versionado.
+
 ## Commands
 
 - Build: `dotnet build PasswordManager.slnx` (Debug). Verified passing; tests at `dotnet test PasswordManager.slnx`.

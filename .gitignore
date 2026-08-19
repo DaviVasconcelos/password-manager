@@ -11,6 +11,15 @@
 *.sln.docstates
 *.env
 
+# Segredos/credenciais (nunca commitar)
+*.auth.json
+mcp-auth.json
+*.token
+*.figma-token
+
+# Snapshot cru do Figma (10+ MB); só o markdown regenerável é versionado
+docs/design/figma-snapshot.json
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
