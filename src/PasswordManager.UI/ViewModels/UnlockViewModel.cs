@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PasswordManager.Application.Exceptions;
 using PasswordManager.Application.VaultSession;
+using PasswordManager.UI.Localization;
 using System;
 using System.Threading.Tasks;
 
@@ -15,6 +16,7 @@ namespace PasswordManager.UI.ViewModels;
 public partial class UnlockViewModel : ObservableObject
 {
     private readonly IVaultSessionService _sessionService;
+    private readonly ILocalizationService _localization;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(UnlockCommand))]
@@ -42,11 +44,14 @@ public partial class UnlockViewModel : ObservableObject
     /// </summary>
     public event Action? Unlocked;
 
-    public string TituloModo => ModoCriar ? "Criar novo cofre" : "Desbloquear cofre";
+    public string TituloModo => ModoCriar
+        ? _localization.GetString("UnlockViewModel_TituloModo_Criar")
+        : _localization.GetString("UnlockViewModel_TituloModo_Desbloquear");
 
-    public UnlockViewModel(IVaultSessionService sessionService)
+    public UnlockViewModel(IVaultSessionService sessionService, ILocalizationService localization)
     {
         _sessionService = sessionService;
+        _localization = localization;
     }
 
     public async Task InitializeAsync()
@@ -79,7 +84,7 @@ public partial class UnlockViewModel : ObservableObject
         }
         catch (CryptographicIntegrityException)
         {
-            Erro = "Senha mestra incorreta ou cofre corrompido.";
+            Erro = _localization.GetString("UnlockViewModel_Erro_SenhaIncorreta");
         }
         catch (InvalidOperationException ex)
         {
@@ -96,7 +101,7 @@ public partial class UnlockViewModel : ObservableObject
     {
         if (SenhaMestra != ConfirmacaoSenha)
         {
-            Erro = "As senhas não conferem.";
+            Erro = _localization.GetString("UnlockViewModel_Erro_SenhasNaoConferem");
             return;
         }
 
@@ -133,7 +138,7 @@ public partial class UnlockViewModel : ObservableObject
         }
         catch (CryptographicIntegrityException)
         {
-            Erro = "Senha mestra incorreta ou arquivo corrompido.";
+            Erro = _localization.GetString("UnlockViewModel_Erro_ArquivoCorrompido");
         }
         catch (InvalidOperationException ex)
         {

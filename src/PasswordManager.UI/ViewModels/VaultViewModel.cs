@@ -8,6 +8,7 @@ using Microsoft.UI.Dispatching;
 using PasswordManager.Application.Settings;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Domain.Entities;
+using PasswordManager.UI.Localization;
 using Windows.ApplicationModel.DataTransfer;
 
 namespace PasswordManager.UI.ViewModels;
@@ -25,6 +26,7 @@ public partial class VaultViewModel : ObservableObject
 {
     private readonly IVaultSessionService _sessionService;
     private readonly IAppSettingsService _settingsService;
+    private readonly ILocalizationService _localization;
     private readonly DispatcherQueueTimer _timerLimparClipboard;
     private readonly DispatcherQueueTimer _timerInatividade;
 
@@ -56,10 +58,14 @@ public partial class VaultViewModel : ObservableObject
 
     public bool CanEditItem => ItemSelecionado is not null;
 
-    public VaultViewModel(IVaultSessionService sessionService, IAppSettingsService settingsService)
+    public VaultViewModel(
+        IVaultSessionService sessionService,
+        IAppSettingsService settingsService,
+        ILocalizationService localization)
     {
         _sessionService = sessionService;
         _settingsService = settingsService;
+        _localization = localization;
         _timerLimparClipboard = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _timerLimparClipboard.Tick += OnTimerCleanClipboardTick;
         _timerInatividade = DispatcherQueue.GetForCurrentThread().CreateTimer();
@@ -111,7 +117,7 @@ public partial class VaultViewModel : ObservableObject
         var selected = OpcaoPastaSelecionada?.Pasta?.Id;
 
         FolderOptions.Clear();
-        FolderOptions.Add(new OpcoesPasta("Todas as pastas", null));
+        FolderOptions.Add(new OpcoesPasta(_localization.GetString("VaultViewModel_TodasPastas"), null));
 
         foreach (var pasta in _sessionService.CurrentVault.Folders)
             FolderOptions.Add(new OpcoesPasta(pasta.Name, pasta));

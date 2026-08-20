@@ -9,27 +9,27 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Width="380" Spacing="12" Padding="0,4">
-            <TextBlock Text="Auto-lock" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock Text="Tranca o cofre automaticamente após o tempo de inatividade." TextWrapping="Wrap" />
-            <ComboBox Header="Tempo de inatividade (minutos)"
+            <TextBlock x:Uid="Settings_AutoLock" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock x:Uid="Settings_AutoLock_Descricao" TextWrapping="Wrap" />
+            <ComboBox x:Uid="Settings_TempoInatividade"
                       ItemsSource="{x:Bind ViewModel.OpcoesTimeoutAutoLock}"
                       SelectedItem="{x:Bind ViewModel.TimeoutAutoLockMinutes, Mode=TwoWay}" />
 
-            <TextBlock Text="Área de transferência" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock Text="Tempo até a senha copiada ser removida da área de transferência." TextWrapping="Wrap" />
-            <ComboBox Header="Limpeza da área de transferência (segundos)"
+            <TextBlock x:Uid="Settings_Clipboard" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock x:Uid="Settings_Clipboard_Descricao" TextWrapping="Wrap" />
+            <ComboBox x:Uid="Settings_LimpezaClipboard"
                       ItemsSource="{x:Bind ViewModel.OpcoesLimpezaClipboard}"
                       SelectedItem="{x:Bind ViewModel.ClipboardCleanTimeSeconds, Mode=TwoWay}" />
 
-            <TextBlock Text="Gerador de senha" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock Text="Valores padrão usados ao gerar uma nova senha." TextWrapping="Wrap" />
-            <ComboBox Header="Tamanho da senha"
+            <TextBlock x:Uid="Settings_GeradorSenha" Style="{StaticResource SubtitleTextBlockStyle}" />
+            <TextBlock x:Uid="Settings_GeradorSenha_Descricao" TextWrapping="Wrap" />
+            <ComboBox x:Uid="Settings_TamanhoSenha"
                       ItemsSource="{x:Bind ViewModel.OpcoesTamanhoSenha}"
                       SelectedItem="{x:Bind ViewModel.PasswordGeneratorLength, Mode=TwoWay}" />
-            <ToggleSwitch Header="Minúsculas (a-z)" IsOn="{x:Bind ViewModel.IncludeLowercase, Mode=TwoWay}" />
-            <ToggleSwitch Header="Maiúsculas (A-Z)" IsOn="{x:Bind ViewModel.IncludeUppercase, Mode=TwoWay}" />
-            <ToggleSwitch Header="Números (0-9)" IsOn="{x:Bind ViewModel.IncludeDigits, Mode=TwoWay}" />
-            <ToggleSwitch Header="Símbolos (!@#...)" IsOn="{x:Bind ViewModel.IncludeSymbols, Mode=TwoWay}" />
+            <ToggleSwitch x:Uid="Settings_Minusculas" IsOn="{x:Bind ViewModel.IncludeLowercase, Mode=TwoWay}" />
+            <ToggleSwitch x:Uid="Settings_Maiusculas" IsOn="{x:Bind ViewModel.IncludeUppercase, Mode=TwoWay}" />
+            <ToggleSwitch x:Uid="Settings_Numeros" IsOn="{x:Bind ViewModel.IncludeDigits, Mode=TwoWay}" />
+            <ToggleSwitch x:Uid="Settings_Simbolos" IsOn="{x:Bind ViewModel.IncludeSymbols, Mode=TwoWay}" />
 
             <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
                        Foreground="{ThemeResource SystemFillColorCriticalBrush}"

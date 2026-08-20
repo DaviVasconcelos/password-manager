@@ -15,32 +15,32 @@
 
     <Grid Padding="32">
         <StackPanel Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-            <TextBlock Text="PasswordManager" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
+            <TextBlock x:Uid="UnlockPage_TituloApp" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
             <TextBlock Text="{x:Bind ViewModel.TituloModo, Mode=OneWay}"
                        Style="{StaticResource SubtitleTextBlockStyle}"
                        HorizontalAlignment="Center" />
 
             <PasswordBox x:Name="SenhaMestraBox"
                          PasswordRevealMode="Peek"
-                         PlaceholderText="Senha mestra" />
+                         x:Uid="UnlockPage_SenhaMestraBox" />
 
             <PasswordBox x:Name="ConfirmacaoBox"
                          PasswordRevealMode="Peek"
-                         PlaceholderText="Confirme a senha"
+                         x:Uid="UnlockPage_ConfirmacaoBox"
                          Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
             <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
                        Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
 
-            <Button Content="Desbloquear"
+            <Button x:Uid="UnlockPage_BtnDesbloquear"
                     Command="{x:Bind ViewModel.UnlockCommand}"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolInvertidoParaVisibilidade}}" />
 
-            <Button Content="Criar cofre"
+            <Button x:Uid="UnlockPage_BtnCriarCofre"
                     Command="{x:Bind ViewModel.CreateCommand}"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
-            <Button Content="Importar backup..."
+            <Button x:Uid="UnlockPage_BtnImportarBackup"
                     Click="OnImportarBackupClick"
                     Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 

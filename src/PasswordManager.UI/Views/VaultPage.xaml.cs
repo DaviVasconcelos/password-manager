@@ -5,6 +5,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using PasswordManager.Application.Exceptions;
 using PasswordManager.Domain.Entities;
+using PasswordManager.UI.Localization;
 using PasswordManager.UI.ViewModels;
 using System;
 using System.Collections.Generic;
@@ -24,9 +25,12 @@ public sealed partial class VaultPage : Page
 {
     public VaultViewModel ViewModel { get; }
 
+    private readonly ILocalizationService _localization;
+
     public VaultPage()
     {
         ViewModel = App.Services.GetRequiredService<VaultViewModel>();
+        _localization = App.Services.GetRequiredService<ILocalizationService>();
         InitializeComponent();
         ViewModel.Trancado += OnTrancado;
 
@@ -63,7 +67,7 @@ public sealed partial class VaultPage : Page
         var editor = new ItemEditorContent();
         editor.ViewModel.CarregarParaCriacao(ViewModel.FolderOptions);
 
-        var dialogo = CriarDialogo("Novo item", editor);
+        var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogNovoItem.Title"), editor);
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
@@ -94,7 +98,7 @@ public sealed partial class VaultPage : Page
         var editor = new ItemEditorContent();
         editor.ViewModel.CarregarParaEdicao(item, ViewModel.FolderOptions);
 
-        var dialogo = CriarDialogo("Editar item", editor);
+        var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogEditarItem.Title"), editor);
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
@@ -113,9 +117,9 @@ public sealed partial class VaultPage : Page
     {
         var dialogo = new ContentDialog
         {
-            Title = "Gerenciar pastas",
+            Title = _localization.GetString("VaultPage_DialogGerenciarPastas.Title"),
             Content = new GerenciarPastasContent(),
-            PrimaryButtonText = "Concluir",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogGerenciarPastas.PrimaryButtonText"),
             XamlRoot = XamlRoot
         };
 
@@ -130,10 +134,10 @@ public sealed partial class VaultPage : Page
 
         var dialogo = new ContentDialog
         {
-            Title = "Configurações",
+            Title = _localization.GetString("VaultPage_DialogConfiguracoes.Title"),
             Content = content,
-            PrimaryButtonText = "Salvar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogConfiguracoes.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogConfiguracoes.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -152,17 +156,17 @@ public sealed partial class VaultPage : Page
     {
         var senhaAtualBox = new PasswordBox
         {
-            PlaceholderText = "Senha mestra atual",
+            PlaceholderText = _localization.GetString("VaultPage_SenhaAtualBox.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
         var novaSenhaBox = new PasswordBox
         {
-            PlaceholderText = "Nova senha mestra",
+            PlaceholderText = _localization.GetString("VaultPage_NovaSenhaBox.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
         var confirmacaoBox = new PasswordBox
         {
-            PlaceholderText = "Confirme a nova senha",
+            PlaceholderText = _localization.GetString("VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
         var erro = new TextBlock
@@ -174,7 +178,7 @@ public sealed partial class VaultPage : Page
         var painel = new StackPanel { Spacing = 8 };
         painel.Children.Add(new TextBlock
         {
-            Text = "Digite a senha mestra atual e confirme a nova senha. O cofre será re-criptografado com um novo salt.",
+            Text = _localization.GetString("VaultPage_TextoTrocarSenha.Text"),
             TextWrapping = TextWrapping.Wrap
         });
         painel.Children.Add(senhaAtualBox);
@@ -184,10 +188,10 @@ public sealed partial class VaultPage : Page
 
         var dialogo = new ContentDialog
         {
-            Title = "Trocar senha mestra",
+            Title = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.Title"),
             Content = painel,
-            PrimaryButtonText = "Alterar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -196,7 +200,7 @@ public sealed partial class VaultPage : Page
         {
             if (novaSenhaBox.Password != confirmacaoBox.Password)
             {
-                erro.Text = "As novas senhas não conferem.";
+                erro.Text = _localization.GetString("VaultPage_Erro_SenhasNaoConferem");
                 args.Cancel = true;
                 return;
             }
@@ -208,7 +212,7 @@ public sealed partial class VaultPage : Page
             }
             catch (CryptographicIntegrityException)
             {
-                erro.Text = "A senha mestra atual está incorreta.";
+                erro.Text = _localization.GetString("VaultPage_Erro_SenhaAtualIncorreta");
                 args.Cancel = true;
             }
             catch (Exception ex)
@@ -227,8 +231,8 @@ public sealed partial class VaultPage : Page
         {
             Title = titulo,
             Content = conteudo,
-            PrimaryButtonText = "Salvar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogGenerico.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogGenerico.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -241,8 +245,8 @@ public sealed partial class VaultPage : Page
             return;
 
         var senha = await PedirSenhaAsync(
-            "Exportar cofre",
-            "Digite a senha mestra para criptografar o arquivo de backup.");
+            _localization.GetString("VaultPage_DialogExportar.Title"),
+            _localization.GetString("VaultPage_DialogExportar.Mensagem"));
         if (senha is null)
             return;
 
@@ -253,7 +257,7 @@ public sealed partial class VaultPage : Page
         }
         catch (Exception ex)
         {
-            await MostrarErroAsync($"Falha ao exportar: {ex.Message}");
+            await MostrarErroAsync(_localization.GetString("VaultPage_Erro_FalhaExportar", ex.Message));
         }
     }
 
@@ -273,13 +277,13 @@ public sealed partial class VaultPage : Page
             var conteudo = new byte[buffer.Length];
             DataReader.FromBuffer(buffer).ReadBytes(conteudo);
             await ViewModel.ImportarAsync(conteudo, dados.Senha, dados.Substituir);
-            await MostrarInfoAsync(dados.Substituir
-                ? "Cofre substituído pelo conteúdo do arquivo."
-                : "Cofre mesclado com o conteúdo do arquivo.");
+            await MostrarInfoAsync(_localization.GetString(dados.Substituir
+                ? "VaultPage_Info_CofreSubstituido"
+                : "VaultPage_Info_CofreMesclado"));
         }
         catch (CryptographicIntegrityException)
         {
-            await MostrarErroAsync("Senha mestra incorreta ou arquivo corrompido.");
+            await MostrarErroAsync(_localization.GetString("VaultPage_Erro_SenhaArquivoCorrompido"));
         }
         catch (InvalidOperationException ex)
         {
@@ -292,7 +296,7 @@ public sealed partial class VaultPage : Page
         var picker = new FileSavePicker();
         WinRT.Interop.InitializeWithWindow.Initialize(picker, App.MainWindowHandle);
         picker.SuggestedStartLocation = PickerLocationId.DocumentsLibrary;
-        picker.FileTypeChoices.Add("Cofre PasswordManager (.vault)", new List<string> { ".vault" });
+        picker.FileTypeChoices.Add(_localization.GetString("VaultPage_FilePicker_VaultFilter"), new List<string> { ".vault" });
         picker.SuggestedFileName = $"cofre-{DateTime.Now:yyyyMMdd}.vault";
 
         return await picker.PickSaveFileAsync();
@@ -311,7 +315,7 @@ public sealed partial class VaultPage : Page
     {
         var senhaBox = new PasswordBox
         {
-            PlaceholderText = "Senha mestra",
+            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
 
@@ -323,8 +327,8 @@ public sealed partial class VaultPage : Page
         {
             Title = titulo,
             Content = painel,
-            PrimaryButtonText = "Continuar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogContinuar.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogContinuar.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -339,16 +343,16 @@ public sealed partial class VaultPage : Page
     {
         var senhaBox = new PasswordBox
         {
-            PlaceholderText = "Senha mestra",
+            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
-        var radioMesclar = new RadioButton { Content = "Mesclar com o cofre atual", IsChecked = true };
-        var radioSubstituir = new RadioButton { Content = "Substituir o cofre atual", IsChecked = false };
+        var radioMesclar = new RadioButton { Content = _localization.GetString("VaultPage_RadioMesclar.Content"), IsChecked = true };
+        var radioSubstituir = new RadioButton { Content = _localization.GetString("VaultPage_RadioSubstituir.Content"), IsChecked = false };
 
         var painel = new StackPanel { Spacing = 8 };
         painel.Children.Add(new TextBlock
         {
-            Text = "Digite a senha mestra usada para criptografar o arquivo e escolha como aplicar.",
+            Text = _localization.GetString("VaultPage_TextoImportar.Text"),
             TextWrapping = TextWrapping.Wrap
         });
         painel.Children.Add(senhaBox);
@@ -357,10 +361,10 @@ public sealed partial class VaultPage : Page
 
         var dialogo = new ContentDialog
         {
-            Title = "Importar cofre",
+            Title = _localization.GetString("VaultPage_DialogPedirSenha.Title"),
             Content = painel,
-            PrimaryButtonText = "Importar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogPedirSenha.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogPedirSenha.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
@@ -375,9 +379,9 @@ public sealed partial class VaultPage : Page
     {
         var dialogo = new ContentDialog
         {
-            Title = "Erro",
+            Title = _localization.GetString("VaultPage_DialogErro.Title"),
             Content = mensagem,
-            CloseButtonText = "OK",
+            CloseButtonText = _localization.GetString("VaultPage_DialogErro.CloseButtonText"),
             XamlRoot = XamlRoot
         };
 
@@ -388,9 +392,9 @@ public sealed partial class VaultPage : Page
     {
         var dialogo = new ContentDialog
         {
-            Title = "Importação concluída",
+            Title = _localization.GetString("VaultPage_DialogImportacaoConcluida.Title"),
             Content = mensagem,
-            CloseButtonText = "OK",
+            CloseButtonText = _localization.GetString("VaultPage_DialogImportacaoConcluida.CloseButtonText"),
             XamlRoot = XamlRoot
         };
 

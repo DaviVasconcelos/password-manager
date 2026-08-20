@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using PasswordManager.Application.PasswordGeneration;
 using PasswordManager.Application.Settings;
 using PasswordManager.Domain.Entities;
+using PasswordManager.UI.Localization;
 
 namespace PasswordManager.UI.ViewModels;
 
@@ -19,6 +20,7 @@ public partial class ItemEditorViewModel : ObservableObject
     private readonly IPasswordGenerator _passwordGenerator;
     private readonly IPasswordStrengthEvaluator _strengthEvaluator;
     private readonly IAppSettingsService _settingsService;
+    private readonly ILocalizationService _localization;
 
     public ObservableCollection<OpcoesPasta> OpcoesPasta { get; } = new();
 
@@ -52,19 +54,21 @@ public partial class ItemEditorViewModel : ObservableObject
 
     public string ForcaSenhaTexto => ForcaSenha switch
     {
-        ForcaSenha.Forte => "Forte",
-        ForcaSenha.Media => "Média",
-        _ => "Fraca"
+        ForcaSenha.Forte => _localization.GetString("ItemEditor_Forca_Forte"),
+        ForcaSenha.Media => _localization.GetString("ItemEditor_Forca_Media"),
+        _ => _localization.GetString("ItemEditor_Forca_Fraca")
     };
 
     public ItemEditorViewModel(
         IPasswordGenerator passwordGenerator,
         IPasswordStrengthEvaluator strengthEvaluator,
-        IAppSettingsService settingsService)
+        IAppSettingsService settingsService,
+        ILocalizationService localization)
     {
         _passwordGenerator = passwordGenerator;
         _strengthEvaluator = strengthEvaluator;
         _settingsService = settingsService;
+        _localization = localization;
     }
 
     partial void OnSenhaChanged(string value) => ForcaSenha = _strengthEvaluator.Avaliar(value);
@@ -91,7 +95,7 @@ public partial class ItemEditorViewModel : ObservableObject
     private void CarregarOpcoes(IEnumerable<OpcoesPasta> opcoes, Guid? pastaId)
     {
         OpcoesPasta.Clear();
-        OpcoesPasta.Add(new OpcoesPasta("Sem pasta", null));
+        OpcoesPasta.Add(new OpcoesPasta(_localization.GetString("ItemEditor_SemPasta"), null));
 
         foreach (var opcao in opcoes.Where(o => o.Pasta is not null))
             OpcoesPasta.Add(opcao);

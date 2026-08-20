@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+
+  <!-- MainWindow -->
+  <data name="MainWindow.Title" xml:space="preserve"><value>PasswordManager</value></data>
+
+  <!-- UnlockPage -->
+  <data name="UnlockPage_TituloApp.Text" xml:space="preserve"><value>PasswordManager</value></data>
+  <data name="UnlockPage_SenhaMestraBox.PlaceholderText" xml:space="preserve"><value>Senha mestra</value></data>
+  <data name="UnlockPage_ConfirmacaoBox.PlaceholderText" xml:space="preserve"><value>Confirme a senha</value></data>
+  <data name="UnlockPage_BtnDesbloquear.Content" xml:space="preserve"><value>Desbloquear</value></data>
+  <data name="UnlockPage_BtnCriarCofre.Content" xml:space="preserve"><value>Criar cofre</value></data>
+  <data name="UnlockPage_BtnImportarBackup.Content" xml:space="preserve"><value>Importar backup...</value></data>
+
+  <!-- UnlockViewModel -->
+  <data name="UnlockViewModel_TituloModo_Criar" xml:space="preserve"><value>Criar novo cofre</value></data>
+  <data name="UnlockViewModel_TituloModo_Desbloquear" xml:space="preserve"><value>Desbloquear cofre</value></data>
+  <data name="UnlockViewModel_Erro_SenhaIncorreta" xml:space="preserve"><value>Senha mestra incorreta ou cofre corrompido.</value></data>
+  <data name="UnlockViewModel_Erro_SenhasNaoConferem" xml:space="preserve"><value>As senhas não conferem.</value></data>
+  <data name="UnlockViewModel_Erro_ArquivoCorrompido" xml:space="preserve"><value>Senha mestra incorreta ou arquivo corrompido.</value></data>
+
+  <!-- UnlockPage Dialog - Importar backup -->
+  <data name="UnlockPage_DialogImportarBackup.Title" xml:space="preserve"><value>Importar backup</value></data>
+  <data name="UnlockPage_DialogImportarBackup.PrimaryButtonText" xml:space="preserve"><value>Importar</value></data>
+  <data name="UnlockPage_DialogImportarBackup.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="UnlockPage_SenhaBackupBox.PlaceholderText" xml:space="preserve"><value>Senha mestra do backup</value></data>
+  <data name="UnlockPage_TextoImportarBackup.Text" xml:space="preserve"><value>Digite a senha mestra usada para criptografar o arquivo. Ela será a senha do novo cofre.</value></data>
+
+  <!-- VaultPage - Header -->
+  <data name="VaultPage_Header.Text" xml:space="preserve"><value>Cofre de senhas</value></data>
+  <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Exportar...</value></data>
+  <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Importar...</value></data>
+  <data name="VaultPage_BtnConfiguracoes.Content" xml:space="preserve"><value>Configurações...</value></data>
+  <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Trocar senha mestra...</value></data>
+  <data name="VaultPage_BtnTrancar.Content" xml:space="preserve"><value>Trancar</value></data>
+
+  <!-- VaultPage - Filtros -->
+  <data name="VaultPage_BuscaBox.PlaceholderText" xml:space="preserve"><value>Buscar por título, usuário, URL, notas ou categoria...</value></data>
+  <data name="VaultPage_BtnPastas.Content" xml:space="preserve"><value>Pastas...</value></data>
+  <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>Novo item</value></data>
+  <data name="VaultPage_BtnEditar.Content" xml:space="preserve"><value>Editar</value></data>
+  <data name="VaultPage_BtnCopiarSenha.Content" xml:space="preserve"><value>Copiar senha</value></data>
+  <data name="VaultPage_BtnExcluir.Content" xml:space="preserve"><value>Excluir</value></data>
+  <data name="VaultPage_TextoSenhaCopiada.Text" xml:space="preserve"><value>Senha copiada (área de transferência será limpa em 30 s).</value></data>
+  <data name="VaultPage_HeaderTitulo.Text" xml:space="preserve"><value>Título</value></data>
+  <data name="VaultPage_HeaderUsuario.Text" xml:space="preserve"><value>Usuário</value></data>
+  <data name="VaultPage_HeaderCategoria.Text" xml:space="preserve"><value>Categoria</value></data>
+
+  <!-- VaultPage - Diálogos -->
+  <data name="VaultPage_DialogNovoItem.Title" xml:space="preserve"><value>Novo item</value></data>
+  <data name="VaultPage_DialogEditarItem.Title" xml:space="preserve"><value>Editar item</value></data>
+  <data name="VaultPage_DialogGerenciarPastas.Title" xml:space="preserve"><value>Gerenciar pastas</value></data>
+  <data name="VaultPage_DialogGerenciarPastas.PrimaryButtonText" xml:space="preserve"><value>Concluir</value></data>
+  <data name="VaultPage_DialogConfiguracoes.Title" xml:space="preserve"><value>Configurações</value></data>
+  <data name="VaultPage_DialogConfiguracoes.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
+  <data name="VaultPage_DialogConfiguracoes.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.Title" xml:space="preserve"><value>Trocar senha mestra</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText" xml:space="preserve"><value>Alterar</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="VaultPage_SenhaAtualBox.PlaceholderText" xml:space="preserve"><value>Senha mestra atual</value></data>
+  <data name="VaultPage_NovaSenhaBox.PlaceholderText" xml:space="preserve"><value>Nova senha mestra</value></data>
+  <data name="VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText" xml:space="preserve"><value>Confirme a nova senha</value></data>
+  <data name="VaultPage_TextoTrocarSenha.Text" xml:space="preserve"><value>Digite a senha mestra atual e confirme a nova senha. O cofre será re-criptografado com um novo salt.</value></data>
+  <data name="VaultPage_Erro_SenhasNaoConferem" xml:space="preserve"><value>As novas senhas não conferem.</value></data>
+  <data name="VaultPage_Erro_SenhaAtualIncorreta" xml:space="preserve"><value>A senha mestra atual está incorreta.</value></data>
+  <data name="VaultPage_DialogGenerico.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
+  <data name="VaultPage_DialogGenerico.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+
+  <!-- VaultPage - Exportar/Importar -->
+  <data name="VaultPage_DialogExportar.Title" xml:space="preserve"><value>Exportar cofre</value></data>
+  <data name="VaultPage_DialogExportar.Mensagem" xml:space="preserve"><value>Digite a senha mestra para criptografar o arquivo de backup.</value></data>
+  <data name="VaultPage_Erro_FalhaExportar" xml:space="preserve"><value>Falha ao exportar: {0}</value></data>
+  <data name="VaultPage_Info_CofreSubstituido" xml:space="preserve"><value>Cofre substituído pelo conteúdo do arquivo.</value></data>
+  <data name="VaultPage_Info_CofreMesclado" xml:space="preserve"><value>Cofre mesclado com o conteúdo do arquivo.</value></data>
+  <data name="VaultPage_Erro_SenhaArquivoCorrompido" xml:space="preserve"><value>Senha mestra incorreta ou arquivo corrompido.</value></data>
+  <data name="VaultPage_FilePicker_VaultFilter" xml:space="preserve"><value>Cofre PasswordManager (.vault)</value></data>
+  <data name="VaultPage_PedirSenha.PlaceholderText" xml:space="preserve"><value>Senha mestra</value></data>
+  <data name="VaultPage_DialogPedirSenha.Title" xml:space="preserve"><value>Importar cofre</value></data>
+  <data name="VaultPage_DialogPedirSenha.PrimaryButtonText" xml:space="preserve"><value>Importar</value></data>
+  <data name="VaultPage_DialogPedirSenha.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="VaultPage_RadioMesclar.Content" xml:space="preserve"><value>Mesclar com o cofre atual</value></data>
+  <data name="VaultPage_RadioSubstituir.Content" xml:space="preserve"><value>Substituir o cofre atual</value></data>
+  <data name="VaultPage_TextoImportar.Text" xml:space="preserve"><value>Digite a senha mestra usada para criptografar o arquivo e escolha como aplicar.</value></data>
+  <data name="VaultPage_DialogContinuar.Title" xml:space="preserve"><value>Continuar</value></data>
+  <data name="VaultPage_DialogContinuar.PrimaryButtonText" xml:space="preserve"><value>Continuar</value></data>
+  <data name="VaultPage_DialogContinuar.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="VaultPage_DialogErro.Title" xml:space="preserve"><value>Erro</value></data>
+  <data name="VaultPage_DialogErro.CloseButtonText" xml:space="preserve"><value>OK</value></data>
+  <data name="VaultPage_DialogImportacaoConcluida.Title" xml:space="preserve"><value>Importação concluída</value></data>
+  <data name="VaultPage_DialogImportacaoConcluida.CloseButtonText" xml:space="preserve"><value>OK</value></data>
+
+  <!-- ItemEditorContent -->
+  <data name="ItemEditor_Titulo.Header" xml:space="preserve"><value>Título</value></data>
+  <data name="ItemEditor_Usuario.Header" xml:space="preserve"><value>Usuário</value></data>
+  <data name="ItemEditor_Categoria.Header" xml:space="preserve"><value>Categoria</value></data>
+  <data name="ItemEditor_SenhaBox.Header" xml:space="preserve"><value>Senha</value></data>
+  <data name="ItemEditor_BtnGerar.Content" xml:space="preserve"><value>Gerar</value></data>
+  <data name="ItemEditor_BtnMostrarOcultar.Content" xml:space="preserve"><value>Mostrar/Ocultar</value></data>
+  <data name="ItemEditor_Url.Header" xml:space="preserve"><value>URL</value></data>
+  <data name="ItemEditor_Notas.Header" xml:space="preserve"><value>Notas</value></data>
+  <data name="ItemEditor_Pasta.Header" xml:space="preserve"><value>Pasta</value></data>
+  <data name="ItemEditor_Forca_Forte" xml:space="preserve"><value>Forte</value></data>
+  <data name="ItemEditor_Forca_Media" xml:space="preserve"><value>Média</value></data>
+  <data name="ItemEditor_Forca_Fraca" xml:space="preserve"><value>Fraca</value></data>
+  <data name="ItemEditor_SemPasta" xml:space="preserve"><value>Sem pasta</value></data>
+
+  <!-- VaultViewModel -->
+  <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>Todas as pastas</value></data>
+
+  <!-- SettingsContent -->
+  <data name="Settings_AutoLock.Text" xml:space="preserve"><value>Auto-lock</value></data>
+  <data name="Settings_AutoLock_Descricao.Text" xml:space="preserve"><value>Tranca o cofre automaticamente após o tempo de inatividade.</value></data>
+  <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Tempo de inatividade (minutos)</value></data>
+  <data name="Settings_Clipboard.Text" xml:space="preserve"><value>Área de transferência</value></data>
+  <data name="Settings_Clipboard_Descricao.Text" xml:space="preserve"><value>Tempo até a senha copiada ser removida da área de transferência.</value></data>
+  <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Limpeza da área de transferência (segundos)</value></data>
+  <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Gerador de senha</value></data>
+  <data name="Settings_GeradorSenha_Descricao.Text" xml:space="preserve"><value>Valores padrão usados ao gerar uma nova senha.</value></data>
+  <data name="Settings_TamanhoSenha.Header" xml:space="preserve"><value>Tamanho da senha</value></data>
+  <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Minúsculas (a-z)</value></data>
+  <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Maiúsculas (A-Z)</value></data>
+  <data name="Settings_Numeros.Header" xml:space="preserve"><value>Números (0-9)</value></data>
+  <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Símbolos (!@#...)</value></data>
+
+  <!-- GerenciarPastasContent -->
+  <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>Nome da pasta</value></data>
+  <data name="GerenciarPastas_NomePasta.PlaceholderText" xml:space="preserve"><value>Digite um nome...</value></data>
+  <data name="GerenciarPastas_BtnAdicionar.Content" xml:space="preserve"><value>Adicionar</value></data>
+  <data name="GerenciarPastas_BtnRenomear.Content" xml:space="preserve"><value>Renomear</value></data>
+  <data name="GerenciarPastas_BtnExcluir.Content" xml:space="preserve"><value>Excluir</value></data>
+
+  <!-- App -->
+  <data name="App_Erro_ProvedorNaoInicializado" xml:space="preserve"><value>O provedor de serviços ainda não foi inicializado.</value></data>
+</root>

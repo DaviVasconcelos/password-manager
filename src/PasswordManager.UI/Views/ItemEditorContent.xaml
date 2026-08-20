@@ -8,31 +8,31 @@
     mc:Ignorable="d">
 
     <StackPanel Spacing="12" Width="440">
-        <TextBox Header="Título" Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
-        <TextBox Header="Usuário" Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
-        <TextBox Header="Categoria" Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Titulo" Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Usuario" Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Categoria" Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
 
         <StackPanel Orientation="Horizontal" Spacing="8">
             <PasswordBox x:Name="SenhaBox"
-                         Header="Senha"
+                         x:Uid="ItemEditor_SenhaBox"
                          Width="300"
                          PasswordRevealMode="Hidden" />
             <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
-                <Button Content="Gerar" Command="{x:Bind ViewModel.GerarSenhaCommand}" />
-                <Button Content="Mostrar/Ocultar" Click="OnAlternarVisibilidadeClick" />
+                <Button x:Uid="ItemEditor_BtnGerar" Command="{x:Bind ViewModel.GerarSenhaCommand}" />
+                <Button x:Uid="ItemEditor_BtnMostrarOcultar" Click="OnAlternarVisibilidadeClick" />
             </StackPanel>
         </StackPanel>
 
         <TextBlock Text="{x:Bind ViewModel.ForcaSenhaTexto, Mode=OneWay}"
                    Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
 
-        <TextBox Header="URL" Text="{x:Bind ViewModel.Url, Mode=TwoWay}" />
-        <TextBox Header="Notas"
+        <TextBox x:Uid="ItemEditor_Url" Text="{x:Bind ViewModel.Url, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Notas"
                  Text="{x:Bind ViewModel.Notas, Mode=TwoWay}"
                  AcceptsReturn="True"
                  Height="80"
                  TextWrapping="Wrap" />
-        <ComboBox Header="Pasta"
+        <ComboBox x:Uid="ItemEditor_Pasta"
                   ItemsSource="{x:Bind ViewModel.OpcoesPasta}"
                   SelectedItem="{x:Bind ViewModel.PastaSelecionada, Mode=TwoWay}"
                   DisplayMemberPath="Nome" />

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Navigation;
+using PasswordManager.UI.Localization;
 using PasswordManager.UI.ViewModels;
 using System;
 using System.Threading.Tasks;
@@ -19,9 +20,12 @@ public sealed partial class UnlockPage : Page
 {
     public UnlockViewModel ViewModel { get; }
 
+    private readonly ILocalizationService _localization;
+
     public UnlockPage()
     {
         ViewModel = App.Services.GetRequiredService<UnlockViewModel>();
+        _localization = App.Services.GetRequiredService<ILocalizationService>();
         InitializeComponent();
         ViewModel.Unlocked += OnDesbloqueado;
 
@@ -77,24 +81,24 @@ public sealed partial class UnlockPage : Page
     {
         var senhaBox = new PasswordBox
         {
-            PlaceholderText = "Senha mestra do backup",
+            PlaceholderText = _localization.GetString("UnlockPage_SenhaBackupBox.PlaceholderText"),
             PasswordRevealMode = PasswordRevealMode.Peek
         };
 
         var painel = new StackPanel { Spacing = 8 };
         painel.Children.Add(new TextBlock
         {
-            Text = "Digite a senha mestra usada para criptografar o arquivo. Ela será a senha do novo cofre.",
+            Text = _localization.GetString("UnlockPage_TextoImportarBackup.Text"),
             TextWrapping = TextWrapping.Wrap
         });
         painel.Children.Add(senhaBox);
 
         var dialogo = new ContentDialog
         {
-            Title = "Importar backup",
+            Title = _localization.GetString("UnlockPage_DialogImportarBackup.Title"),
             Content = painel,
-            PrimaryButtonText = "Importar",
-            CloseButtonText = "Cancelar",
+            PrimaryButtonText = _localization.GetString("UnlockPage_DialogImportarBackup.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("UnlockPage_DialogImportarBackup.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
