@@ -54,7 +54,7 @@ Ordem de execução sugerida: A → B → C → D. Itens concluídos ficam marca
 
 5. Migrations EF Core no lugar de `EnsureCreated` (schema versionado). **Decisão**: **investir agora** (exige instalar a tool `dotnet-ef`).
 6. Testes de ViewModels: desacoplar os ViewModels de tipos WinUI para torná-los testáveis e cobrir com xUnit/FluentAssertions. **Decisão**: **incluir**.
-7. Recursos/i18n (UI atualmente com textos hardcoded em pt-BR).
+7. **IMPLEMENTADO** — Recursos/i18n (UI com textos em pt-BR). **Decisão**: ADR 0007 — PRI + `Strings/<lang>/Resources.resw` (pt-BR baseline + en-US espelhado), `x:Uid` no XAML, `ILocalizationService`/`LocalizationService` (DI, injetado nos ViewModels para testabilidade) e fallback dependente do SO (`DefaultLanguage=en-US` no csproj; SO em `pt-BR` usa `pt-BR`, qualquer outro idioma cai em `en-US`). Novo idioma = nova pasta `Strings/<lang>/Resources.resw`. Mensagens de Domain/Application/Infrastructure continuam `pt-BR`.
 
 ### Fase C — Features de produto
 
