@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using PasswordManager.UI.Localization;
 using PasswordManager.UI.ViewModels;
@@ -31,6 +32,42 @@ public sealed partial class UnlockPage : Page
 
         SenhaMestraBox.PasswordChanged += (_, _) => ViewModel.SenhaMestra = SenhaMestraBox.Password;
         ConfirmacaoBox.PasswordChanged += (_, _) => ViewModel.ConfirmacaoSenha = ConfirmacaoBox.Password;
+        SenhaMestraBox.Focus(FocusState.Keyboard);
+    }
+
+    /// <summary>
+    /// Enter no campo de senha: no modo desbloquear, confirma direto; no
+    /// modo criar, avança para o campo de confirmação.
+    /// </summary>
+    private void OnSenhaKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != Windows.System.VirtualKey.Enter)
+            return;
+
+        e.Handled = true;
+
+        if (ViewModel.ModoCriar)
+        {
+            ConfirmacaoBox.Focus(FocusState.Keyboard);
+        }
+        else if (ViewModel.UnlockCommand.CanExecute(null))
+        {
+            ViewModel.UnlockCommand.Execute(null);
+        }
+    }
+
+    /// <summary>
+    /// Enter no campo de confirmação cria o cofre.
+    /// </summary>
+    private void OnConfirmacaoKeyDown(object sender, KeyRoutedEventArgs e)
+    {
+        if (e.Key != Windows.System.VirtualKey.Enter)
+            return;
+
+        e.Handled = true;
+
+        if (ViewModel.CreateCommand.CanExecute(null))
+            ViewModel.CreateCommand.Execute(null);
     }
 
     protected override async void OnNavigatedTo(NavigationEventArgs e)

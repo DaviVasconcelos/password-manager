@@ -10,6 +10,7 @@
 
   <!-- UnlockPage -->
   <data name="UnlockPage_TituloApp.Text" xml:space="preserve"><value>PasswordManager</value></data>
+  <data name="UnlockPage_Subtitulo.Text" xml:space="preserve"><value>Your secure vault</value></data>
   <data name="UnlockPage_SenhaMestraBox.PlaceholderText" xml:space="preserve"><value>Master password</value></data>
   <data name="UnlockPage_ConfirmacaoBox.PlaceholderText" xml:space="preserve"><value>Confirm password</value></data>
   <data name="UnlockPage_BtnDesbloquear.Content" xml:space="preserve"><value>Unlock</value></data>
@@ -30,31 +31,37 @@
   <data name="UnlockPage_SenhaBackupBox.PlaceholderText" xml:space="preserve"><value>Backup master password</value></data>
   <data name="UnlockPage_TextoImportarBackup.Text" xml:space="preserve"><value>Enter the master password used to encrypt the file. It will become the new vault password.</value></data>
 
-  <!-- VaultPage - Header -->
-  <data name="VaultPage_Header.Text" xml:space="preserve"><value>Password vault</value></data>
-  <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Export...</value></data>
-  <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Import...</value></data>
-  <data name="VaultPage_BtnConfiguracoes.Content" xml:space="preserve"><value>Settings...</value></data>
-  <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Change master password...</value></data>
-  <data name="VaultPage_BtnTrancar.Content" xml:space="preserve"><value>Lock</value></data>
+  <!-- VaultPage - Navegação -->
+  <data name="VaultPage_NavItens.Content" xml:space="preserve"><value>Items</value></data>
+  <data name="VaultPage_NavPastas.Content" xml:space="preserve"><value>Folders</value></data>
+  <data name="VaultPage_NavConfiguracoes.Content" xml:space="preserve"><value>Settings</value></data>
+  <data name="VaultPage_NavTrancar.Content" xml:space="preserve"><value>Lock</value></data>
 
-  <!-- VaultPage - Filtros -->
+  <!-- VaultPage - Ações do cofre -->
+  <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Export</value></data>
+  <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Import</value></data>
+  <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Change master password</value></data>
+
+  <!-- VaultPage - Filtros e tabela -->
   <data name="VaultPage_BuscaBox.PlaceholderText" xml:space="preserve"><value>Search by title, username, URL, notes or category...</value></data>
-  <data name="VaultPage_BtnPastas.Content" xml:space="preserve"><value>Folders...</value></data>
-  <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>New item</value></data>
-  <data name="VaultPage_BtnEditar.Content" xml:space="preserve"><value>Edit</value></data>
-  <data name="VaultPage_BtnCopiarSenha.Content" xml:space="preserve"><value>Copy password</value></data>
-  <data name="VaultPage_BtnExcluir.Content" xml:space="preserve"><value>Delete</value></data>
-  <data name="VaultPage_TextoSenhaCopiada.Text" xml:space="preserve"><value>Password copied (clipboard will be cleared in 30 s).</value></data>
+  <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>+ New item</value></data>
   <data name="VaultPage_HeaderTitulo.Text" xml:space="preserve"><value>Title</value></data>
   <data name="VaultPage_HeaderUsuario.Text" xml:space="preserve"><value>Username</value></data>
   <data name="VaultPage_HeaderCategoria.Text" xml:space="preserve"><value>Category</value></data>
+  <data name="VaultPage_AcaoEditar.AutomationProperties.Name" xml:space="preserve"><value>Edit item</value></data>
+  <data name="VaultPage_AcaoCopiar.AutomationProperties.Name" xml:space="preserve"><value>Copy password</value></data>
+  <data name="VaultPage_AcaoExcluir.AutomationProperties.Name" xml:space="preserve"><value>Delete item</value></data>
+  <data name="VaultPage_ToastSenhaCopiada.Text" xml:space="preserve"><value>Password copied! The clipboard will be cleared in 30 s.</value></data>
 
   <!-- VaultPage - Diálogos -->
   <data name="VaultPage_DialogNovoItem.Title" xml:space="preserve"><value>New item</value></data>
   <data name="VaultPage_DialogEditarItem.Title" xml:space="preserve"><value>Edit item</value></data>
   <data name="VaultPage_DialogGerenciarPastas.Title" xml:space="preserve"><value>Manage folders</value></data>
-  <data name="VaultPage_DialogGerenciarPastas.PrimaryButtonText" xml:space="preserve"><value>Done</value></data>
+  <data name="VaultPage_DialogGerenciarPastas.CloseButtonText" xml:space="preserve"><value>Close</value></data>
+  <data name="VaultPage_DialogExcluirItem.Title" xml:space="preserve"><value>Delete item</value></data>
+  <data name="VaultPage_DialogExcluirItem.Mensagem" xml:space="preserve"><value>Delete "{0}"? This action cannot be undone.</value></data>
+  <data name="VaultPage_DialogExcluirItem.PrimaryButtonText" xml:space="preserve"><value>Delete</value></data>
+  <data name="VaultPage_DialogExcluirItem.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="VaultPage_DialogConfiguracoes.Title" xml:space="preserve"><value>Settings</value></data>
   <data name="VaultPage_DialogConfiguracoes.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
   <data name="VaultPage_DialogConfiguracoes.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
@@ -99,39 +106,46 @@
   <data name="ItemEditor_Categoria.Header" xml:space="preserve"><value>Category</value></data>
   <data name="ItemEditor_SenhaBox.Header" xml:space="preserve"><value>Password</value></data>
   <data name="ItemEditor_BtnGerar.Content" xml:space="preserve"><value>Generate</value></data>
-  <data name="ItemEditor_BtnMostrarOcultar.Content" xml:space="preserve"><value>Show/Hide</value></data>
+  <data name="ItemEditor_BtnMostrarOcultar.AutomationProperties.Name" xml:space="preserve"><value>Show/Hide password</value></data>
   <data name="ItemEditor_Url.Header" xml:space="preserve"><value>URL</value></data>
   <data name="ItemEditor_Notas.Header" xml:space="preserve"><value>Notes</value></data>
   <data name="ItemEditor_Pasta.Header" xml:space="preserve"><value>Folder</value></data>
+  <data name="ItemEditor_Forca_Formato" xml:space="preserve"><value>Password strength: {0}</value></data>
   <data name="ItemEditor_Forca_Forte" xml:space="preserve"><value>Strong</value></data>
   <data name="ItemEditor_Forca_Media" xml:space="preserve"><value>Medium</value></data>
   <data name="ItemEditor_Forca_Fraca" xml:space="preserve"><value>Weak</value></data>
+  <data name="ItemEditor_TamanhoSlider.Header" xml:space="preserve"><value>Length</value></data>
+  <data name="ItemEditor_Tamanho_Sufixo" xml:space="preserve"><value>characters</value></data>
   <data name="ItemEditor_SemPasta" xml:space="preserve"><value>No folder</value></data>
 
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>All folders</value></data>
 
   <!-- SettingsContent -->
-  <data name="Settings_AutoLock.Text" xml:space="preserve"><value>Auto-lock</value></data>
-  <data name="Settings_AutoLock_Descricao.Text" xml:space="preserve"><value>Lock the vault automatically after a period of inactivity.</value></data>
-  <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Inactivity timeout (minutes)</value></data>
-  <data name="Settings_Clipboard.Text" xml:space="preserve"><value>Clipboard</value></data>
-  <data name="Settings_Clipboard_Descricao.Text" xml:space="preserve"><value>Time until the copied password is removed from the clipboard.</value></data>
-  <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Clipboard clear time (seconds)</value></data>
-  <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Password generator</value></data>
-  <data name="Settings_GeradorSenha_Descricao.Text" xml:space="preserve"><value>Default values used when generating a new password.</value></data>
-  <data name="Settings_TamanhoSenha.Header" xml:space="preserve"><value>Password length</value></data>
-  <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Lowercase (a-z)</value></data>
-  <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Uppercase (A-Z)</value></data>
-  <data name="Settings_Numeros.Header" xml:space="preserve"><value>Numbers (0-9)</value></data>
-  <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Symbols (!@#...)</value></data>
+  <data name="Settings_Seguranca.Text" xml:space="preserve"><value>Security</value></data>
+  <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Auto-lock timeout</value></data>
+  <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Clipboard clear time</value></data>
+  <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Password generator (defaults)</value></data>
+  <data name="Settings_TamanhoSlider.Header" xml:space="preserve"><value>Default length</value></data>
+  <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Include lowercase (a-z)</value></data>
+  <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Include uppercase (A-Z)</value></data>
+  <data name="Settings_Numeros.Header" xml:space="preserve"><value>Include numbers (0-9)</value></data>
+  <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Include symbols (!@#...)</value></data>
 
   <!-- GerenciarPastasContent -->
-  <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>Folder name</value></data>
-  <data name="GerenciarPastas_NomePasta.PlaceholderText" xml:space="preserve"><value>Enter a name...</value></data>
+  <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>New folder</value></data>
+  <data name="GerenciarPastas_NomePasta.PlaceholderText" xml:space="preserve"><value>Folder name...</value></data>
   <data name="GerenciarPastas_BtnAdicionar.Content" xml:space="preserve"><value>Add</value></data>
-  <data name="GerenciarPastas_BtnRenomear.Content" xml:space="preserve"><value>Rename</value></data>
-  <data name="GerenciarPastas_BtnExcluir.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="GerenciarPastas_AcaoRenomear.AutomationProperties.Name" xml:space="preserve"><value>Rename folder</value></data>
+  <data name="GerenciarPastas_AcaoExcluir.AutomationProperties.Name" xml:space="preserve"><value>Delete folder</value></data>
+  <data name="GerenciarPastas_DialogRenomear.Title" xml:space="preserve"><value>Rename folder</value></data>
+  <data name="GerenciarPastas_Renomear.PlaceholderText" xml:space="preserve"><value>New folder name</value></data>
+  <data name="GerenciarPastas_DialogRenomear.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
+  <data name="GerenciarPastas_DialogRenomear.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="GerenciarPastas_DialogExcluir.Title" xml:space="preserve"><value>Delete folder</value></data>
+  <data name="GerenciarPastas_DialogExcluir.Mensagem" xml:space="preserve"><value>Delete folder "{0}"? Items will be kept without a folder.</value></data>
+  <data name="GerenciarPastas_DialogExcluir.PrimaryButtonText" xml:space="preserve"><value>Delete</value></data>
+  <data name="GerenciarPastas_DialogExcluir.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
 
   <!-- App -->
   <data name="App_Erro_ProvedorNaoInicializado" xml:space="preserve"><value>Service provider has not been initialized yet.</value></data>

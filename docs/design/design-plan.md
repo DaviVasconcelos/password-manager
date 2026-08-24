@@ -1,7 +1,17 @@
 # Plano de Implementação — Redesign da UI (Figma → WinUI 3)
 
-> **Status**: AGUARDANDO IMPLEMENTAÇÃO. Design aprovado e snapshot salvo.
+> **Status**: EM IMPLEMENTAÇÃO. Design aprovado e snapshot salvo.
 > Fonte: arquivo `PasswordManager` no Figma (fileKey `IfOF27YvqWa67OoDvhcrWD`).
+
+## Decisões tomadas (2026-08-24)
+
+1. **Barra lateral da VaultPage**: `NavigationView` nativo. Pastas/Configurações abrem diálogos e a seleção volta para "Itens"; Trancar fica no rodapé do pane.
+2. **Renomear pasta**: mini-diálogo com TextBox (aberto pelo ícone de lápis na linha).
+3. **Força de senha "Média"**: laranja `#F8A800` (claro) / `#FFB900` (escuro) — token `PMWarningBrush` adicionado ao design system.
+4. **Toast "senha copiada"**: `InfoBar` nativo (Severity=Success) em vez de banner custom.
+5. **Excluir item/pasta** ganha diálogo de confirmação (ações inline facilitam clique acidental).
+6. **Tema**: tokens via `ThemeDictionaries` seguem o tema do SO; toggle manual continua adiado (roadmap item 4).
+7. **Modo criar/desbloquear na UnlockPage**: o subtítulo fixo "Seu cofre seguro" é mantido, e o modo (`TituloModo`) aparece como rótulo acima dos campos — preserva a função existente sem quebrar o visual.
 
 ## Como atualizar o snapshot quando o design mudar
 

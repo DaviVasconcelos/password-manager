@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tokens do design system (fonte: Figma PasswordManager, canvas "Design System").
+    Cores por tema: "Light" e "Default" (= escuro). Tipografia Segoe UI Variable.
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+            <SolidColorBrush x:Key="PMAccentBrush" Color="#0078D4" />
+            <SolidColorBrush x:Key="PMSurfaceBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PMSurfaceAltBrush" Color="#F3F3F3" />
+            <SolidColorBrush x:Key="PMTextPrimaryBrush" Color="#1A1A1A" />
+            <SolidColorBrush x:Key="PMTextSecondaryBrush" Color="#616161" />
+            <SolidColorBrush x:Key="PMTextOnAccentBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PMBorderSubtleBrush" Color="#E0E0E0" />
+            <SolidColorBrush x:Key="PMDangerBrush" Color="#D13438" />
+            <SolidColorBrush x:Key="PMSuccessBrush" Color="#0F7B0F" />
+            <SolidColorBrush x:Key="PMWarningBrush" Color="#F8A800" />
+            <SolidColorBrush x:Key="PMBackgroundBrush" Color="#F3F3F3" />
+            <SolidColorBrush x:Key="PMBadgeBrush" Color="#E5E5E5" />
+            <!-- Hover/pressed dos botões (sem animação clara do tema padrão) -->
+            <SolidColorBrush x:Key="PMButtonHoverBrush" Color="#E9E9E9" />
+            <SolidColorBrush x:Key="PMButtonPressedBrush" Color="#DFDFDF" />
+            <SolidColorBrush x:Key="PMAccentHoverBrush" Color="#1E88DC" />
+            <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#006CBE" />
+            <!-- Banner "senha copiada" (tema claro) -->
+            <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#D4EDDA" />
+            <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#A9D8A2" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Default">
+            <SolidColorBrush x:Key="PMAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="PMSurfaceBrush" Color="#202020" />
+            <SolidColorBrush x:Key="PMSurfaceAltBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="PMTextPrimaryBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PMTextSecondaryBrush" Color="#9E9E9E" />
+            <SolidColorBrush x:Key="PMTextOnAccentBrush" Color="#000000" />
+            <SolidColorBrush x:Key="PMBorderSubtleBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMDangerBrush" Color="#FF6767" />
+            <SolidColorBrush x:Key="PMSuccessBrush" Color="#6CCB5F" />
+            <SolidColorBrush x:Key="PMWarningBrush" Color="#FFB900" />
+            <SolidColorBrush x:Key="PMBackgroundBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="PMBadgeBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMButtonHoverBrush" Color="#383838" />
+            <SolidColorBrush x:Key="PMButtonPressedBrush" Color="#414141" />
+            <SolidColorBrush x:Key="PMAccentHoverBrush" Color="#79D3FF" />
+            <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#45BFF5" />
+            <!-- Banner "senha copiada" (tema escuro, cores do Figma) -->
+            <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
+            <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+
+    <!-- Tipografia -->
+    <Style x:Key="PMTituloStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="28" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style x:Key="PMSubtituloStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="20" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+    <Style x:Key="PMCorpoStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+    <Style x:Key="PMCaptionStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="Normal" />
+    </Style>
+    <Style x:Key="PMSectionHeaderStyle" TargetType="TextBlock">
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{ThemeResource PMAccentBrush}" />
+    </Style>
+
+    <!-- Espaçamentos (grid de 4px) -->
+    <Thickness x:Key="PMPaddingCard">32,28</Thickness>
+    <Thickness x:Key="PMPaddingPage">24,16</Thickness>
+</ResourceDictionary>

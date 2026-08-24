@@ -28,7 +28,14 @@ public partial class UnlockViewModel : ObservableObject
     private string confirmacaoSenha = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ErroTemValor))]
     private string? erro;
+
+    /// <summary>
+    /// Indica se há mensagem de erro a exibir (controla a visibilidade do
+    /// ícone + texto de erro na tela de desbloqueio).
+    /// </summary>
+    public bool ErroTemValor => !string.IsNullOrWhiteSpace(Erro);
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(TituloModo))]

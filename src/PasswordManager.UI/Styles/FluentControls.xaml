@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Estilos Fluent 2 do app, derivados dos tokens em Themes/DesignTokens.xaml.
+    Botões, campos e badge seguem o design do Figma (controles nativos WinUI 3).
+-->
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Botões (template próprio: hover/pressed definidos pelos tokens, sem o
+         flash de cor clara da animação padrão do WinUI) -->
+    <Style x:Key="PMButtonPrimary" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource PMAccentBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource PMTextOnAccentBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="RootGrid">
+                        <Border x:Name="HoverBorder"
+                                Background="{ThemeResource PMAccentBrush}"
+                                CornerRadius="{TemplateBinding CornerRadius}" />
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          FontWeight="{TemplateBinding FontWeight}"
+                                          Padding="{TemplateBinding Padding}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PMAccentHoverBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PMAccentPressedBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+    <Style x:Key="PMButtonSecondary" TargetType="Button">
+        <Setter Property="Background" Value="{ThemeResource PMSurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource PMTextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource PMBorderSubtleBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="12,6" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Grid x:Name="RootGrid">
+                        <Border x:Name="HoverBorder"
+                                Background="{ThemeResource PMSurfaceAltBrush}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                CornerRadius="{TemplateBinding CornerRadius}" />
+                        <ContentPresenter Content="{TemplateBinding Content}"
+                                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                                          Foreground="{TemplateBinding Foreground}"
+                                          FontWeight="{TemplateBinding FontWeight}"
+                                          Padding="{TemplateBinding Padding}"
+                                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                        <VisualStateManager.VisualStateGroups>
+                            <VisualStateGroup x:Name="CommonStates">
+                                <VisualState x:Name="Normal" />
+                                <VisualState x:Name="PointerOver">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PMButtonHoverBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Pressed">
+                                    <Storyboard>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="HoverBorder" Storyboard.TargetProperty="Background">
+                                            <DiscreteObjectKeyFrame KeyTime="0" Value="{ThemeResource PMButtonPressedBrush}" />
+                                        </ObjectAnimationUsingKeyFrames>
+                                    </Storyboard>
+                                </VisualState>
+                                <VisualState x:Name="Disabled">
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="RootGrid" Storyboard.TargetProperty="Opacity" To="0.55" Duration="0" />
+                                    </Storyboard>
+                                </VisualState>
+                            </VisualStateGroup>
+                        </VisualStateManager.VisualStateGroups>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Botão de ícone para ações inline (linhas de lista) -->
+    <Style x:Key="PMIconButton" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="6" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="MinWidth" Value="32" />
+        <Setter Property="MinHeight" Value="32" />
+    </Style>
+
+    <!-- Campos -->
+    <Style x:Key="PMTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource DefaultTextBoxStyle}">
+        <Setter Property="Background" Value="{ThemeResource PMSurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource PMTextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource PMBorderSubtleBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style x:Key="PMPasswordBoxStyle" TargetType="PasswordBox" BasedOn="{StaticResource DefaultPasswordBoxStyle}">
+        <Setter Property="Background" Value="{ThemeResource PMSurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource PMTextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource PMBorderSubtleBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+    <Style x:Key="PMComboBoxStyle" TargetType="ComboBox" BasedOn="{StaticResource DefaultComboBoxStyle}">
+        <Setter Property="Background" Value="{ThemeResource PMSurfaceAltBrush}" />
+        <Setter Property="Foreground" Value="{ThemeResource PMTextPrimaryBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+    </Style>
+
+    <!-- Badge de categoria -->
+    <Style x:Key="PMCategoryBadge" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource PMBadgeBrush}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+    </Style>
+
+    <!-- Barra de força da senha -->
+    <Style x:Key="PMBarraFraca" TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{ThemeResource PMDangerBrush}" />
+    </Style>
+    <Style x:Key="PMBarraMedia" TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{ThemeResource PMWarningBrush}" />
+    </Style>
+    <Style x:Key="PMBarraForte" TargetType="ProgressBar">
+        <Setter Property="Foreground" Value="{ThemeResource PMSuccessBrush}" />
+    </Style>
+</ResourceDictionary>

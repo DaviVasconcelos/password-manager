@@ -7,32 +7,52 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Width="380" Spacing="12" Padding="0,4">
-            <TextBlock x:Uid="Settings_AutoLock" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock x:Uid="Settings_AutoLock_Descricao" TextWrapping="Wrap" />
+    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,14,4">
+        <StackPanel Width="400" Spacing="12">
+            <!-- Segurança -->
+            <TextBlock x:Uid="Settings_Seguranca" Style="{StaticResource PMSectionHeaderStyle}" />
             <ComboBox x:Uid="Settings_TempoInatividade"
+                      Style="{StaticResource PMComboBoxStyle}"
                       ItemsSource="{x:Bind ViewModel.OpcoesTimeoutAutoLock}"
-                      SelectedItem="{x:Bind ViewModel.TimeoutAutoLockMinutes, Mode=TwoWay}" />
-
-            <TextBlock x:Uid="Settings_Clipboard" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock x:Uid="Settings_Clipboard_Descricao" TextWrapping="Wrap" />
+                      SelectedItem="{x:Bind ViewModel.TimeoutAutoLockMinutes, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch" />
             <ComboBox x:Uid="Settings_LimpezaClipboard"
+                      Style="{StaticResource PMComboBoxStyle}"
                       ItemsSource="{x:Bind ViewModel.OpcoesLimpezaClipboard}"
-                      SelectedItem="{x:Bind ViewModel.ClipboardCleanTimeSeconds, Mode=TwoWay}" />
+                      SelectedItem="{x:Bind ViewModel.ClipboardCleanTimeSeconds, Mode=TwoWay}"
+                      HorizontalAlignment="Stretch" />
 
-            <TextBlock x:Uid="Settings_GeradorSenha" Style="{StaticResource SubtitleTextBlockStyle}" />
-            <TextBlock x:Uid="Settings_GeradorSenha_Descricao" TextWrapping="Wrap" />
-            <ComboBox x:Uid="Settings_TamanhoSenha"
-                      ItemsSource="{x:Bind ViewModel.OpcoesTamanhoSenha}"
-                      SelectedItem="{x:Bind ViewModel.PasswordGeneratorLength, Mode=TwoWay}" />
+            <Border Height="1"
+                    Background="{ThemeResource PMBorderSubtleBrush}"
+                    Margin="0,4,0,0" />
+
+            <!-- Gerador de senha (padrões) -->
+            <TextBlock x:Uid="Settings_GeradorSenha" Style="{StaticResource PMSectionHeaderStyle}" />
+            <Grid ColumnSpacing="12">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Slider Minimum="8"
+                        Maximum="64"
+                        StepFrequency="1"
+                        Value="{x:Bind ViewModel.PasswordGeneratorLength, Mode=TwoWay}"
+                        x:Uid="Settings_TamanhoSlider"
+                        VerticalAlignment="Center" />
+                <TextBlock Grid.Column="1"
+                           Text="{x:Bind ViewModel.TamanhoSenhaTexto, Mode=OneWay}"
+                           Style="{StaticResource PMCaptionStyle}"
+                           FontWeight="SemiBold"
+                           Foreground="{ThemeResource PMTextPrimaryBrush}"
+                           VerticalAlignment="Center" />
+            </Grid>
             <ToggleSwitch x:Uid="Settings_Minusculas" IsOn="{x:Bind ViewModel.IncludeLowercase, Mode=TwoWay}" />
             <ToggleSwitch x:Uid="Settings_Maiusculas" IsOn="{x:Bind ViewModel.IncludeUppercase, Mode=TwoWay}" />
             <ToggleSwitch x:Uid="Settings_Numeros" IsOn="{x:Bind ViewModel.IncludeDigits, Mode=TwoWay}" />
             <ToggleSwitch x:Uid="Settings_Simbolos" IsOn="{x:Bind ViewModel.IncludeSymbols, Mode=TwoWay}" />
 
             <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
-                       Foreground="{ThemeResource SystemFillColorCriticalBrush}"
+                       Foreground="{ThemeResource PMDangerBrush}"
                        TextWrapping="Wrap" />
         </StackPanel>
     </ScrollViewer>

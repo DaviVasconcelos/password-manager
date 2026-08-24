@@ -10,6 +10,7 @@
 
   <!-- UnlockPage -->
   <data name="UnlockPage_TituloApp.Text" xml:space="preserve"><value>PasswordManager</value></data>
+  <data name="UnlockPage_Subtitulo.Text" xml:space="preserve"><value>Seu cofre seguro</value></data>
   <data name="UnlockPage_SenhaMestraBox.PlaceholderText" xml:space="preserve"><value>Senha mestra</value></data>
   <data name="UnlockPage_ConfirmacaoBox.PlaceholderText" xml:space="preserve"><value>Confirme a senha</value></data>
   <data name="UnlockPage_BtnDesbloquear.Content" xml:space="preserve"><value>Desbloquear</value></data>
@@ -30,31 +31,37 @@
   <data name="UnlockPage_SenhaBackupBox.PlaceholderText" xml:space="preserve"><value>Senha mestra do backup</value></data>
   <data name="UnlockPage_TextoImportarBackup.Text" xml:space="preserve"><value>Digite a senha mestra usada para criptografar o arquivo. Ela será a senha do novo cofre.</value></data>
 
-  <!-- VaultPage - Header -->
-  <data name="VaultPage_Header.Text" xml:space="preserve"><value>Cofre de senhas</value></data>
-  <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Exportar...</value></data>
-  <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Importar...</value></data>
-  <data name="VaultPage_BtnConfiguracoes.Content" xml:space="preserve"><value>Configurações...</value></data>
-  <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Trocar senha mestra...</value></data>
-  <data name="VaultPage_BtnTrancar.Content" xml:space="preserve"><value>Trancar</value></data>
+  <!-- VaultPage - Navegação -->
+  <data name="VaultPage_NavItens.Content" xml:space="preserve"><value>Itens</value></data>
+  <data name="VaultPage_NavPastas.Content" xml:space="preserve"><value>Pastas</value></data>
+  <data name="VaultPage_NavConfiguracoes.Content" xml:space="preserve"><value>Configurações</value></data>
+  <data name="VaultPage_NavTrancar.Content" xml:space="preserve"><value>Trancar</value></data>
 
-  <!-- VaultPage - Filtros -->
+  <!-- VaultPage - Ações do cofre -->
+  <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Exportar</value></data>
+  <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Importar</value></data>
+  <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Trocar senha mestra</value></data>
+
+  <!-- VaultPage - Filtros e tabela -->
   <data name="VaultPage_BuscaBox.PlaceholderText" xml:space="preserve"><value>Buscar por título, usuário, URL, notas ou categoria...</value></data>
-  <data name="VaultPage_BtnPastas.Content" xml:space="preserve"><value>Pastas...</value></data>
-  <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>Novo item</value></data>
-  <data name="VaultPage_BtnEditar.Content" xml:space="preserve"><value>Editar</value></data>
-  <data name="VaultPage_BtnCopiarSenha.Content" xml:space="preserve"><value>Copiar senha</value></data>
-  <data name="VaultPage_BtnExcluir.Content" xml:space="preserve"><value>Excluir</value></data>
-  <data name="VaultPage_TextoSenhaCopiada.Text" xml:space="preserve"><value>Senha copiada (área de transferência será limpa em 30 s).</value></data>
+  <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>+ Novo item</value></data>
   <data name="VaultPage_HeaderTitulo.Text" xml:space="preserve"><value>Título</value></data>
   <data name="VaultPage_HeaderUsuario.Text" xml:space="preserve"><value>Usuário</value></data>
   <data name="VaultPage_HeaderCategoria.Text" xml:space="preserve"><value>Categoria</value></data>
+  <data name="VaultPage_AcaoEditar.AutomationProperties.Name" xml:space="preserve"><value>Editar item</value></data>
+  <data name="VaultPage_AcaoCopiar.AutomationProperties.Name" xml:space="preserve"><value>Copiar senha</value></data>
+  <data name="VaultPage_AcaoExcluir.AutomationProperties.Name" xml:space="preserve"><value>Excluir item</value></data>
+  <data name="VaultPage_ToastSenhaCopiada.Text" xml:space="preserve"><value>Senha copiada! A área de transferência será limpa em 30 s.</value></data>
 
   <!-- VaultPage - Diálogos -->
   <data name="VaultPage_DialogNovoItem.Title" xml:space="preserve"><value>Novo item</value></data>
   <data name="VaultPage_DialogEditarItem.Title" xml:space="preserve"><value>Editar item</value></data>
   <data name="VaultPage_DialogGerenciarPastas.Title" xml:space="preserve"><value>Gerenciar pastas</value></data>
-  <data name="VaultPage_DialogGerenciarPastas.PrimaryButtonText" xml:space="preserve"><value>Concluir</value></data>
+  <data name="VaultPage_DialogGerenciarPastas.CloseButtonText" xml:space="preserve"><value>Fechar</value></data>
+  <data name="VaultPage_DialogExcluirItem.Title" xml:space="preserve"><value>Excluir item</value></data>
+  <data name="VaultPage_DialogExcluirItem.Mensagem" xml:space="preserve"><value>Excluir "{0}"? Esta ação não pode ser desfeita.</value></data>
+  <data name="VaultPage_DialogExcluirItem.PrimaryButtonText" xml:space="preserve"><value>Excluir</value></data>
+  <data name="VaultPage_DialogExcluirItem.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
   <data name="VaultPage_DialogConfiguracoes.Title" xml:space="preserve"><value>Configurações</value></data>
   <data name="VaultPage_DialogConfiguracoes.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
   <data name="VaultPage_DialogConfiguracoes.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
@@ -99,39 +106,46 @@
   <data name="ItemEditor_Categoria.Header" xml:space="preserve"><value>Categoria</value></data>
   <data name="ItemEditor_SenhaBox.Header" xml:space="preserve"><value>Senha</value></data>
   <data name="ItemEditor_BtnGerar.Content" xml:space="preserve"><value>Gerar</value></data>
-  <data name="ItemEditor_BtnMostrarOcultar.Content" xml:space="preserve"><value>Mostrar/Ocultar</value></data>
+  <data name="ItemEditor_BtnMostrarOcultar.AutomationProperties.Name" xml:space="preserve"><value>Mostrar/Ocultar senha</value></data>
   <data name="ItemEditor_Url.Header" xml:space="preserve"><value>URL</value></data>
   <data name="ItemEditor_Notas.Header" xml:space="preserve"><value>Notas</value></data>
   <data name="ItemEditor_Pasta.Header" xml:space="preserve"><value>Pasta</value></data>
+  <data name="ItemEditor_Forca_Formato" xml:space="preserve"><value>Força da senha: {0}</value></data>
   <data name="ItemEditor_Forca_Forte" xml:space="preserve"><value>Forte</value></data>
   <data name="ItemEditor_Forca_Media" xml:space="preserve"><value>Média</value></data>
   <data name="ItemEditor_Forca_Fraca" xml:space="preserve"><value>Fraca</value></data>
+  <data name="ItemEditor_TamanhoSlider.Header" xml:space="preserve"><value>Tamanho</value></data>
+  <data name="ItemEditor_Tamanho_Sufixo" xml:space="preserve"><value>caracteres</value></data>
   <data name="ItemEditor_SemPasta" xml:space="preserve"><value>Sem pasta</value></data>
 
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>Todas as pastas</value></data>
 
   <!-- SettingsContent -->
-  <data name="Settings_AutoLock.Text" xml:space="preserve"><value>Auto-lock</value></data>
-  <data name="Settings_AutoLock_Descricao.Text" xml:space="preserve"><value>Tranca o cofre automaticamente após o tempo de inatividade.</value></data>
-  <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Tempo de inatividade (minutos)</value></data>
-  <data name="Settings_Clipboard.Text" xml:space="preserve"><value>Área de transferência</value></data>
-  <data name="Settings_Clipboard_Descricao.Text" xml:space="preserve"><value>Tempo até a senha copiada ser removida da área de transferência.</value></data>
-  <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Limpeza da área de transferência (segundos)</value></data>
-  <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Gerador de senha</value></data>
-  <data name="Settings_GeradorSenha_Descricao.Text" xml:space="preserve"><value>Valores padrão usados ao gerar uma nova senha.</value></data>
-  <data name="Settings_TamanhoSenha.Header" xml:space="preserve"><value>Tamanho da senha</value></data>
-  <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Minúsculas (a-z)</value></data>
-  <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Maiúsculas (A-Z)</value></data>
-  <data name="Settings_Numeros.Header" xml:space="preserve"><value>Números (0-9)</value></data>
-  <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Símbolos (!@#...)</value></data>
+  <data name="Settings_Seguranca.Text" xml:space="preserve"><value>Segurança</value></data>
+  <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Timeout de bloqueio automático</value></data>
+  <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Tempo para limpar área de transferência</value></data>
+  <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Gerador de senhas (padrões)</value></data>
+  <data name="Settings_TamanhoSlider.Header" xml:space="preserve"><value>Tamanho padrão</value></data>
+  <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Incluir minúsculas (a-z)</value></data>
+  <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Incluir maiúsculas (A-Z)</value></data>
+  <data name="Settings_Numeros.Header" xml:space="preserve"><value>Incluir números (0-9)</value></data>
+  <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Incluir símbolos (!@#...)</value></data>
 
   <!-- GerenciarPastasContent -->
-  <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>Nome da pasta</value></data>
-  <data name="GerenciarPastas_NomePasta.PlaceholderText" xml:space="preserve"><value>Digite um nome...</value></data>
+  <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>Nova pasta</value></data>
+  <data name="GerenciarPastas_NomePasta.PlaceholderText" xml:space="preserve"><value>Nome da pasta...</value></data>
   <data name="GerenciarPastas_BtnAdicionar.Content" xml:space="preserve"><value>Adicionar</value></data>
-  <data name="GerenciarPastas_BtnRenomear.Content" xml:space="preserve"><value>Renomear</value></data>
-  <data name="GerenciarPastas_BtnExcluir.Content" xml:space="preserve"><value>Excluir</value></data>
+  <data name="GerenciarPastas_AcaoRenomear.AutomationProperties.Name" xml:space="preserve"><value>Renomear pasta</value></data>
+  <data name="GerenciarPastas_AcaoExcluir.AutomationProperties.Name" xml:space="preserve"><value>Excluir pasta</value></data>
+  <data name="GerenciarPastas_DialogRenomear.Title" xml:space="preserve"><value>Renomear pasta</value></data>
+  <data name="GerenciarPastas_Renomear.PlaceholderText" xml:space="preserve"><value>Novo nome da pasta</value></data>
+  <data name="GerenciarPastas_DialogRenomear.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
+  <data name="GerenciarPastas_DialogRenomear.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="GerenciarPastas_DialogExcluir.Title" xml:space="preserve"><value>Excluir pasta</value></data>
+  <data name="GerenciarPastas_DialogExcluir.Mensagem" xml:space="preserve"><value>Excluir a pasta "{0}"? Os itens serão mantidos, sem pasta.</value></data>
+  <data name="GerenciarPastas_DialogExcluir.PrimaryButtonText" xml:space="preserve"><value>Excluir</value></data>
+  <data name="GerenciarPastas_DialogExcluir.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
 
   <!-- App -->
   <data name="App_Erro_ProvedorNaoInicializado" xml:space="preserve"><value>O provedor de serviços ainda não foi inicializado.</value></data>

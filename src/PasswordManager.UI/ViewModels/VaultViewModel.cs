@@ -134,6 +134,12 @@ public partial class VaultViewModel : ObservableObject
         var folderId = OpcaoPastaSelecionada?.Pasta?.Id;
         var items = _sessionService.SearchItems(TermoBusca, folderId);
 
+        // Evita o recarregamento visual (limpar + re-adicionar com animação)
+        // quando o resultado da busca não mudou — ex.: ao fechar o diálogo
+        // de pastas sem alterações.
+        if (DisplayedItems.SequenceEqual(items))
+            return;
+
         DisplayedItems.Clear();
         foreach (var item in items)
             DisplayedItems.Add(item);
@@ -195,26 +201,25 @@ public partial class VaultViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task RemoverItemAsync()
+    private async Task RemoverItemAsync(VaultItem? item)
     {
-        if (ItemSelecionado is null)
+        if (item is null)
             return;
 
-        await _sessionService.RemoveItemAsync(ItemSelecionado.Id);
-        ItemSelecionado = null;
+        await _sessionService.RemoveItemAsync(item.Id);
+        if (ItemSelecionado?.Id == item.Id)
+            ItemSelecionado = null;
         AddFilter();
     }
 
-    private bool CanRemoveItem() => ItemSelecionado is not null;
-
     [RelayCommand]
-    private void CopiarSenha()
+    private void CopiarSenha(VaultItem? item)
     {
-        if (ItemSelecionado is null)
+        if (item is null)
             return;
 
         var pacote = new DataPackage();
-        pacote.SetText(ItemSelecionado.Password);
+        pacote.SetText(item.Password);
         Clipboard.SetContent(pacote);
 
         SenhaCopiada = true;
@@ -222,8 +227,6 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Interval = _tempoLimparClipboard;
         _timerLimparClipboard.Start();
     }
-
-    private bool CanCopyPassword() => ItemSelecionado is not null;
 
     [RelayCommand]
     private void Lock() => Trancar();

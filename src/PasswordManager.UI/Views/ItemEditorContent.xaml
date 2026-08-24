@@ -7,34 +7,115 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Spacing="12" Width="440">
-        <TextBox x:Uid="ItemEditor_Titulo" Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
-        <TextBox x:Uid="ItemEditor_Usuario" Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
-        <TextBox x:Uid="ItemEditor_Categoria" Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+    <StackPanel Spacing="12" Width="460">
+        <TextBox x:Uid="ItemEditor_Titulo"
+                 Style="{StaticResource PMTextBoxStyle}"
+                 Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Usuario"
+                 Style="{StaticResource PMTextBoxStyle}"
+                 Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
 
         <StackPanel Orientation="Horizontal" Spacing="8">
             <PasswordBox x:Name="SenhaBox"
                          x:Uid="ItemEditor_SenhaBox"
+                         Style="{StaticResource PMPasswordBoxStyle}"
                          Width="300"
+                         HorizontalAlignment="Left"
                          PasswordRevealMode="Hidden" />
-            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Bottom">
-                <Button x:Uid="ItemEditor_BtnGerar" Command="{x:Bind ViewModel.GerarSenhaCommand}" />
-                <Button x:Uid="ItemEditor_BtnMostrarOcultar" Click="OnAlternarVisibilidadeClick" />
-            </StackPanel>
+            <Button x:Uid="ItemEditor_BtnGerar"
+                    Style="{StaticResource PMButtonSecondary}"
+                    Command="{x:Bind ViewModel.GerarSenhaCommand}"
+                    VerticalAlignment="Bottom" />
+            <Button Style="{StaticResource PMIconButton}"
+                    Click="OnAlternarVisibilidadeClick"
+                    x:Uid="ItemEditor_BtnMostrarOcultar"
+                    VerticalAlignment="Bottom">
+                <FontIcon Glyph="&#xE7B3;" FontSize="14" />
+            </Button>
         </StackPanel>
 
+        <!-- Força da senha -->
         <TextBlock Text="{x:Bind ViewModel.ForcaSenhaTexto, Mode=OneWay}"
-                   Foreground="{ThemeResource SystemFillColorSuccessBrush}" />
+                   Style="{StaticResource PMCaptionStyle}"
+                   Foreground="{ThemeResource PMTextSecondaryBrush}" />
+        <ProgressBar x:Name="BarraForca"
+                     Maximum="2"
+                     Value="{x:Bind ViewModel.ForcaValor, Mode=OneWay}"
+                     Height="4" />
 
-        <TextBox x:Uid="ItemEditor_Url" Text="{x:Bind ViewModel.Url, Mode=TwoWay}" />
+        <TextBox x:Uid="ItemEditor_Url"
+                 Style="{StaticResource PMTextBoxStyle}"
+                 Text="{x:Bind ViewModel.Url, Mode=TwoWay}" />
         <TextBox x:Uid="ItemEditor_Notas"
+                 Style="{StaticResource PMTextBoxStyle}"
                  Text="{x:Bind ViewModel.Notas, Mode=TwoWay}"
                  AcceptsReturn="True"
                  Height="80"
                  TextWrapping="Wrap" />
-        <ComboBox x:Uid="ItemEditor_Pasta"
-                  ItemsSource="{x:Bind ViewModel.OpcoesPasta}"
-                  SelectedItem="{x:Bind ViewModel.PastaSelecionada, Mode=TwoWay}"
-                  DisplayMemberPath="Nome" />
+
+        <Grid ColumnSpacing="8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0"
+                     x:Uid="ItemEditor_Categoria"
+                     Style="{StaticResource PMTextBoxStyle}"
+                     Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+            <ComboBox Grid.Column="1"
+                      x:Uid="ItemEditor_Pasta"
+                      Style="{StaticResource PMComboBoxStyle}"
+                      ItemsSource="{x:Bind ViewModel.OpcoesPasta}"
+                      SelectedItem="{x:Bind ViewModel.PastaSelecionada, Mode=TwoWay}"
+                      DisplayMemberPath="Nome"
+                      HorizontalAlignment="Stretch" />
+        </Grid>
+
+        <!-- Gerador de senha embutido -->
+        <Border Height="1"
+                Background="{ThemeResource PMBorderSubtleBrush}"
+                Margin="0,4,0,0" />
+        <TextBlock x:Uid="Settings_GeradorSenha"
+                   Style="{StaticResource PMSectionHeaderStyle}" />
+        <Grid ColumnSpacing="12">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Slider Minimum="8"
+                    Maximum="64"
+                    StepFrequency="1"
+                    Value="{x:Bind ViewModel.TamanhoSenha, Mode=TwoWay}"
+                    x:Uid="ItemEditor_TamanhoSlider"
+                    VerticalAlignment="Center" />
+            <TextBlock Grid.Column="1"
+                       Text="{x:Bind ViewModel.TamanhoSenhaTexto, Mode=OneWay}"
+                       Style="{StaticResource PMCaptionStyle}"
+                       FontWeight="SemiBold"
+                       Foreground="{ThemeResource PMTextPrimaryBrush}"
+                       VerticalAlignment="Center" />
+        </Grid>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ToggleSwitch x:Uid="Settings_Maiusculas"
+                          IsOn="{x:Bind ViewModel.IncluirMaiusculas, Mode=TwoWay}" />
+            <ToggleSwitch Grid.Column="1"
+                          x:Uid="Settings_Minusculas"
+                          IsOn="{x:Bind ViewModel.IncluirMinusculas, Mode=TwoWay}" />
+        </Grid>
+        <Grid ColumnSpacing="16">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <ToggleSwitch x:Uid="Settings_Numeros"
+                          IsOn="{x:Bind ViewModel.IncluirNumeros, Mode=TwoWay}" />
+            <ToggleSwitch Grid.Column="1"
+                          x:Uid="Settings_Simbolos"
+                          IsOn="{x:Bind ViewModel.IncluirSimbolos, Mode=TwoWay}" />
+        </Grid>
     </StackPanel>
 </UserControl>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PasswordManager.Application.Settings;
+using PasswordManager.UI.Localization;
 
 namespace PasswordManager.UI.ViewModels;
 
@@ -14,10 +15,10 @@ namespace PasswordManager.UI.ViewModels;
 public partial class SettingsViewModel : ObservableObject
 {
     private readonly IAppSettingsService _settingsService;
+    private readonly ILocalizationService _localization;
 
     public IReadOnlyList<int> OpcoesTimeoutAutoLock { get; } = new[] { 1, 2, 5, 10, 15, 30 };
     public IReadOnlyList<int> OpcoesLimpezaClipboard { get; } = new[] { 10, 15, 30, 60, 120 };
-    public IReadOnlyList<int> OpcoesTamanhoSenha { get; } = new[] { 8, 12, 16, 20, 24, 32 };
 
     [ObservableProperty]
     private int timeoutAutoLockMinutes;
@@ -26,6 +27,7 @@ public partial class SettingsViewModel : ObservableObject
     private int clipboardCleanTimeSeconds;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TamanhoSenhaTexto))]
     private int passwordGeneratorLength;
 
     [ObservableProperty]
@@ -43,9 +45,12 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string? erro;
 
-    public SettingsViewModel(IAppSettingsService settingsService)
+    public string TamanhoSenhaTexto => $"{PasswordGeneratorLength} {_localization.GetString("ItemEditor_Tamanho_Sufixo")}";
+
+    public SettingsViewModel(IAppSettingsService settingsService, ILocalizationService localization)
     {
         _settingsService = settingsService;
+        _localization = localization;
     }
 
     /// <summary>

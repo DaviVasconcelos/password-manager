@@ -14,37 +14,93 @@
     </Page.Resources>
 
     <Grid Padding="32">
-        <StackPanel Width="380" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16">
-            <TextBlock x:Uid="UnlockPage_TituloApp" Style="{StaticResource TitleTextBlockStyle}" HorizontalAlignment="Center" />
-            <TextBlock Text="{x:Bind ViewModel.TituloModo, Mode=OneWay}"
-                       Style="{StaticResource SubtitleTextBlockStyle}"
-                       HorizontalAlignment="Center" />
+        <Border Width="400"
+                Padding="{StaticResource PMPaddingCard}"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="{ThemeResource PMSurfaceBrush}"
+                BorderBrush="{ThemeResource PMBorderSubtleBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+            <StackPanel Spacing="16">
+                <!-- Logo + identidade -->
+                <FontIcon Glyph="&#xE72E;"
+                          FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                          FontSize="36"
+                          Foreground="{ThemeResource PMAccentBrush}"
+                          HorizontalAlignment="Center" />
+                <TextBlock x:Uid="UnlockPage_TituloApp"
+                           Style="{StaticResource PMTituloStyle}"
+                           Foreground="{ThemeResource PMTextPrimaryBrush}"
+                           HorizontalAlignment="Center" />
+                <TextBlock x:Uid="UnlockPage_Subtitulo"
+                           Style="{StaticResource PMSubtituloStyle}"
+                           Foreground="{ThemeResource PMTextSecondaryBrush}"
+                           HorizontalAlignment="Center" />
 
-            <PasswordBox x:Name="SenhaMestraBox"
-                         PasswordRevealMode="Peek"
-                         x:Uid="UnlockPage_SenhaMestraBox" />
+                <!-- Modo (criar/desbloquear) -->
+                <TextBlock Text="{x:Bind ViewModel.TituloModo, Mode=OneWay}"
+                           Style="{StaticResource PMCorpoStyle}"
+                           FontWeight="SemiBold"
+                           Foreground="{ThemeResource PMTextPrimaryBrush}"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0" />
 
-            <PasswordBox x:Name="ConfirmacaoBox"
-                         PasswordRevealMode="Peek"
-                         x:Uid="UnlockPage_ConfirmacaoBox"
-                         Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
+                <!-- Formulário -->
+                <PasswordBox x:Name="SenhaMestraBox"
+                             Style="{StaticResource PMPasswordBoxStyle}"
+                             x:Uid="UnlockPage_SenhaMestraBox"
+                             PasswordRevealMode="Peek"
+                             KeyDown="OnSenhaKeyDown" />
 
-            <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
-                       Foreground="{ThemeResource SystemFillColorCriticalBrush}" />
+                <PasswordBox x:Name="ConfirmacaoBox"
+                             Style="{StaticResource PMPasswordBoxStyle}"
+                             x:Uid="UnlockPage_ConfirmacaoBox"
+                             PasswordRevealMode="Peek"
+                             KeyDown="OnConfirmacaoKeyDown"
+                             Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
-            <Button x:Uid="UnlockPage_BtnDesbloquear"
-                    Command="{x:Bind ViewModel.UnlockCommand}"
-                    Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolInvertidoParaVisibilidade}}" />
+                <StackPanel Orientation="Horizontal"
+                            Spacing="8"
+                            HorizontalAlignment="Center"
+                            Visibility="{x:Bind ViewModel.ErroTemValor, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}">
+                    <FontIcon Glyph="&#xE783;"
+                              FontFamily="{ThemeResource SymbolThemeFontFamily}"
+                              FontSize="14"
+                              Foreground="{ThemeResource PMDangerBrush}"
+                              VerticalAlignment="Center" />
+                    <TextBlock Text="{x:Bind ViewModel.Erro, Mode=OneWay}"
+                               Style="{StaticResource PMCaptionStyle}"
+                               Foreground="{ThemeResource PMDangerBrush}"
+                               TextWrapping="Wrap"
+                               VerticalAlignment="Center" />
+                </StackPanel>
 
-            <Button x:Uid="UnlockPage_BtnCriarCofre"
-                    Command="{x:Bind ViewModel.CreateCommand}"
-                    Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
+                <!-- Ações -->
+                <Button x:Uid="UnlockPage_BtnDesbloquear"
+                        Style="{StaticResource PMButtonPrimary}"
+                        Command="{x:Bind ViewModel.UnlockCommand}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,8,0,0"
+                        Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolInvertidoParaVisibilidade}}" />
 
-            <Button x:Uid="UnlockPage_BtnImportarBackup"
-                    Click="OnImportarBackupClick"
-                    Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
+                <Button x:Uid="UnlockPage_BtnCriarCofre"
+                        Style="{StaticResource PMButtonPrimary}"
+                        Command="{x:Bind ViewModel.CreateCommand}"
+                        HorizontalAlignment="Stretch"
+                        Margin="0,8,0,0"
+                        Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
 
-            <ProgressRing IsActive="{x:Bind ViewModel.Ocupado, Mode=OneWay}" Width="32" Height="32" HorizontalAlignment="Center" />
-        </StackPanel>
+                <Button x:Uid="UnlockPage_BtnImportarBackup"
+                        Style="{StaticResource PMButtonSecondary}"
+                        Click="OnImportarBackupClick"
+                        HorizontalAlignment="Stretch"
+                        Visibility="{x:Bind ViewModel.ModoCriar, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}" />
+
+                <ProgressRing IsActive="{x:Bind ViewModel.Ocupado, Mode=OneWay}"
+                              Width="32" Height="32"
+                              HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
     </Grid>
 </Page>

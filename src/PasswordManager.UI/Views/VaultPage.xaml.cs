@@ -33,6 +33,7 @@ public sealed partial class VaultPage : Page
         _localization = App.Services.GetRequiredService<ILocalizationService>();
         InitializeComponent();
         ViewModel.Trancado += OnTrancado;
+        NavCofre.ItemInvoked += OnNavItemInvocado;
 
         PointerMoved += OnPointerMoved;
         PointerPressed += OnPointerPressed;
@@ -62,6 +63,42 @@ public sealed partial class VaultPage : Page
         Frame.Navigate(typeof(UnlockPage));
     }
 
+    /// <summary>
+    /// O brand não seleciona (SelectsOnInvoked=False), então o toggle do
+    /// painel é tratado no ItemInvoked.
+    /// </summary>
+    private void OnNavItemInvocado(NavigationView sender, NavigationViewItemInvokedEventArgs args)
+    {
+        if (args.InvokedItemContainer is NavigationViewItem { Tag: "brand" })
+            NavCofre.IsPaneOpen = !NavCofre.IsPaneOpen;
+    }
+
+    /// <summary>
+    /// Itens do pane que abrem diálogos/comandos: a seleção fica no item
+    /// escolhido enquanto o diálogo está aberto e volta para "Itens" ao
+    /// fechar (o conteúdo exibido continua sendo a lista de itens).
+    /// </summary>
+    private async void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)
+    {
+        if (args.SelectedItemContainer?.Tag is not string tag)
+            return;
+
+        switch (tag)
+        {
+            case "pastas":
+                await AbrirGerenciarPastasAsync();
+                sender.SelectedItem = NavItens;
+                break;
+            case "configuracoes":
+                await AbrirConfiguracoesAsync();
+                sender.SelectedItem = NavItens;
+                break;
+            case "trancar":
+                ViewModel.LockCommand.Execute(null);
+                break;
+        }
+    }
+
     private async void OnNovoItemClick(object sender, RoutedEventArgs e)
     {
         var editor = new ItemEditorContent();
@@ -81,10 +118,38 @@ public sealed partial class VaultPage : Page
             editor.ViewModel.PastaSelecionada?.Pasta?.Id);
     }
 
-    private async void OnEditarItemClick(object sender, RoutedEventArgs e)
+    private void OnEditarItemClick(object sender, RoutedEventArgs e)
     {
-        if (ViewModel.ItemSelecionado is not null)
-            await EditarItemAsync(ViewModel.ItemSelecionado);
+        if ((sender as FrameworkElement)?.DataContext is VaultItem item)
+            _ = EditarItemAsync(item);
+    }
+
+    private void OnCopiarSenhaClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is VaultItem item)
+            ViewModel.CopiarSenhaCommand.Execute(item);
+    }
+
+    private void OnFecharToastClick(object sender, RoutedEventArgs e)
+        => ViewModel.SenhaCopiada = false;
+
+    private async void OnExcluirItemClick(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is not VaultItem item)
+            return;
+
+        var dialogo = new ContentDialog
+        {
+            Title = _localization.GetString("VaultPage_DialogExcluirItem.Title"),
+            Content = string.Format(_localization.GetString("VaultPage_DialogExcluirItem.Mensagem"), item.Title),
+            PrimaryButtonText = _localization.GetString("VaultPage_DialogExcluirItem.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogExcluirItem.CloseButtonText"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot
+        };
+
+        if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
+            ViewModel.RemoverItemCommand.Execute(item);
     }
 
     private async void OnItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -113,13 +178,13 @@ public sealed partial class VaultPage : Page
             editor.ViewModel.PastaSelecionada?.Pasta?.Id);
     }
 
-    private async void OnGerenciarPastasClick(object sender, RoutedEventArgs e)
+    private async Task AbrirGerenciarPastasAsync()
     {
         var dialogo = new ContentDialog
         {
             Title = _localization.GetString("VaultPage_DialogGerenciarPastas.Title"),
             Content = new GerenciarPastasContent(),
-            PrimaryButtonText = _localization.GetString("VaultPage_DialogGerenciarPastas.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("VaultPage_DialogGerenciarPastas.CloseButtonText"),
             XamlRoot = XamlRoot
         };
 
@@ -127,7 +192,7 @@ public sealed partial class VaultPage : Page
         ViewModel.ReloadFolders();
     }
 
-    private async void OnConfiguracoesClick(object sender, RoutedEventArgs e)
+    private async Task AbrirConfiguracoesAsync()
     {
         var content = new SettingsContent();
         content.ViewModel.Carregar();
