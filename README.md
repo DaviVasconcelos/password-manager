@@ -53,7 +53,7 @@ Objetivos de engenharia demonstrados no projeto:
 - **DDD** — `Vault` como agregado raiz, invariantes centralizadas
 - **Criptografia aplicada** — Argon2id + AES-256-GCM com parâmetros auditáveis
 - **Persistência segura** — SQLite/EF Core com blob único (ADR 0003)
-- **Testes automatizados** — 181 testes (xUnit + FluentAssertions)
+- **Testes automatizados** — 189 testes (xUnit + FluentAssertions)
 - **CI/CD** — GitHub Actions em `windows-latest`
 
 ---
@@ -187,12 +187,12 @@ password-manager/
 └── tests/
     ├── PasswordManager.Domain.Tests/         # 57 testes
     ├── PasswordManager.Application.Tests/    # 66 testes (com fakes)
-    └── PasswordManager.Infrastructure.Tests/ # 58 testes
+    └── PasswordManager.Infrastructure.Tests/ # 66 testes
 ```
 
 **Persistência em disco (Windows):**
 
-- Cofre: `%LocalAppData%\PasswordManager\vault.db` (via `EnsureCreated`; sem migrations ainda)
+- Cofre: `%LocalAppData%\PasswordManager\vault.db` (via `VaultDatabaseMigrator.ApplyMigrations`: migration `InitialCreate` + baseline automático para bancos criados com `EnsureCreated`)
 - Configurações: `%LocalAppData%\PasswordManager\settings.json`
 
 ---
@@ -217,7 +217,7 @@ Set-Location password-manager
 # 2. Compilar a solution principal (Domain + Application + Infrastructure + UI + testes)
 dotnet build PasswordManager.slnx
 
-# 3. Executar os testes (181 testes)
+# 3. Executar os testes (189 testes)
 dotnet test PasswordManager.slnx
 
 # 4. (Opcional) Compilar só a UI — exige tooling do Windows App SDK
@@ -332,9 +332,11 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006):
 - **Passos:**
   1. `actions/setup-dotnet` lendo `global.json` (SDK 10.0.302)
   2. `actions/setup-dotnet` com `8.0.x` para garantir runtime dos testes
-  3. `dotnet build PasswordManager.slnx --configuration Debug`
-  4. `dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx`
-  5. `actions/upload-artifact` com `TestResults/**/*.trx` (retention 14 dias)
+  3. `dotnet tool restore` (instala o `dotnet-ef` do manifest `.config/dotnet-tools.json`)
+  4. `dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure` — falha se o modelo mudar sem nova migration
+  5. `dotnet build PasswordManager.slnx --configuration Debug`
+  6. `dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx`
+  7. `actions/upload-artifact` com `TestResults/**/*.trx` (retention 14 dias)
 - **Fora do escopo atual:** publish MSIX / assinatura / auto-update (previstos na Fase D)
 
 ---
@@ -368,7 +370,7 @@ Ordem sugerida **A → B → C → D** (itens concluídos marcados, decisões re
 
 ### Fase B — Engenharia
 
-- [ ] **Migrations EF Core** no lugar de `EnsureCreated` (schema versionado, exige `dotnet-ef`)
+- [x] **Migrations EF Core** no lugar de `EnsureCreated` (`dotnet-ef` 8.0.30 via manifest local em `.config/`; checagem de modelo pendente no CI)
 - [ ] **Testes de ViewModels** — desacoplar de tipos WinUI para cobertura com xUnit/FluentAssertions
 - [x] **Recursos/i18n** — ADR 0007, PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`
 
