@@ -323,7 +323,7 @@ public class VaultRepositoryTests : IDisposable
 
             if (!_schemaCreated)
             {
-                contexto.Database.EnsureCreated();
+                contexto.Database.Migrate();
                 _schemaCreated = true;
             }
 
