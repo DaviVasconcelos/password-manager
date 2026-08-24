@@ -120,7 +120,7 @@ namespace PasswordManager.UI
                     .Options;
 
                 var context = new VaultDbContext(options);
-                context.Database.EnsureCreated();
+                VaultDatabaseMigrator.ApplyMigrations(context);
                 return context;
             });
 
