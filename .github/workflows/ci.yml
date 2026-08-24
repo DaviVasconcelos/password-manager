@@ -23,6 +23,12 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Restaurar ferramentas locais (dotnet-ef)
+        run: dotnet tool restore
+
+      - name: Verificar mudanças de modelo pendentes (EF Core)
+        run: dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure
+
       - name: Compilar a solution
         run: dotnet build PasswordManager.slnx --configuration Debug
 
