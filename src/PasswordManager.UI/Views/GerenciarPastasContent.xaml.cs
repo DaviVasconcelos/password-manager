@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Domain.Entities;
 using PasswordManager.UI.Localization;
@@ -11,8 +12,10 @@ namespace PasswordManager.UI.Views;
 
 /// <summary>
 /// Conteúdo do diálogo de gerenciamento de pastas: adicionar, renomear
-/// (mini-diálogo) e excluir pastas (a exclusão não apaga os itens — eles
-/// ficam sem pasta).
+/// (flyout inline) e excluir pastas (a exclusão não apaga os itens — eles
+/// ficam sem pasta). Usa Flyout em vez de ContentDialog para as interações
+/// por linha: só existe um ContentDialog por XamlRoot, e este diálogo já
+/// está aberto.
 /// </summary>
 public sealed partial class GerenciarPastasContent : UserControl
 {
@@ -44,57 +47,103 @@ public sealed partial class GerenciarPastasContent : UserControl
         ReloadFolders();
     }
 
-    private async void OnRenameFolderClick(object sender, RoutedEventArgs e)
+    private void OnRenameFolderClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not VaultFolder pasta)
+        if (sender is not FrameworkElement botao || botao.DataContext is not VaultFolder pasta)
             return;
 
         var nomeBox = new TextBox
         {
             Text = pasta.Name,
-            PlaceholderText = _localization.GetString("GerenciarPastas_Renomear.PlaceholderText")
+            PlaceholderText = _localization.GetString("GerenciarPastas_Renomear.PlaceholderText"),
+            MinWidth = 220
         };
 
-        var dialogo = new ContentDialog
+        var salvar = new Button
         {
-            Title = _localization.GetString("GerenciarPastas_DialogRenomear.Title"),
-            Content = nomeBox,
-            PrimaryButtonText = _localization.GetString("GerenciarPastas_DialogRenomear.PrimaryButtonText"),
-            CloseButtonText = _localization.GetString("GerenciarPastas_DialogRenomear.CloseButtonText"),
-            DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            Content = _localization.GetString("GerenciarPastas_DialogRenomear.PrimaryButtonText"),
+            Style = (Style)App.Current.Resources["PMButtonPrimary"],
+            HorizontalAlignment = HorizontalAlignment.Right
         };
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
-            return;
+        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240 };
+        conteudo.Children.Add(nomeBox);
+        conteudo.Children.Add(salvar);
 
-        var newName = nomeBox.Text.Trim();
-        if (string.IsNullOrEmpty(newName))
-            return;
+        var flyout = new Flyout { Content = conteudo, Placement = FlyoutPlacementMode.Bottom };
 
-        await _sessionService.RenameFolderAsync(pasta.Id, newName);
-        ReloadFolders();
+        async void Confirmar()
+        {
+            var newName = nomeBox.Text.Trim();
+            flyout.Hide();
+            if (string.IsNullOrEmpty(newName))
+                return;
+
+            await _sessionService.RenameFolderAsync(pasta.Id, newName);
+            ReloadFolders();
+        }
+
+        salvar.Click += (_, _) => Confirmar();
+        nomeBox.KeyDown += (_, args) =>
+        {
+            if (args.Key == Windows.System.VirtualKey.Enter)
+            {
+                args.Handled = true;
+                Confirmar();
+            }
+        };
+
+        flyout.ShowAt(botao);
+        nomeBox.Focus(FocusState.Keyboard);
+        nomeBox.SelectAll();
     }
 
-    private async void OnDeleteFolderClick(object sender, RoutedEventArgs e)
+    private void OnDeleteFolderClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is not VaultFolder folder)
+        if (sender is not FrameworkElement botao || botao.DataContext is not VaultFolder folder)
             return;
 
-        var dialogo = new ContentDialog
+        var texto = new TextBlock
         {
-            Title = _localization.GetString("GerenciarPastas_DialogExcluir.Title"),
-            Content = string.Format(_localization.GetString("GerenciarPastas_DialogExcluir.Mensagem"), folder.Name),
-            PrimaryButtonText = _localization.GetString("GerenciarPastas_DialogExcluir.PrimaryButtonText"),
-            CloseButtonText = _localization.GetString("GerenciarPastas_DialogExcluir.CloseButtonText"),
-            DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
+            Text = string.Format(_localization.GetString("GerenciarPastas_DialogExcluir.Mensagem"), folder.Name),
+            TextWrapping = TextWrapping.Wrap
         };
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
-            return;
+        var cancelar = new Button
+        {
+            Content = _localization.GetString("GerenciarPastas_DialogExcluir.CloseButtonText"),
+            Style = (Style)App.Current.Resources["PMButtonSecondary"]
+        };
 
-        await _sessionService.RemoveFolderAsync(folder.Id);
-        ReloadFolders();
+        var excluir = new Button
+        {
+            Content = _localization.GetString("GerenciarPastas_DialogExcluir.PrimaryButtonText"),
+            Style = (Style)App.Current.Resources["PMButtonPrimary"]
+        };
+
+        var botoes = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Right
+        };
+        botoes.Children.Add(cancelar);
+        botoes.Children.Add(excluir);
+
+        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240 };
+        conteudo.Children.Add(texto);
+        conteudo.Children.Add(botoes);
+
+        var flyout = new Flyout { Content = conteudo, Placement = FlyoutPlacementMode.Bottom };
+
+        excluir.Click += async (_, _) =>
+        {
+            flyout.Hide();
+            await _sessionService.RemoveFolderAsync(folder.Id);
+            ReloadFolders();
+        };
+        cancelar.Click += (_, _) => flyout.Hide();
+
+        flyout.ShowAt(botao);
     }
 }
