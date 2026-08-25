@@ -91,8 +91,16 @@ public partial class VaultViewModel : ObservableObject
         var settings = _settingsService.Get();
         _timeoutInatividade = TimeSpan.FromMinutes(settings.AutoLockTimeoutMinutes);
         _tempoLimparClipboard = TimeSpan.FromSeconds(settings.ClipboardCleanTimeSeconds);
+        OnPropertyChanged(nameof(TextoToastSenhaCopiada));
         ReiniciarTimerInatividade();
     }
+
+    /// <summary>
+    /// Texto do banner "senha copiada" com o tempo configurado para limpeza
+    /// da área de transferência.
+    /// </summary>
+    public string TextoToastSenhaCopiada =>
+        string.Format(_localization.GetString("VaultPage_ToastSenhaCopiada.Text"), (int)_tempoLimparClipboard.TotalSeconds);
 
     /// <summary>
     /// Registra atividade do usuário, reiniciando o timer de inatividade.
@@ -226,6 +234,21 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Stop();
         _timerLimparClipboard.Interval = _tempoLimparClipboard;
         _timerLimparClipboard.Start();
+    }
+
+    /// <summary>
+    /// Copia apenas o usuário para a área de transferência: sem toast e sem
+    /// limpeza automática (dado menos sensível que a senha).
+    /// </summary>
+    [RelayCommand]
+    private void CopiarUsuario(VaultItem? item)
+    {
+        if (item is null || string.IsNullOrEmpty(item.Username))
+            return;
+
+        var pacote = new DataPackage();
+        pacote.SetText(item.Username);
+        Clipboard.SetContent(pacote);
     }
 
     [RelayCommand]

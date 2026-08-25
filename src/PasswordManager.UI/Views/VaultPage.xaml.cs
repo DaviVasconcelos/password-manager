@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using PasswordManager.Application.Exceptions;
@@ -127,10 +128,34 @@ public sealed partial class VaultPage : Page
             _ = EditarItemAsync(item);
     }
 
-    private void OnCopiarSenhaClick(object sender, RoutedEventArgs e)
+    private void OnCopiarClick(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is VaultItem item)
-            ViewModel.CopiarSenhaCommand.Execute(item);
+        if ((sender as FrameworkElement)?.DataContext is not VaultItem item)
+            return;
+        if (sender is not FrameworkElement elemento)
+            return;
+
+        var flyout = new MenuFlyout
+        {
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedRight
+        };
+
+        var itemUsuario = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuCopiar.Usuario"),
+            IsEnabled = !string.IsNullOrEmpty(item.Username)
+        };
+        itemUsuario.Click += (_, _) => ViewModel.CopiarUsuarioCommand.Execute(item);
+        flyout.Items.Add(itemUsuario);
+
+        var itemSenha = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuCopiar.Senha")
+        };
+        itemSenha.Click += (_, _) => ViewModel.CopiarSenhaCommand.Execute(item);
+        flyout.Items.Add(itemSenha);
+
+        flyout.ShowAt(elemento);
     }
 
     private void OnFecharToastClick(object sender, RoutedEventArgs e)

@@ -157,7 +157,7 @@
                                 </Button>
                                 <Button x:Uid="VaultPage_AcaoCopiar"
                                         Style="{StaticResource PMIconButton}"
-                                        Click="OnCopiarSenhaClick">
+                                        Click="OnCopiarClick">
                                     <FontIcon Glyph="&#xE8C8;" FontSize="14" />
                                 </Button>
                                 <Button x:Uid="VaultPage_AcaoExcluir"
@@ -186,7 +186,7 @@
                                   FontSize="14"
                                   Foreground="{ThemeResource PMSuccessBrush}"
                                   VerticalAlignment="Center" />
-                        <TextBlock x:Uid="VaultPage_ToastSenhaCopiada"
+                        <TextBlock Text="{x:Bind ViewModel.TextoToastSenhaCopiada, Mode=OneWay}"
                                    Style="{StaticResource PMCaptionStyle}"
                                    Foreground="{ThemeResource PMSuccessBrush}"
                                    VerticalAlignment="Center" />
