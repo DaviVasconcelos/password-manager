@@ -64,6 +64,32 @@
         </NavigationView.FooterMenuItems>
 
         <Grid Padding="{StaticResource PMPaddingPage}" RowSpacing="16">
+            <VisualStateManager.VisualStateGroups>
+                <VisualStateGroup>
+                    <VisualState x:Name="Wide">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="720" />
+                        </VisualState.StateTriggers>
+                    </VisualState>
+                    <VisualState x:Name="Narrow">
+                        <VisualState.StateTriggers>
+                            <AdaptiveTrigger MinWindowWidth="0" />
+                        </VisualState.StateTriggers>
+                        <VisualState.Setters>
+                            <Setter Target="BuscaBox.(Grid.ColumnSpan)" Value="3" />
+                            <Setter Target="ComboPastas.(Grid.Row)" Value="1" />
+                            <Setter Target="ComboPastas.(Grid.Column)" Value="0" />
+                            <Setter Target="BtnNovoItem.(Grid.Row)" Value="1" />
+                            <Setter Target="BtnNovoItem.(Grid.Column)" Value="1" />
+                            <Setter Target="BtnNovoItem.(Grid.ColumnSpan)" Value="2" />
+                            <Setter Target="BtnNovoItem.HorizontalAlignment" Value="Stretch" />
+                            <Setter Target="HeaderCategoria.Visibility" Value="Collapsed" />
+                            <Setter Target="ColHeaderCategoria.Width" Value="0" />
+                            <Setter Target="ColAcoesHeader.Width" Value="96" />
+                        </VisualState.Setters>
+                    </VisualState>
+                </VisualStateGroup>
+            </VisualStateManager.VisualStateGroups>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
@@ -72,24 +98,28 @@
             </Grid.RowDefinitions>
 
             <!-- Busca + filtro de pasta + novo item -->
-            <Grid Grid.Row="0" ColumnSpacing="8">
+            <Grid x:Name="GridBusca" Grid.Row="0" ColumnSpacing="8" RowSpacing="8">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="180" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0"
+                <TextBox x:Name="BuscaBox" Grid.Row="0" Grid.Column="0"
                          Style="{StaticResource PMTextBoxStyle}"
                          Text="{x:Bind ViewModel.TermoBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                          x:Uid="VaultPage_BuscaBox" />
-                <ComboBox Grid.Column="1"
+                <ComboBox x:Name="ComboPastas" Grid.Row="0" Grid.Column="1"
                           Style="{StaticResource PMComboBoxStyle}"
                           ItemsSource="{x:Bind ViewModel.FolderOptions}"
                           SelectedItem="{x:Bind ViewModel.OpcaoPastaSelecionada, Mode=TwoWay}"
                           DisplayMemberPath="Nome"
                           HorizontalAlignment="Stretch"
                           VerticalAlignment="Center" />
-                <Button Grid.Column="2"
+                <Button x:Name="BtnNovoItem" Grid.Row="0" Grid.Column="2"
                         x:Uid="VaultPage_BtnNovoItem"
                         Style="{StaticResource PMButtonPrimary}"
                         Click="OnNovoItemClick"
@@ -117,17 +147,35 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*" />
                             <ColumnDefinition Width="2*" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="132" />
+                            <ColumnDefinition x:Name="ColHeaderCategoria" Width="*" />
+                            <ColumnDefinition x:Name="ColAcoesHeader" Width="132" />
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Uid="VaultPage_HeaderTitulo" FontWeight="SemiBold" />
                         <TextBlock Grid.Column="1" x:Uid="VaultPage_HeaderUsuario" FontWeight="SemiBold" />
-                        <TextBlock Grid.Column="2" x:Uid="VaultPage_HeaderCategoria" FontWeight="SemiBold" />
+                        <TextBlock x:Name="HeaderCategoria" Grid.Column="2" x:Uid="VaultPage_HeaderCategoria" FontWeight="SemiBold" />
                     </Grid>
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="domain:VaultItem">
                         <Grid>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup>
+                                    <VisualState x:Name="WideItem">
+                                        <VisualState.StateTriggers>
+                                            <AdaptiveTrigger MinWindowWidth="720" />
+                                        </VisualState.StateTriggers>
+                                    </VisualState>
+                                    <VisualState x:Name="NarrowItem">
+                                        <VisualState.StateTriggers>
+                                            <AdaptiveTrigger MinWindowWidth="0" />
+                                        </VisualState.StateTriggers>
+                                        <VisualState.Setters>
+                                            <Setter Target="BadgeCategoria.Visibility" Value="Collapsed" />
+                                            <Setter Target="ColCategoriaItem.Width" Value="0" />
+                                        </VisualState.Setters>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="1" />
@@ -136,7 +184,7 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
                                     <ColumnDefinition Width="2*" />
-                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition x:Name="ColCategoriaItem" Width="*" />
                                     <ColumnDefinition Width="132" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Orientation="Horizontal" Spacing="8">
@@ -151,7 +199,7 @@
                                            Foreground="{ThemeResource PMTextSecondaryBrush}"
                                            TextTrimming="CharacterEllipsis"
                                            VerticalAlignment="Center" />
-                                <Border Grid.Column="2" Style="{StaticResource PMCategoryBadge}">
+                                <Border x:Name="BadgeCategoria" Grid.Column="2" Style="{StaticResource PMCategoryBadge}">
                                     <TextBlock Text="{x:Bind Category}" FontSize="11" VerticalAlignment="Center" />
                                 </Border>
                                 <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
