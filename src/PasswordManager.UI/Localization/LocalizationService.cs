@@ -81,18 +81,8 @@ public sealed class LocalizationService : ILocalizationService
     /// <inheritdoc/>
     public void AplicarIdioma(string idioma)
     {
-        string alvo;
-        if (string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase))
-        {
-            var sistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
-            alvo = sistema?.Equals("pt-BR", StringComparison.OrdinalIgnoreCase) == true
-                ? "pt-BR"
-                : "en-US";
-        }
-        else
-        {
-            alvo = idioma;
-        }
+        bool isAuto = string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase);
+        string alvo = isAuto ? string.Empty : idioma;
 
         try
         {
@@ -112,7 +102,14 @@ public sealed class LocalizationService : ILocalizationService
 
         try
         {
-            var culture = new System.Globalization.CultureInfo(alvo);
+            string cultureAlvo = alvo;
+            if (isAuto)
+            {
+                var sys = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                cultureAlvo = !string.IsNullOrEmpty(sys) ? sys : "en-US";
+            }
+
+            var culture = new System.Globalization.CultureInfo(cultureAlvo);
             System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
             System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
         }

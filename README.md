@@ -277,6 +277,30 @@ Implementada conforme **ADR 0007**:
 - **Escopo:** apenas UI. Mensagens de Domain/Application/Infrastructure permanecem em **pt-BR** por convenção.
 - **Novo idioma:** criar `Strings/<lang>/Resources.resw` com as mesmas chaves (~120 chaves no baseline).
 
+### Como adicionar um novo idioma
+
+> Contribuidores não precisam alterar C# para adicionar um idioma — basta traduzir o `.resw`. A lista de idiomas é descoberta em runtime via `ManifestLanguages` (PRI).
+
+1. **Crie a pasta** `src/PasswordManager.UI/Strings/<lang>/` onde `<lang>` é o BCP-47 (ex: `es-ES`, `fr-FR`, `de-DE`).
+2. **Copie** `src/PasswordManager.UI/Strings/en-US/Resources.resw` para a nova pasta.
+3. **Traduza** apenas o conteúdo de `<value>...</value>`, mantendo as chaves (`<data name="...">`) e os placeholders `{0}`, `{1}` intactos:
+   ```xml
+   <data name="VaultPage_BtnNovoItem.Content" xml:space="preserve"><value>+ Nuevo ítem</value></data>
+   ```
+4. **Não altere** `AppSettings` nem `SettingsViewModel` — a validação aceita qualquer `CultureInfo` válido e o `ComboBox` de idioma em **Configurações** lista automaticamente todos os idiomas do PRI.
+5. **Teste** localmente:
+   ```powershell
+   dotnet build PasswordManager.slnx
+   # Rode a UI, vá em Configurações → Idioma → selecione o novo idioma → Salvar → Reiniciar agora
+   # A opção "Automático (sistema)" usa o idioma do SO com fallback para en-US.
+   ```
+6. **Abra o PR** com o novo `.resw`. O CI compila o `resources.pri` e valida `dotnet build`/`dotnet test`.
+
+Dicas:
+- Use `pt-BR` como referência para termos técnicos e `en-US` para placeholders.
+- Ferramentas como [ResX Resource Manager](https://github.com/dotnet/ResXResourceManager) ajudam a visualizar chaves faltantes.
+- Se quiser que o nome do idioma apareça localizado no ComboBox, adicione `Settings_Idioma_Opcao_<Lang>` (ex: `Settings_Idioma_Opcao_EsES`) nos dois baselines; caso contrário o nome nativo do `CultureInfo` será usado.
+
 ---
 
 ## Exportação e Importação (.vault)

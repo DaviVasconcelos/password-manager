@@ -110,18 +110,15 @@ namespace PasswordManager.UI
 
         private static void AplicarOverrideIdioma(string idioma)
         {
-            string alvo;
-            if (string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase))
-            {
-                var idiomaSistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
-                alvo = idiomaSistema?.Equals("pt-BR", StringComparison.OrdinalIgnoreCase) == true
-                    ? "pt-BR"
-                    : "en-US";
-            }
+            // "auto" = limpar override e deixar o MRT escolher via Languages do SO (fallback DefaultLanguage=en-US).
+            // Para idioma explícito, usar o código tal qual (ex: es-ES, fr-FR) — sem mapeamento fixo,
+            // assim novos idiomas adicionados via Strings/<lang> funcionam sem mudar código.
+            string? alvo = null;
+            bool isAuto = string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase);
+            if (isAuto)
+                alvo = string.Empty;
             else
-            {
                 alvo = idioma;
-            }
 
             try
             {
@@ -141,7 +138,17 @@ namespace PasswordManager.UI
 
             try
             {
-                var culture = new System.Globalization.CultureInfo(alvo);
+                string cultureAlvo = alvo;
+                if (isAuto)
+                {
+                    var sys = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                    if (!string.IsNullOrEmpty(sys))
+                        cultureAlvo = sys;
+                    else
+                        cultureAlvo = "en-US";
+                }
+
+                var culture = new System.Globalization.CultureInfo(cultureAlvo);
                 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
                 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
                 System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
@@ -152,39 +159,29 @@ namespace PasswordManager.UI
             }
 
             // WinUI 3 não empacotado: x:Uid usa o MRT Core (Windows.ApplicationModel.Resources.Core).
-            // Só PrimaryLanguageOverride não basta se o DefaultContext já foi criado antes do override.
-            // Forçar o qualificador Language no contexto padrão.
             try
             {
                 var rm = Windows.ApplicationModel.Resources.Core.ResourceManager.Current;
                 if (rm?.DefaultContext?.QualifierValues != null)
                 {
+                    string qualifierAlvo = alvo;
+                    if (isAuto)
+                    {
+                        var sys = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                        qualifierAlvo = !string.IsNullOrEmpty(sys) ? sys : "en-US";
+                    }
+
                     if (rm.DefaultContext.QualifierValues.ContainsKey("Language"))
-                        rm.DefaultContext.QualifierValues["Language"] = alvo;
+                        rm.DefaultContext.QualifierValues["Language"] = qualifierAlvo;
                     else
-                        rm.DefaultContext.QualifierValues.Add("Language", alvo);
+                        rm.DefaultContext.QualifierValues.Add("Language", qualifierAlvo);
                 }
             }
             catch
             {
             }
 
-            try
-            {
-                var logPath = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                    "PasswordManager", "lang-debug.log");
-                Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
-                string winOverride = "";
-                string msOverride = "";
-                try { winOverride = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride; } catch { }
-                try { msOverride = Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride; } catch { }
-                var linha = $"{DateTime.Now:O} | idioma={idioma} alvo={alvo} winOverride={winOverride} msOverride={msOverride} lang0={Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault()} culture={System.Globalization.CultureInfo.CurrentUICulture.Name}\n";
-                File.AppendAllText(logPath, linha);
-            }
-            catch
-            {
-            }
+
         }
 
         /// <summary>

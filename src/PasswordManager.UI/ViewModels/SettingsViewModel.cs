@@ -66,12 +66,67 @@ public partial class SettingsViewModel : ObservableObject
     {
         _settingsService = settingsService;
         _localization = localization;
-        OpcoesIdioma = new[]
+        OpcoesIdioma = ConstruirOpcoesIdioma();
+    }
+
+    private IReadOnlyList<OpcaoIdioma> ConstruirOpcoesIdioma()
+    {
+        var lista = new List<OpcaoIdioma>
         {
-            new OpcaoIdioma(AppSettings.IdiomaAuto, _localization.GetString("Settings_Idioma_Opcao_Auto")),
-            new OpcaoIdioma(AppSettings.IdiomaPtBR, _localization.GetString("Settings_Idioma_Opcao_PtBR")),
-            new OpcaoIdioma(AppSettings.IdiomaEnUS, _localization.GetString("Settings_Idioma_Opcao_EnUS")),
+            new(AppSettings.IdiomaAuto, _localization.GetString("Settings_Idioma_Opcao_Auto"))
         };
+
+        IReadOnlyList<string> manifest;
+        try
+        {
+            manifest = Windows.Globalization.ApplicationLanguages.ManifestLanguages;
+            if (manifest == null || manifest.Count == 0)
+                manifest = Microsoft.Windows.Globalization.ApplicationLanguages.ManifestLanguages;
+        }
+        catch
+        {
+            manifest = Array.Empty<string>();
+        }
+
+        var codigos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        if (manifest != null)
+        {
+            foreach (var c in manifest)
+                if (!string.IsNullOrWhiteSpace(c))
+                    codigos.Add(c);
+        }
+
+        // Garantir que pt-BR/en-US apareçam mesmo se o PRI ainda não os listar (testes).
+        codigos.Add(AppSettings.IdiomaPtBR);
+        codigos.Add(AppSettings.IdiomaEnUS);
+
+        foreach (var codigo in codigos.OrderBy(c => c, StringComparer.OrdinalIgnoreCase))
+        {
+            // Tenta chave dedicada (ex: Settings_Idioma_Opcao_EsES), senão usa NativeName do CultureInfo.
+            var chave = $"Settings_Idioma_Opcao_{codigo.Replace("-", string.Empty)}";
+            var nome = _localization.GetString(chave);
+            if (string.IsNullOrEmpty(nome) || nome == chave)
+            {
+                try
+                {
+                    var ci = new System.Globalization.CultureInfo(codigo);
+                    // NativeName já vem capitalizado (ex: "português (Brasil)"), deixar como está mas com inicial maiúscula.
+                    nome = ci.NativeName;
+                    if (!string.IsNullOrEmpty(nome))
+                        nome = char.ToUpperInvariant(nome[0]) + nome.Substring(1);
+                    else
+                        nome = codigo;
+                }
+                catch
+                {
+                    nome = codigo;
+                }
+            }
+
+            lista.Add(new OpcaoIdioma(codigo, nome));
+        }
+
+        return lista;
     }
 
     /// <summary>

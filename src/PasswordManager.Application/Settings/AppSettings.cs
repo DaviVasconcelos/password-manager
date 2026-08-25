@@ -74,9 +74,19 @@ public sealed record AppSettings
             && !PasswordGeneratorIncludeDigits && !PasswordGeneratorIncludeSymbols)
             throw new ArgumentException("Pelo menos uma classe de caracteres deve estar habilitada no gerador de senha.");
 
-        if (Idioma is not IdiomaAuto and not IdiomaPtBR and not IdiomaEnUS)
-            throw new ArgumentException(
-                $"O idioma deve ser \"{IdiomaAuto}\", \"{IdiomaPtBR}\" ou \"{IdiomaEnUS}\".",
-                nameof(Idioma));
+        if (string.IsNullOrWhiteSpace(Idioma))
+            throw new ArgumentException("O idioma não pode ser vazio.", nameof(Idioma));
+
+        if (!string.Equals(Idioma, IdiomaAuto, StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                _ = new System.Globalization.CultureInfo(Idioma);
+            }
+            catch (System.Globalization.CultureNotFoundException)
+            {
+                throw new ArgumentException($"Idioma inválido: \"{Idioma}\".", nameof(Idioma));
+            }
+        }
     }
 }
