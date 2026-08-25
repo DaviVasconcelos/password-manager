@@ -38,6 +38,15 @@ public sealed record AppSettings
     public bool PasswordGeneratorIncludeDigits { get; init; } = true;
     public bool PasswordGeneratorIncludeSymbols { get; init; } = true;
 
+    /// <summary>
+    /// Idioma da interface: "auto" (sistema), "pt-BR" ou "en-US".
+    /// </summary>
+    public string Idioma { get; init; } = IdiomaAuto;
+
+    public const string IdiomaAuto = "auto";
+    public const string IdiomaPtBR = "pt-BR";
+    public const string IdiomaEnUS = "en-US";
+
     public static AppSettings Default { get; } = new();
 
     /// <summary>
@@ -64,5 +73,10 @@ public sealed record AppSettings
         if (!PasswordGeneratorIncludeLowercase && !PasswordGeneratorIncludeUppercase
             && !PasswordGeneratorIncludeDigits && !PasswordGeneratorIncludeSymbols)
             throw new ArgumentException("Pelo menos uma classe de caracteres deve estar habilitada no gerador de senha.");
+
+        if (Idioma is not IdiomaAuto and not IdiomaPtBR and not IdiomaEnUS)
+            throw new ArgumentException(
+                $"O idioma deve ser \"{IdiomaAuto}\", \"{IdiomaPtBR}\" ou \"{IdiomaEnUS}\".",
+                nameof(Idioma));
     }
 }

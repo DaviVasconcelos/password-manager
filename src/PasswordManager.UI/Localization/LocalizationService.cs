@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Windows.ApplicationModel.Resources;
 
 namespace PasswordManager.UI.Localization;
@@ -12,10 +13,15 @@ namespace PasswordManager.UI.Localization;
 /// </summary>
 public sealed class LocalizationService : ILocalizationService
 {
-    private readonly ResourceLoader? _loader;
-    private readonly bool _loaderOk;
+    private ResourceLoader? _loader;
+    private bool _loaderOk;
 
     public LocalizationService()
+    {
+        TentarCriarLoader();
+    }
+
+    private void TentarCriarLoader()
     {
         try
         {
@@ -70,5 +76,50 @@ public sealed class LocalizationService : ILocalizationService
         {
             return format;
         }
+    }
+
+    /// <inheritdoc/>
+    public void AplicarIdioma(string idioma)
+    {
+        string alvo;
+        if (string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase))
+        {
+            var sistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+            alvo = sistema?.Equals("pt-BR", StringComparison.OrdinalIgnoreCase) == true
+                ? "pt-BR"
+                : "en-US";
+        }
+        else
+        {
+            alvo = idioma;
+        }
+
+        try
+        {
+            Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = alvo;
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = alvo;
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            var culture = new System.Globalization.CultureInfo(alvo);
+            System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+            System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+        }
+        catch
+        {
+        }
+
+        TentarCriarLoader();
     }
 }

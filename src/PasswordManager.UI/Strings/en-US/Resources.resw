@@ -135,12 +135,21 @@
   <data name="Settings_Seguranca.Text" xml:space="preserve"><value>Security</value></data>
   <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Auto-lock timeout</value></data>
   <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Clipboard clear time</value></data>
+  <data name="Settings_Idioma.Text" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_Idioma_ComboBox.Header" xml:space="preserve"><value>Interface language</value></data>
+  <data name="Settings_Idioma_Opcao_Auto" xml:space="preserve"><value>Automatic (system)</value></data>
+  <data name="Settings_Idioma_Opcao_PtBR" xml:space="preserve"><value>Português</value></data>
+  <data name="Settings_Idioma_Opcao_EnUS" xml:space="preserve"><value>English</value></data>
   <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Password generator (defaults)</value></data>
   <data name="Settings_TamanhoSlider.Header" xml:space="preserve"><value>Default length</value></data>
   <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Include lowercase (a-z)</value></data>
   <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Include uppercase (A-Z)</value></data>
   <data name="Settings_Numeros.Header" xml:space="preserve"><value>Include numbers (0-9)</value></data>
   <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Include symbols (!@#...)</value></data>
+  <data name="Settings_Idioma_Reiniciar_Title" xml:space="preserve"><value>Restart required</value></data>
+  <data name="Settings_Idioma_Reiniciar_Mensagem" xml:space="preserve"><value>The language was changed. Restart the app to apply.</value></data>
+  <data name="Settings_Idioma_Reiniciar_Agora" xml:space="preserve"><value>Restart now</value></data>
+  <data name="Settings_Idioma_Reiniciar_Depois" xml:space="preserve"><value>Restart later</value></data>
 
   <!-- GerenciarPastasContent -->
   <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>New folder</value></data>

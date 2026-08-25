@@ -17,4 +17,11 @@ public interface ILocalizationService
     /// (usa <c>string.Format</c> sobre o recurso com placeholders {0}, {1}...).
     /// </summary>
     string GetString(string key, params object[] args);
+
+    /// <summary>
+    /// Aplica o idioma da interface via
+    /// <c>ApplicationLanguages.PrimaryLanguageOverride</c> e recria o
+    /// <c>ResourceLoader</c> para que as próximas chamadas reflitam o novo idioma.
+    /// </summary>
+    void AplicarIdioma(string idioma);
 }

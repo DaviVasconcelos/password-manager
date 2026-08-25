@@ -22,6 +22,14 @@
                       SelectedItem="{x:Bind ViewModel.ClipboardCleanTimeSeconds, Mode=TwoWay}"
                       HorizontalAlignment="Stretch" />
 
+            <TextBlock x:Uid="Settings_Idioma" Style="{StaticResource PMSectionHeaderStyle}" Margin="0,8,0,0" />
+            <ComboBox x:Uid="Settings_Idioma_ComboBox"
+                      Style="{StaticResource PMComboBoxStyle}"
+                      ItemsSource="{x:Bind ViewModel.OpcoesIdioma}"
+                      SelectedItem="{x:Bind ViewModel.IdiomaSelecionado, Mode=TwoWay}"
+                      DisplayMemberPath="NomeExibicao"
+                      HorizontalAlignment="Stretch" />
+
             <Border Height="1"
                     Background="{ThemeResource PMBorderSubtleBrush}"
                     Margin="0,4,0,0" />

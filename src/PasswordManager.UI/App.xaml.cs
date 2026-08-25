@@ -62,27 +62,128 @@ namespace PasswordManager.UI
         /// </summary>
         public App()
         {
+            AplicarIdiomaSalvo();
             InitializeComponent();
-            AplicarIdiomaPreferencial();
         }
 
         /// <summary>
-        /// Garante o fallback determinístico de idioma: SO em pt-BR usa
-        /// pt-BR; qualquer outro idioma usa en-US (DefaultLanguage).
+        /// Aplica o idioma persistido em settings.json (auto/pt-BR/en-US).
+        /// Em "auto" usa o idioma do SO com fallback determinístico pt-BR/en-US.
+        /// Lê o arquivo diretamente para funcionar antes da DI estar pronta.
         /// </summary>
-        private static void AplicarIdiomaPreferencial()
+        private static void AplicarIdiomaSalvo()
         {
             try
             {
-                var idiomaSistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
-                var idiomaPreferencial = idiomaSistema?.Equals("pt-BR", StringComparison.OrdinalIgnoreCase) == true
-                    ? "pt-BR"
-                    : "en-US";
-                Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = idiomaPreferencial;
+                var idioma = LerIdiomaDoDisco() ?? "auto";
+                AplicarOverrideIdioma(idioma);
             }
             catch
             {
                 // Em testes o PRI/idiomas podem não estar disponíveis; o fallback do ResourceLoader cobre.
+            }
+        }
+
+        private static string? LerIdiomaDoDisco()
+        {
+            try
+            {
+                var caminho = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PasswordManager", "settings.json");
+                if (!File.Exists(caminho))
+                    return null;
+
+                var json = File.ReadAllText(caminho);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("idioma", out var el) && el.ValueKind == System.Text.Json.JsonValueKind.String)
+                    return el.GetString();
+                if (doc.RootElement.TryGetProperty("Idioma", out var el2) && el2.ValueKind == System.Text.Json.JsonValueKind.String)
+                    return el2.GetString();
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        private static void AplicarOverrideIdioma(string idioma)
+        {
+            string alvo;
+            if (string.Equals(idioma, "auto", StringComparison.OrdinalIgnoreCase))
+            {
+                var idiomaSistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                alvo = idiomaSistema?.Equals("pt-BR", StringComparison.OrdinalIgnoreCase) == true
+                    ? "pt-BR"
+                    : "en-US";
+            }
+            else
+            {
+                alvo = idioma;
+            }
+
+            try
+            {
+                Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = alvo;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride = alvo;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                var culture = new System.Globalization.CultureInfo(alvo);
+                System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = culture;
+                System.Globalization.CultureInfo.DefaultThreadCurrentCulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentUICulture = culture;
+                System.Threading.Thread.CurrentThread.CurrentCulture = culture;
+            }
+            catch
+            {
+            }
+
+            // WinUI 3 não empacotado: x:Uid usa o MRT Core (Windows.ApplicationModel.Resources.Core).
+            // Só PrimaryLanguageOverride não basta se o DefaultContext já foi criado antes do override.
+            // Forçar o qualificador Language no contexto padrão.
+            try
+            {
+                var rm = Windows.ApplicationModel.Resources.Core.ResourceManager.Current;
+                if (rm?.DefaultContext?.QualifierValues != null)
+                {
+                    if (rm.DefaultContext.QualifierValues.ContainsKey("Language"))
+                        rm.DefaultContext.QualifierValues["Language"] = alvo;
+                    else
+                        rm.DefaultContext.QualifierValues.Add("Language", alvo);
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                var logPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PasswordManager", "lang-debug.log");
+                Directory.CreateDirectory(Path.GetDirectoryName(logPath)!);
+                string winOverride = "";
+                string msOverride = "";
+                try { winOverride = Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride; } catch { }
+                try { msOverride = Microsoft.Windows.Globalization.ApplicationLanguages.PrimaryLanguageOverride; } catch { }
+                var linha = $"{DateTime.Now:O} | idioma={idioma} alvo={alvo} winOverride={winOverride} msOverride={msOverride} lang0={Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault()} culture={System.Globalization.CultureInfo.CurrentUICulture.Name}\n";
+                File.AppendAllText(logPath, linha);
+            }
+            catch
+            {
             }
         }
 
@@ -92,6 +193,17 @@ namespace PasswordManager.UI
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
             _serviceProvider = ConfigureServices();
+
+            // Reaplicar após a DI estar pronta: garante que o valor do IAppSettingsService
+            // (já validado) prevaleça sobre a leitura crua do ctor.
+            try
+            {
+                var settingsService = _serviceProvider.GetRequiredService<IAppSettingsService>();
+                AplicarOverrideIdioma(settingsService.Get().Idioma);
+            }
+            catch
+            {
+            }
 
             _window = new MainWindow();
             MainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);

@@ -135,12 +135,21 @@
   <data name="Settings_Seguranca.Text" xml:space="preserve"><value>Segurança</value></data>
   <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Timeout de bloqueio automático</value></data>
   <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Tempo para limpar área de transferência</value></data>
+  <data name="Settings_Idioma.Text" xml:space="preserve"><value>Idioma</value></data>
+  <data name="Settings_Idioma_ComboBox.Header" xml:space="preserve"><value>Idioma da interface</value></data>
+  <data name="Settings_Idioma_Opcao_Auto" xml:space="preserve"><value>Automático (sistema)</value></data>
+  <data name="Settings_Idioma_Opcao_PtBR" xml:space="preserve"><value>Português</value></data>
+  <data name="Settings_Idioma_Opcao_EnUS" xml:space="preserve"><value>English</value></data>
   <data name="Settings_GeradorSenha.Text" xml:space="preserve"><value>Gerador de senhas (padrões)</value></data>
   <data name="Settings_TamanhoSlider.Header" xml:space="preserve"><value>Tamanho padrão</value></data>
   <data name="Settings_Minusculas.Header" xml:space="preserve"><value>Incluir minúsculas (a-z)</value></data>
   <data name="Settings_Maiusculas.Header" xml:space="preserve"><value>Incluir maiúsculas (A-Z)</value></data>
   <data name="Settings_Numeros.Header" xml:space="preserve"><value>Incluir números (0-9)</value></data>
   <data name="Settings_Simbolos.Header" xml:space="preserve"><value>Incluir símbolos (!@#...)</value></data>
+  <data name="Settings_Idioma_Reiniciar_Title" xml:space="preserve"><value>Reiniciar necessário</value></data>
+  <data name="Settings_Idioma_Reiniciar_Mensagem" xml:space="preserve"><value>O idioma foi alterado. Reinicie o aplicativo para aplicar.</value></data>
+  <data name="Settings_Idioma_Reiniciar_Agora" xml:space="preserve"><value>Reiniciar agora</value></data>
+  <data name="Settings_Idioma_Reiniciar_Depois" xml:space="preserve"><value>Reiniciar depois</value></data>
 
   <!-- GerenciarPastasContent -->
   <data name="GerenciarPastas_NomePasta.Header" xml:space="preserve"><value>Nova pasta</value></data>

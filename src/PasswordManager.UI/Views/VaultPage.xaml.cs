@@ -256,8 +256,38 @@ public sealed partial class VaultPage : Page
                 args.Cancel = true;
         };
 
-        if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
-            ViewModel.AplicarConfiguracoes();
+        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+            return;
+
+        ViewModel.AplicarConfiguracoes();
+
+        if (content.ViewModel.RequerReinicio)
+            await SolicitarReinicioIdiomaAsync();
+    }
+
+    private async Task SolicitarReinicioIdiomaAsync()
+    {
+        var confirmacao = new ContentDialog
+        {
+            Title = _localization.GetString("Settings_Idioma_Reiniciar_Title"),
+            Content = _localization.GetString("Settings_Idioma_Reiniciar_Mensagem"),
+            PrimaryButtonText = _localization.GetString("Settings_Idioma_Reiniciar_Agora"),
+            CloseButtonText = _localization.GetString("Settings_Idioma_Reiniciar_Depois"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot
+        };
+
+        if (await confirmacao.ShowAsync() != ContentDialogResult.Primary)
+            return;
+
+        try
+        {
+            Microsoft.Windows.AppLifecycle.AppInstance.Restart(string.Empty);
+        }
+        catch
+        {
+            Microsoft.UI.Xaml.Application.Current.Exit();
+        }
     }
 
     /// <summary>

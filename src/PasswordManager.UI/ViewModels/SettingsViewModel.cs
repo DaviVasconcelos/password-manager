@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PasswordManager.Application.Settings;
 using PasswordManager.UI.Localization;
 
 namespace PasswordManager.UI.ViewModels;
+
+public sealed record OpcaoIdioma(string Codigo, string NomeExibicao);
 
 /// <summary>
 /// ViewModel da tela de configurações: timeout de auto-lock, tempo de limpeza
@@ -19,6 +22,8 @@ public partial class SettingsViewModel : ObservableObject
 
     public IReadOnlyList<int> OpcoesTimeoutAutoLock { get; } = new[] { 1, 2, 5, 10, 15, 30 };
     public IReadOnlyList<int> OpcoesLimpezaClipboard { get; } = new[] { 10, 15, 30, 60, 120 };
+
+    public IReadOnlyList<OpcaoIdioma> OpcoesIdioma { get; }
 
     [ObservableProperty]
     private int timeoutAutoLockMinutes;
@@ -43,14 +48,30 @@ public partial class SettingsViewModel : ObservableObject
     private bool includeSymbols = true;
 
     [ObservableProperty]
+    private OpcaoIdioma? idiomaSelecionado;
+
+    [ObservableProperty]
     private string? erro;
 
     public string TamanhoSenhaTexto => $"{PasswordGeneratorLength} {_localization.GetString("ItemEditor_Tamanho_Sufixo")}";
+
+    /// <summary>
+    /// Indica se o idioma foi alterado e é necessário reiniciar o app.
+    /// </summary>
+    public bool RequerReinicio { get; private set; }
+
+    private string _idiomaOriginal = AppSettings.IdiomaAuto;
 
     public SettingsViewModel(IAppSettingsService settingsService, ILocalizationService localization)
     {
         _settingsService = settingsService;
         _localization = localization;
+        OpcoesIdioma = new[]
+        {
+            new OpcaoIdioma(AppSettings.IdiomaAuto, _localization.GetString("Settings_Idioma_Opcao_Auto")),
+            new OpcaoIdioma(AppSettings.IdiomaPtBR, _localization.GetString("Settings_Idioma_Opcao_PtBR")),
+            new OpcaoIdioma(AppSettings.IdiomaEnUS, _localization.GetString("Settings_Idioma_Opcao_EnUS")),
+        };
     }
 
     /// <summary>
@@ -66,6 +87,10 @@ public partial class SettingsViewModel : ObservableObject
         IncludeUppercase = settings.PasswordGeneratorIncludeUppercase;
         IncludeDigits = settings.PasswordGeneratorIncludeDigits;
         IncludeSymbols = settings.PasswordGeneratorIncludeSymbols;
+        _idiomaOriginal = settings.Idioma;
+        IdiomaSelecionado = OpcoesIdioma.FirstOrDefault(o => o.Codigo == settings.Idioma) ?? OpcoesIdioma[0];
+        RequerReinicio = false;
+        Erro = null;
     }
 
     /// <summary>
@@ -78,6 +103,7 @@ public partial class SettingsViewModel : ObservableObject
 
         try
         {
+            var codigoIdioma = IdiomaSelecionado?.Codigo ?? AppSettings.IdiomaAuto;
             var settings = new AppSettings
             {
                 AutoLockTimeoutMinutes = TimeoutAutoLockMinutes,
@@ -86,10 +112,12 @@ public partial class SettingsViewModel : ObservableObject
                 PasswordGeneratorIncludeLowercase = IncludeLowercase,
                 PasswordGeneratorIncludeUppercase = IncludeUppercase,
                 PasswordGeneratorIncludeDigits = IncludeDigits,
-                PasswordGeneratorIncludeSymbols = IncludeSymbols
+                PasswordGeneratorIncludeSymbols = IncludeSymbols,
+                Idioma = codigoIdioma
             };
 
             await _settingsService.SaveAsync(settings);
+            RequerReinicio = !string.Equals(codigoIdioma, _idiomaOriginal, StringComparison.OrdinalIgnoreCase);
             return true;
         }
         catch (ArgumentException ex)
