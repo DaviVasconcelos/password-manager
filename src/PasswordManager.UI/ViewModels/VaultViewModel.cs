@@ -29,6 +29,7 @@ public partial class VaultViewModel : ObservableObject
     private readonly ILocalizationService _localization;
     private readonly DispatcherQueueTimer _timerLimparClipboard;
     private readonly DispatcherQueueTimer _timerInatividade;
+    private readonly DispatcherQueueTimer _timerInfoBanner;
 
     private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(2);
     private TimeSpan _tempoLimparClipboard = TimeSpan.FromSeconds(30);
@@ -51,6 +52,12 @@ public partial class VaultViewModel : ObservableObject
     [ObservableProperty]
     private bool senhaCopiada;
 
+    [ObservableProperty]
+    private bool infoBannerVisivel;
+
+    [ObservableProperty]
+    private string? textoInfoBanner;
+
     /// <summary>
     /// Disparado na thread da UI quando o cofre é trancado.
     /// </summary>
@@ -70,6 +77,8 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Tick += OnTimerCleanClipboardTick;
         _timerInatividade = DispatcherQueue.GetForCurrentThread().CreateTimer();
         _timerInatividade.Tick += OnTimerInatividadeTick;
+        _timerInfoBanner = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _timerInfoBanner.Tick += OnTimerInfoBannerTick;
     }
 
     partial void OnTermoBuscaChanged(string? value) => AddFilter();
@@ -114,6 +123,7 @@ public partial class VaultViewModel : ObservableObject
     {
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
+        _timerInfoBanner.Stop();
     }
 
     /// <summary>
@@ -261,9 +271,37 @@ public partial class VaultViewModel : ObservableObject
     {
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
+        _timerInfoBanner.Stop();
         _sessionService.Lock();
         SenhaCopiada = false;
+        InfoBannerVisivel = false;
         Trancado?.Invoke();
+    }
+
+    /// <summary>
+    /// Exibe um banner informativo temporário (export/import) no mesmo estilo
+    /// do banner "senha copiada": auto-oculta em 4 s e pode ser fechado manualmente.
+    /// </summary>
+    public void MostrarInfoBanner(string texto)
+    {
+        TextoInfoBanner = texto;
+        InfoBannerVisivel = true;
+        _timerInfoBanner.Stop();
+        _timerInfoBanner.Interval = TimeSpan.FromSeconds(4);
+        _timerInfoBanner.Start();
+    }
+
+    public void NotificarExportacaoSucesso() =>
+        MostrarInfoBanner(_localization.GetString("VaultPage_ToastCofreExportado.Text"));
+
+    public void NotificarImportacaoSucesso() =>
+        MostrarInfoBanner(_localization.GetString("VaultPage_ToastCofreImportado.Text"));
+
+    [RelayCommand]
+    private void FecharInfoBanner()
+    {
+        _timerInfoBanner.Stop();
+        InfoBannerVisivel = false;
     }
 
     private void ReiniciarTimerInatividade()
@@ -289,5 +327,11 @@ public partial class VaultViewModel : ObservableObject
         Clipboard.SetContent(package);
         SenhaCopiada = false;
         _timerLimparClipboard.Stop();
+    }
+
+    private void OnTimerInfoBannerTick(DispatcherQueueTimer sender, object args)
+    {
+        _timerInfoBanner.Stop();
+        InfoBannerVisivel = false;
     }
 }

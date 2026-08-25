@@ -52,6 +52,8 @@
   <data name="VaultPage_AcaoCopiar.AutomationProperties.Name" xml:space="preserve"><value>Copy password</value></data>
   <data name="VaultPage_AcaoExcluir.AutomationProperties.Name" xml:space="preserve"><value>Delete item</value></data>
   <data name="VaultPage_ToastSenhaCopiada.Text" xml:space="preserve"><value>Password copied! The clipboard will be cleared in {0} s.</value></data>
+  <data name="VaultPage_ToastCofreExportado.Text" xml:space="preserve"><value>Vault exported successfully!</value></data>
+  <data name="VaultPage_ToastCofreImportado.Text" xml:space="preserve"><value>Vault imported successfully!</value></data>
 
   <!-- VaultPage - Diálogos -->
   <data name="VaultPage_DialogNovoItem.Title" xml:space="preserve"><value>New item</value></data>

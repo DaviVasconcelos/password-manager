@@ -491,6 +491,7 @@ public sealed partial class VaultPage : Page
         {
             var dados = await ViewModel.ExportarAsync(senha);
             await FileIO.WriteBytesAsync(arquivo, dados);
+            ViewModel.NotificarExportacaoSucesso();
         }
         catch (Exception ex)
         {
@@ -514,9 +515,7 @@ public sealed partial class VaultPage : Page
             var conteudo = new byte[buffer.Length];
             DataReader.FromBuffer(buffer).ReadBytes(conteudo);
             await ViewModel.ImportarAsync(conteudo, dados.Senha, dados.Substituir);
-            await MostrarInfoAsync(_localization.GetString(dados.Substituir
-                ? "VaultPage_Info_CofreSubstituido"
-                : "VaultPage_Info_CofreMesclado"));
+            ViewModel.NotificarImportacaoSucesso();
         }
         catch (CryptographicIntegrityException)
         {

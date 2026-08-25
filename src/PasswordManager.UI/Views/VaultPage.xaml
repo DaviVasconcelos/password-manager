@@ -171,35 +171,64 @@
                 </ListView.ItemTemplate>
             </ListView>
 
-            <!-- Banner "senha copiada" (em fluxo, abaixo da tabela) -->
-            <Border x:Name="ToastSenhaCopiada"
-                    Grid.Row="3"
-                    Background="{ThemeResource PMSuccessBackgroundBrush}"
-                    BorderBrush="{ThemeResource PMSuccessStrokeBrush}"
-                    BorderThickness="1"
-                    CornerRadius="4"
-                    Padding="12,8"
-                    Visibility="{x:Bind ViewModel.SenhaCopiada, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}">
-                <Grid>
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <FontIcon Glyph="&#xE73E;"
-                                  FontSize="14"
-                                  Foreground="{ThemeResource PMSuccessBrush}"
-                                  VerticalAlignment="Center" />
-                        <TextBlock Text="{x:Bind ViewModel.TextoToastSenhaCopiada, Mode=OneWay}"
-                                   Style="{StaticResource PMCaptionStyle}"
-                                   Foreground="{ThemeResource PMSuccessBrush}"
-                                   VerticalAlignment="Center" />
-                    </StackPanel>
-                    <Button Style="{StaticResource PMIconButton}"
-                            Click="OnFecharToastClick"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"
-                            AutomationProperties.Name="Fechar">
-                        <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource PMSuccessBrush}" />
-                    </Button>
-                </Grid>
-            </Border>
+            <!-- Banners (em fluxo, abaixo da tabela) -->
+            <StackPanel Grid.Row="3" Spacing="8">
+                <Border x:Name="ToastSenhaCopiada"
+                        Background="{ThemeResource PMSuccessBackgroundBrush}"
+                        BorderBrush="{ThemeResource PMSuccessStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Visibility="{x:Bind ViewModel.SenhaCopiada, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="14"
+                                      Foreground="{ThemeResource PMSuccessBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind ViewModel.TextoToastSenhaCopiada, Mode=OneWay}"
+                                       Style="{StaticResource PMCaptionStyle}"
+                                       Foreground="{ThemeResource PMSuccessBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Style="{StaticResource PMIconButton}"
+                                Click="OnFecharToastClick"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Fechar">
+                            <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource PMSuccessBrush}" />
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <Border x:Name="ToastInfoBanner"
+                        Background="{ThemeResource PMSuccessBackgroundBrush}"
+                        BorderBrush="{ThemeResource PMSuccessStrokeBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Visibility="{x:Bind ViewModel.InfoBannerVisivel, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}">
+                    <Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <FontIcon Glyph="&#xE73E;"
+                                      FontSize="14"
+                                      Foreground="{ThemeResource PMSuccessBrush}"
+                                      VerticalAlignment="Center" />
+                            <TextBlock Text="{x:Bind ViewModel.TextoInfoBanner, Mode=OneWay}"
+                                       Style="{StaticResource PMCaptionStyle}"
+                                       Foreground="{ThemeResource PMSuccessBrush}"
+                                       VerticalAlignment="Center" />
+                        </StackPanel>
+                        <Button Style="{StaticResource PMIconButton}"
+                                Command="{x:Bind ViewModel.FecharInfoBannerCommand}"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                AutomationProperties.Name="Fechar">
+                            <FontIcon Glyph="&#xE711;" FontSize="12" Foreground="{ThemeResource PMSuccessBrush}" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </StackPanel>
         </Grid>
     </NavigationView>
 </Page>
