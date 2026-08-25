@@ -127,45 +127,52 @@
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="domain:VaultItem">
-                        <Grid ColumnSpacing="12" Padding="12,10">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="2*" />
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="132" />
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Orientation="Horizontal" Spacing="8">
-                                <FontIcon Glyph="&#xE77B;"
-                                          FontSize="14"
-                                          Foreground="{ThemeResource PMAccentBrush}"
-                                          VerticalAlignment="Center" />
-                                <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                            </StackPanel>
-                            <TextBlock Grid.Column="1"
-                                       Text="{x:Bind Username}"
-                                       Foreground="{ThemeResource PMTextSecondaryBrush}"
-                                       TextTrimming="CharacterEllipsis"
-                                       VerticalAlignment="Center" />
-                            <Border Grid.Column="2" Style="{StaticResource PMCategoryBadge}">
-                                <TextBlock Text="{x:Bind Category}" FontSize="11" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
-                                <Button x:Uid="VaultPage_AcaoEditar"
-                                        Style="{StaticResource PMIconButton}"
-                                        Click="OnEditarItemClick">
-                                    <FontIcon Glyph="&#xE70F;" FontSize="14" />
-                                </Button>
-                                <Button x:Uid="VaultPage_AcaoCopiar"
-                                        Style="{StaticResource PMIconButton}"
-                                        Click="OnCopiarClick">
-                                    <FontIcon Glyph="&#xE8C8;" FontSize="14" />
-                                </Button>
-                                <Button x:Uid="VaultPage_AcaoExcluir"
-                                        Style="{StaticResource PMIconButton}"
-                                        Click="OnExcluirItemClick">
-                                    <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource PMDangerBrush}" />
-                                </Button>
-                            </StackPanel>
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*" />
+                                <RowDefinition Height="1" />
+                            </Grid.RowDefinitions>
+                            <Grid ColumnSpacing="12" Padding="12,10">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="2*" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="132" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <FontIcon Glyph="&#xE77B;"
+                                              FontSize="14"
+                                              Foreground="{ThemeResource PMAccentBrush}"
+                                              VerticalAlignment="Center" />
+                                    <TextBlock Text="{x:Bind Title}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Grid.Column="1"
+                                           Text="{x:Bind Username}"
+                                           Foreground="{ThemeResource PMTextSecondaryBrush}"
+                                           TextTrimming="CharacterEllipsis"
+                                           VerticalAlignment="Center" />
+                                <Border Grid.Column="2" Style="{StaticResource PMCategoryBadge}">
+                                    <TextBlock Text="{x:Bind Category}" FontSize="11" VerticalAlignment="Center" />
+                                </Border>
+                                <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                                    <Button x:Uid="VaultPage_AcaoEditar"
+                                            Style="{StaticResource PMIconButton}"
+                                            Click="OnEditarItemClick">
+                                        <FontIcon Glyph="&#xE70F;" FontSize="14" />
+                                    </Button>
+                                    <Button x:Uid="VaultPage_AcaoCopiar"
+                                            Style="{StaticResource PMIconButton}"
+                                            Click="OnCopiarClick">
+                                        <FontIcon Glyph="&#xE8C8;" FontSize="14" />
+                                    </Button>
+                                    <Button x:Uid="VaultPage_AcaoExcluir"
+                                            Style="{StaticResource PMIconButton}"
+                                            Click="OnExcluirItemClick">
+                                        <FontIcon Glyph="&#xE74D;" FontSize="14" Foreground="{ThemeResource PMDangerBrush}" />
+                                    </Button>
+                                </StackPanel>
+                            </Grid>
+                            <Border Grid.Row="1" Margin="12,0" Height="1" Background="{ThemeResource PMBorderSubtleBrush}" Opacity="0.6" />
                         </Grid>
                     </DataTemplate>
                 </ListView.ItemTemplate>

@@ -129,6 +129,36 @@ public partial class SettingsViewModel : ObservableObject
         return lista;
     }
 
+    private static string ObterIdiomaEfetivo(string codigo)
+    {
+        if (string.Equals(codigo, AppSettings.IdiomaAuto, StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var sistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                if (!string.IsNullOrEmpty(sistema))
+                    return sistema;
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                var sistema2 = Microsoft.Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
+                if (!string.IsNullOrEmpty(sistema2))
+                    return sistema2;
+            }
+            catch
+            {
+            }
+
+            return AppSettings.IdiomaEnUS;
+        }
+
+        return codigo;
+    }
+
     /// <summary>
     /// Carrega as configurações persistidas para os campos do formulário.
     /// </summary>
@@ -172,7 +202,10 @@ public partial class SettingsViewModel : ObservableObject
             };
 
             await _settingsService.SaveAsync(settings);
-            RequerReinicio = !string.Equals(codigoIdioma, _idiomaOriginal, StringComparison.OrdinalIgnoreCase);
+            RequerReinicio = !string.Equals(
+                ObterIdiomaEfetivo(codigoIdioma),
+                ObterIdiomaEfetivo(_idiomaOriginal),
+                StringComparison.OrdinalIgnoreCase);
             return true;
         }
         catch (ArgumentException ex)
