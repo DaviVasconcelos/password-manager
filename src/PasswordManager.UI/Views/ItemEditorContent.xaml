@@ -7,31 +7,49 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <StackPanel Spacing="12" Width="460">
-        <TextBox x:Uid="ItemEditor_Titulo"
-                 Style="{StaticResource PMTextBoxStyle}"
-                 Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
+    <ScrollViewer x:Name="ScrollEditor"
+                  VerticalScrollBarVisibility="Auto"
+                  Padding="0,0,14,0">
+        <StackPanel Spacing="12" Width="460">
+        <StackPanel Spacing="4">
+            <TextBox x:Name="CampoTitulo"
+                     x:Uid="ItemEditor_Titulo"
+                     Style="{StaticResource PMTextBoxStyle}"
+                     Text="{x:Bind ViewModel.Titulo, Mode=TwoWay}" />
+            <TextBlock x:Name="ErroTitulo"
+                       Style="{StaticResource PMCaptionStyle}"
+                       Foreground="{ThemeResource PMDangerBrush}"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed" />
+        </StackPanel>
         <TextBox x:Uid="ItemEditor_Usuario"
                  Style="{StaticResource PMTextBoxStyle}"
                  Text="{x:Bind ViewModel.Usuario, Mode=TwoWay}" />
 
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <PasswordBox x:Name="SenhaBox"
-                         x:Uid="ItemEditor_SenhaBox"
-                         Style="{StaticResource PMPasswordBoxStyle}"
-                         Width="300"
-                         HorizontalAlignment="Left"
-                         PasswordRevealMode="Hidden" />
-            <Button x:Uid="ItemEditor_BtnGerar"
-                    Style="{StaticResource PMButtonSecondary}"
-                    Command="{x:Bind ViewModel.GerarSenhaCommand}"
-                    VerticalAlignment="Bottom" />
-            <Button Style="{StaticResource PMIconButton}"
-                    Click="OnAlternarVisibilidadeClick"
-                    x:Uid="ItemEditor_BtnMostrarOcultar"
-                    VerticalAlignment="Bottom">
-                <FontIcon Glyph="&#xE7B3;" FontSize="14" />
-            </Button>
+        <StackPanel Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <PasswordBox x:Name="SenhaBox"
+                             x:Uid="ItemEditor_SenhaBox"
+                             Style="{StaticResource PMPasswordBoxStyle}"
+                             Width="300"
+                             HorizontalAlignment="Left"
+                             PasswordRevealMode="Hidden" />
+                <Button x:Uid="ItemEditor_BtnGerar"
+                        Style="{StaticResource PMButtonSecondary}"
+                        Command="{x:Bind ViewModel.GerarSenhaCommand}"
+                        VerticalAlignment="Bottom" />
+                <Button Style="{StaticResource PMIconButton}"
+                        Click="OnAlternarVisibilidadeClick"
+                        x:Uid="ItemEditor_BtnMostrarOcultar"
+                        VerticalAlignment="Bottom">
+                    <FontIcon Glyph="&#xE7B3;" FontSize="14" />
+                </Button>
+            </StackPanel>
+            <TextBlock x:Name="ErroSenha"
+                       Style="{StaticResource PMCaptionStyle}"
+                       Foreground="{ThemeResource PMDangerBrush}"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed" />
         </StackPanel>
 
         <!-- Força da senha -->
@@ -58,10 +76,17 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0"
-                     x:Uid="ItemEditor_Categoria"
-                     Style="{StaticResource PMTextBoxStyle}"
-                     Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+            <StackPanel Grid.Column="0" Spacing="4">
+                <TextBox x:Name="CampoCategoria"
+                         x:Uid="ItemEditor_Categoria"
+                         Style="{StaticResource PMTextBoxStyle}"
+                         Text="{x:Bind ViewModel.Categoria, Mode=TwoWay}" />
+                <TextBlock x:Name="ErroCategoria"
+                           Style="{StaticResource PMCaptionStyle}"
+                           Foreground="{ThemeResource PMDangerBrush}"
+                           TextWrapping="Wrap"
+                           Visibility="Collapsed" />
+            </StackPanel>
             <ComboBox Grid.Column="1"
                       x:Uid="ItemEditor_Pasta"
                       Style="{StaticResource PMComboBoxStyle}"
@@ -117,5 +142,6 @@
                           x:Uid="Settings_Simbolos"
                           IsOn="{x:Bind ViewModel.IncluirSimbolos, Mode=TwoWay}" />
         </Grid>
-    </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
 </UserControl>

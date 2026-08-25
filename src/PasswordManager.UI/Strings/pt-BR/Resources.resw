@@ -68,12 +68,17 @@
   <data name="VaultPage_DialogTrocarSenhaMestra.Title" xml:space="preserve"><value>Trocar senha mestra</value></data>
   <data name="VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText" xml:space="preserve"><value>Alterar</value></data>
   <data name="VaultPage_DialogTrocarSenhaMestra.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.ConfirmarButtonText" xml:space="preserve"><value>Confirmar troca</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.VoltarButtonText" xml:space="preserve"><value>Voltar</value></data>
   <data name="VaultPage_SenhaAtualBox.PlaceholderText" xml:space="preserve"><value>Senha mestra atual</value></data>
   <data name="VaultPage_NovaSenhaBox.PlaceholderText" xml:space="preserve"><value>Nova senha mestra</value></data>
   <data name="VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText" xml:space="preserve"><value>Confirme a nova senha</value></data>
   <data name="VaultPage_TextoTrocarSenha.Text" xml:space="preserve"><value>Digite a senha mestra atual e confirme a nova senha. O cofre será re-criptografado com um novo salt.</value></data>
+  <data name="VaultPage_TextoConfirmarTroca.Text" xml:space="preserve"><value>Deseja realmente alterar a senha mestra? O cofre inteiro será re-criptografado e esta ação não pode ser desfeita.</value></data>
+  <data name="VaultPage_Erro_CamposEmBranco" xml:space="preserve"><value>Preencha todos os campos.</value></data>
   <data name="VaultPage_Erro_SenhasNaoConferem" xml:space="preserve"><value>As novas senhas não conferem.</value></data>
   <data name="VaultPage_Erro_SenhaAtualIncorreta" xml:space="preserve"><value>A senha mestra atual está incorreta.</value></data>
+  <data name="VaultPage_Info_SenhaAlterada" xml:space="preserve"><value>Senha mestra alterada com sucesso.</value></data>
   <data name="VaultPage_DialogGenerico.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
   <data name="VaultPage_DialogGenerico.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
 
@@ -117,6 +122,7 @@
   <data name="ItemEditor_TamanhoSlider.Header" xml:space="preserve"><value>Tamanho</value></data>
   <data name="ItemEditor_Tamanho_Sufixo" xml:space="preserve"><value>caracteres</value></data>
   <data name="ItemEditor_SemPasta" xml:space="preserve"><value>Sem pasta</value></data>
+  <data name="ItemEditor_Erro_Obrigatorio" xml:space="preserve"><value>{0} não pode ficar em branco.</value></data>
 
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>Todas as pastas</value></data>

@@ -2,7 +2,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using PasswordManager.Application.PasswordGeneration;
+using PasswordManager.UI.Localization;
 using PasswordManager.UI.ViewModels;
+using System;
 using System.ComponentModel;
 
 namespace PasswordManager.UI.Views;
@@ -15,16 +17,65 @@ namespace PasswordManager.UI.Views;
 /// </summary>
 public sealed partial class ItemEditorContent : UserControl
 {
+    private readonly ILocalizationService _localizacao;
+
     public ItemEditorViewModel ViewModel { get; }
 
     public ItemEditorContent()
     {
         ViewModel = App.Services.GetRequiredService<ItemEditorViewModel>();
+        _localizacao = App.Services.GetRequiredService<ILocalizationService>();
         InitializeComponent();
 
         SenhaBox.PasswordChanged += (_, _) => ViewModel.Senha = SenhaBox.Password;
         ViewModel.PropertyChanged += OnViewModelPropertyChanged;
         AtualizarCorBarraForca();
+
+        // Limpa o erro do campo assim que o usuário começa a corrigi-lo.
+        CampoTitulo.TextChanged += (_, _) => ErroTitulo.Visibility = Visibility.Collapsed;
+        SenhaBox.PasswordChanged += (_, _) => ErroSenha.Visibility = Visibility.Collapsed;
+        CampoCategoria.TextChanged += (_, _) => ErroCategoria.Visibility = Visibility.Collapsed;
+
+        // Limita a altura do conteúdo à janela, habilitando o scroll
+        // (o ContentDialog corta o conteúdo que excede a tela).
+        Loaded += (_, _) =>
+        {
+            var alturaDialogo = XamlRoot?.Size.Height ?? 0;
+            ScrollEditor.MaxHeight = Math.Max(320, alturaDialogo - 180);
+        };
+    }
+
+    /// <summary>
+    /// Valida os campos obrigatórios (título, senha e categoria, exigidos
+    /// pelo domínio). Exibe mensagem em vermelho abaixo de cada campo em
+    /// branco e retorna <c>false</c> se algum estiver inválido.
+    /// </summary>
+    public bool ValidarCamposObrigatorios()
+    {
+        var formato = _localizacao.GetString("ItemEditor_Erro_Obrigatorio");
+        var valido = true;
+
+        valido &= MarcarErroSeEmBranco(string.IsNullOrWhiteSpace(ViewModel.Titulo),
+            ErroTitulo, _localizacao.GetString("ItemEditor_Titulo.Header"), formato);
+        valido &= MarcarErroSeEmBranco(string.IsNullOrWhiteSpace(ViewModel.Senha),
+            ErroSenha, _localizacao.GetString("ItemEditor_SenhaBox.Header"), formato);
+        valido &= MarcarErroSeEmBranco(string.IsNullOrWhiteSpace(ViewModel.Categoria),
+            ErroCategoria, _localizacao.GetString("ItemEditor_Categoria.Header"), formato);
+
+        return valido;
+    }
+
+    private static bool MarcarErroSeEmBranco(bool emBranco, TextBlock erro, string campo, string formato)
+    {
+        if (!emBranco)
+        {
+            erro.Visibility = Visibility.Collapsed;
+            return true;
+        }
+
+        erro.Text = string.Format(formato, campo);
+        erro.Visibility = Visibility.Visible;
+        return false;
     }
 
     private void OnViewModelPropertyChanged(object? sender, PropertyChangedEventArgs e)

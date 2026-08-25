@@ -68,12 +68,17 @@
   <data name="VaultPage_DialogTrocarSenhaMestra.Title" xml:space="preserve"><value>Change master password</value></data>
   <data name="VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText" xml:space="preserve"><value>Change</value></data>
   <data name="VaultPage_DialogTrocarSenhaMestra.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.ConfirmarButtonText" xml:space="preserve"><value>Confirm change</value></data>
+  <data name="VaultPage_DialogTrocarSenhaMestra.VoltarButtonText" xml:space="preserve"><value>Back</value></data>
   <data name="VaultPage_SenhaAtualBox.PlaceholderText" xml:space="preserve"><value>Current master password</value></data>
   <data name="VaultPage_NovaSenhaBox.PlaceholderText" xml:space="preserve"><value>New master password</value></data>
   <data name="VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText" xml:space="preserve"><value>Confirm new password</value></data>
   <data name="VaultPage_TextoTrocarSenha.Text" xml:space="preserve"><value>Enter the current master password and confirm the new one. The vault will be re-encrypted with a new salt.</value></data>
+  <data name="VaultPage_TextoConfirmarTroca.Text" xml:space="preserve"><value>Do you really want to change the master password? The entire vault will be re-encrypted and this action cannot be undone.</value></data>
+  <data name="VaultPage_Erro_CamposEmBranco" xml:space="preserve"><value>Please fill in all fields.</value></data>
   <data name="VaultPage_Erro_SenhasNaoConferem" xml:space="preserve"><value>New passwords do not match.</value></data>
   <data name="VaultPage_Erro_SenhaAtualIncorreta" xml:space="preserve"><value>The current master password is incorrect.</value></data>
+  <data name="VaultPage_Info_SenhaAlterada" xml:space="preserve"><value>Master password changed successfully.</value></data>
   <data name="VaultPage_DialogGenerico.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
   <data name="VaultPage_DialogGenerico.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
 
@@ -117,6 +122,7 @@
   <data name="ItemEditor_TamanhoSlider.Header" xml:space="preserve"><value>Length</value></data>
   <data name="ItemEditor_Tamanho_Sufixo" xml:space="preserve"><value>characters</value></data>
   <data name="ItemEditor_SemPasta" xml:space="preserve"><value>No folder</value></data>
+  <data name="ItemEditor_Erro_Obrigatorio" xml:space="preserve"><value>{0} cannot be blank.</value></data>
 
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>All folders</value></data>

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
+using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
@@ -105,6 +106,8 @@ public sealed partial class VaultPage : Page
         editor.ViewModel.CarregarParaCriacao(ViewModel.FolderOptions);
 
         var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogNovoItem.Title"), editor);
+        HookValidacaoObrigatoria(dialogo, editor);
+
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
@@ -164,6 +167,8 @@ public sealed partial class VaultPage : Page
         editor.ViewModel.CarregarParaEdicao(item, ViewModel.FolderOptions);
 
         var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogEditarItem.Title"), editor);
+        HookValidacaoObrigatoria(dialogo, editor);
+
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
@@ -176,6 +181,19 @@ public sealed partial class VaultPage : Page
             editor.ViewModel.Url,
             editor.ViewModel.Notas,
             editor.ViewModel.PastaSelecionada?.Pasta?.Id);
+    }
+
+    /// <summary>
+    /// Segura o diálogo aberto quando os campos obrigatórios estão em
+    /// branco (a mensagem de erro é exibida dentro do editor).
+    /// </summary>
+    private static void HookValidacaoObrigatoria(ContentDialog dialogo, ItemEditorContent editor)
+    {
+        dialogo.PrimaryButtonClick += (_, args) =>
+        {
+            if (!editor.ValidarCamposObrigatorios())
+                args.Cancel = true;
+        };
     }
 
     private async Task AbrirGerenciarPastasAsync()
@@ -217,22 +235,24 @@ public sealed partial class VaultPage : Page
             ViewModel.AplicarConfiguracoes();
     }
 
+    /// <summary>
+    /// Diálogo de troca de senha mestra em dois passos: coleta das senhas
+    /// e, depois, confirmação explícita do usuário (o mesmo diálogo muda de
+    /// conteúdo — só existe um ContentDialog por XamlRoot).
+    /// </summary>
     private async void OnTrocarSenhaMestraClick(object sender, RoutedEventArgs e)
     {
         var senhaAtualBox = new PasswordBox
         {
-            PlaceholderText = _localization.GetString("VaultPage_SenhaAtualBox.PlaceholderText"),
-            PasswordRevealMode = PasswordRevealMode.Peek
+            PlaceholderText = _localization.GetString("VaultPage_SenhaAtualBox.PlaceholderText")
         };
         var novaSenhaBox = new PasswordBox
         {
-            PlaceholderText = _localization.GetString("VaultPage_NovaSenhaBox.PlaceholderText"),
-            PasswordRevealMode = PasswordRevealMode.Peek
+            PlaceholderText = _localization.GetString("VaultPage_NovaSenhaBox.PlaceholderText")
         };
         var confirmacaoBox = new PasswordBox
         {
-            PlaceholderText = _localization.GetString("VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText"),
-            PasswordRevealMode = PasswordRevealMode.Peek
+            PlaceholderText = _localization.GetString("VaultPage_ConfirmacaoNovaSenhaBox.PlaceholderText")
         };
         var erro = new TextBlock
         {
@@ -240,54 +260,149 @@ public sealed partial class VaultPage : Page
             TextWrapping = TextWrapping.Wrap
         };
 
-        var painel = new StackPanel { Spacing = 8 };
-        painel.Children.Add(new TextBlock
+        var painelSenhas = new StackPanel { Spacing = 8 };
+        painelSenhas.Children.Add(new TextBlock
         {
             Text = _localization.GetString("VaultPage_TextoTrocarSenha.Text"),
             TextWrapping = TextWrapping.Wrap
         });
-        painel.Children.Add(senhaAtualBox);
-        painel.Children.Add(novaSenhaBox);
-        painel.Children.Add(confirmacaoBox);
-        painel.Children.Add(erro);
+        painelSenhas.Children.Add(CaixaSenhaComMostrar(senhaAtualBox));
+        painelSenhas.Children.Add(CaixaSenhaComMostrar(novaSenhaBox));
+        painelSenhas.Children.Add(CaixaSenhaComMostrar(confirmacaoBox));
+        painelSenhas.Children.Add(erro);
+
+        var painelConfirmacao = new StackPanel
+        {
+            Spacing = 8,
+            Visibility = Visibility.Collapsed
+        };
+        painelConfirmacao.Children.Add(new TextBlock
+        {
+            Text = _localization.GetString("VaultPage_TextoConfirmarTroca.Text"),
+            TextWrapping = TextWrapping.Wrap
+        });
+        var ocupado = new ProgressRing { IsActive = false };
+        painelConfirmacao.Children.Add(ocupado);
+
+        var raiz = new Grid();
+        raiz.Children.Add(painelSenhas);
+        raiz.Children.Add(painelConfirmacao);
 
         var dialogo = new ContentDialog
         {
             Title = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.Title"),
-            Content = painel,
+            Content = raiz,
             PrimaryButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
 
+        var textoBotaoAlterar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText");
+        var textoBotaoCancelar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.CloseButtonText");
+        var textoBotaoConfirmar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.ConfirmarButtonText");
+        var textoBotaoVoltar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.VoltarButtonText");
+        var emConfirmacao = false;
+        var senhaAlterada = false;
+
+        void VoltarParaSenhas()
+        {
+            emConfirmacao = false;
+            painelConfirmacao.Visibility = Visibility.Collapsed;
+            painelSenhas.Visibility = Visibility.Visible;
+            dialogo.PrimaryButtonText = textoBotaoAlterar;
+            dialogo.CloseButtonText = textoBotaoCancelar;
+        }
+
         dialogo.PrimaryButtonClick += async (_, args) =>
         {
-            if (novaSenhaBox.Password != confirmacaoBox.Password)
+            args.Cancel = true;
+
+            if (!emConfirmacao)
             {
-                erro.Text = _localization.GetString("VaultPage_Erro_SenhasNaoConferem");
-                args.Cancel = true;
+                if (string.IsNullOrWhiteSpace(senhaAtualBox.Password) ||
+                    string.IsNullOrWhiteSpace(novaSenhaBox.Password) ||
+                    string.IsNullOrWhiteSpace(confirmacaoBox.Password))
+                {
+                    erro.Text = _localization.GetString("VaultPage_Erro_CamposEmBranco");
+                    return;
+                }
+
+                if (novaSenhaBox.Password != confirmacaoBox.Password)
+                {
+                    erro.Text = _localization.GetString("VaultPage_Erro_SenhasNaoConferem");
+                    return;
+                }
+
+                erro.Text = string.Empty;
+                emConfirmacao = true;
+                painelSenhas.Visibility = Visibility.Collapsed;
+                painelConfirmacao.Visibility = Visibility.Visible;
+                dialogo.PrimaryButtonText = textoBotaoConfirmar;
+                dialogo.CloseButtonText = textoBotaoVoltar;
                 return;
             }
 
+            // Captura as senhas na thread da UI: acessar PasswordBox.Password
+            // de dentro do Task.Run lança WrongThreadException.
+            var senhaAtual = senhaAtualBox.Password;
+            var novaSenha = novaSenhaBox.Password;
+
+            // Deferral mantém o diálogo modal e os botões desabilitados durante
+            // a operação (derivação Argon2id + re-criptografia levam segundos).
+            var deferral = args.GetDeferral();
+            ocupado.IsActive = true;
+            dialogo.IsPrimaryButtonEnabled = false;
             try
             {
-                await Task.Run(async () => await ViewModel.TrocarSenhaMestraAsync(
-                    senhaAtualBox.Password, novaSenhaBox.Password));
+                try
+                {
+                    await Task.Run(async () => await ViewModel.TrocarSenhaMestraAsync(
+                        senhaAtual, novaSenha));
+                }
+                catch (CryptographicIntegrityException)
+                {
+                    VoltarParaSenhas();
+                    erro.Text = _localization.GetString("VaultPage_Erro_SenhaAtualIncorreta");
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    VoltarParaSenhas();
+                    erro.Text = ex.Message;
+                    return;
+                }
+
+                erro.Text = string.Empty;
+                senhaAlterada = true;
+                dialogo.Hide();
             }
-            catch (CryptographicIntegrityException)
+            finally
             {
-                erro.Text = _localization.GetString("VaultPage_Erro_SenhaAtualIncorreta");
-                args.Cancel = true;
-            }
-            catch (Exception ex)
-            {
-                erro.Text = ex.Message;
-                args.Cancel = true;
+                ocupado.IsActive = false;
+                dialogo.IsPrimaryButtonEnabled = true;
+                deferral.Complete();
             }
         };
 
+        // "Voltar" no passo de confirmação retorna à coleta de senhas.
+        dialogo.CloseButtonClick += (_, args) =>
+        {
+            if (!emConfirmacao)
+                return;
+
+            args.Cancel = true;
+            erro.Text = string.Empty;
+            VoltarParaSenhas();
+        };
+
         await dialogo.ShowAsync();
+
+        // Exibida só após o fechamento completo do diálogo: abrir outro
+        // ContentDialog imediatamente após Hide() viola a regra de um diálogo
+        // aberto por XamlRoot.
+        if (senhaAlterada)
+            await MostrarInfoAsync(_localization.GetString("VaultPage_Info_SenhaAlterada"));
     }
 
     private ContentDialog CriarDialogo(string titulo, object conteudo)
@@ -301,6 +416,38 @@ public sealed partial class VaultPage : Page
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot
         };
+    }
+
+    /// <summary>
+    /// Cria uma PasswordBox com o botão de olho para alternar a visibilidade
+    /// (padrão do projeto, como no editor de itens): o modo Peek é instável
+    /// em diálogos construídos em código — o botão nativo some após o primeiro
+    /// uso. Aqui a caixa fica em Hidden e a alternância é explícita.
+    /// </summary>
+    private FrameworkElement CaixaSenhaComMostrar(PasswordBox caixa)
+    {
+        caixa.PasswordRevealMode = PasswordRevealMode.Hidden;
+
+        var botaoMostrar = new Button
+        {
+            Style = (Style)App.Current.Resources["PMIconButton"],
+            Content = new FontIcon { Glyph = "\uE7B3", FontSize = 14 },
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        AutomationProperties.SetName(botaoMostrar, _localization.GetString("ItemEditor_BtnMostrarOcultar.AutomationProperties.Name"));
+        botaoMostrar.Click += (_, _) =>
+            caixa.PasswordRevealMode = caixa.PasswordRevealMode == PasswordRevealMode.Hidden
+                ? PasswordRevealMode.Visible
+                : PasswordRevealMode.Hidden;
+
+        var grade = new Grid { ColumnSpacing = 8 };
+        grade.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grade.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        Grid.SetColumn(caixa, 0);
+        Grid.SetColumn(botaoMostrar, 1);
+        grade.Children.Add(caixa);
+        grade.Children.Add(botaoMostrar);
+        return grade;
     }
 
     private async void OnExportarClick(object sender, RoutedEventArgs e)
@@ -380,13 +527,12 @@ public sealed partial class VaultPage : Page
     {
         var senhaBox = new PasswordBox
         {
-            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText"),
-            PasswordRevealMode = PasswordRevealMode.Peek
+            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText")
         };
 
         var painel = new StackPanel { Spacing = 8 };
         painel.Children.Add(new TextBlock { Text = mensagem, TextWrapping = TextWrapping.Wrap });
-        painel.Children.Add(senhaBox);
+        painel.Children.Add(CaixaSenhaComMostrar(senhaBox));
 
         var dialogo = new ContentDialog
         {
@@ -408,8 +554,7 @@ public sealed partial class VaultPage : Page
     {
         var senhaBox = new PasswordBox
         {
-            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText"),
-            PasswordRevealMode = PasswordRevealMode.Peek
+            PlaceholderText = _localization.GetString("VaultPage_PedirSenha.PlaceholderText")
         };
         var radioMesclar = new RadioButton { Content = _localization.GetString("VaultPage_RadioMesclar.Content"), IsChecked = true };
         var radioSubstituir = new RadioButton { Content = _localization.GetString("VaultPage_RadioSubstituir.Content"), IsChecked = false };
@@ -420,7 +565,7 @@ public sealed partial class VaultPage : Page
             Text = _localization.GetString("VaultPage_TextoImportar.Text"),
             TextWrapping = TextWrapping.Wrap
         });
-        painel.Children.Add(senhaBox);
+        painel.Children.Add(CaixaSenhaComMostrar(senhaBox));
         painel.Children.Add(radioMesclar);
         painel.Children.Add(radioSubstituir);
 
