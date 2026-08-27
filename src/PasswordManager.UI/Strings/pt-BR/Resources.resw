@@ -66,6 +66,10 @@
   <data name="VaultPage_DialogExcluirItem.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
   <data name="VaultPage_MenuCopiar.Usuario" xml:space="preserve"><value>Copiar nome de usuário</value></data>
   <data name="VaultPage_MenuCopiar.Senha" xml:space="preserve"><value>Copiar senha</value></data>
+  <data name="VaultPage_MenuContexto.Editar" xml:space="preserve"><value>Editar</value></data>
+  <data name="VaultPage_MenuContexto.CopiarUsuario" xml:space="preserve"><value>Copiar nome de usuário</value></data>
+  <data name="VaultPage_MenuContexto.CopiarSenha" xml:space="preserve"><value>Copiar senha</value></data>
+  <data name="VaultPage_MenuContexto.Excluir" xml:space="preserve"><value>Excluir</value></data>
   <data name="VaultPage_DialogConfiguracoes.Title" xml:space="preserve"><value>Configurações</value></data>
   <data name="VaultPage_DialogConfiguracoes.PrimaryButtonText" xml:space="preserve"><value>Salvar</value></data>
   <data name="VaultPage_DialogConfiguracoes.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>

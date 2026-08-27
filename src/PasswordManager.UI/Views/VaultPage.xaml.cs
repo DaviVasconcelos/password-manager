@@ -166,6 +166,11 @@ public sealed partial class VaultPage : Page
         if ((sender as FrameworkElement)?.DataContext is not VaultItem item)
             return;
 
+        await ConfirmarExclusaoAsync(item);
+    }
+
+    private async Task ConfirmarExclusaoAsync(VaultItem item)
+    {
         var dialogo = new ContentDialog
         {
             Title = _localization.GetString("VaultPage_DialogExcluirItem.Title"),
@@ -178,6 +183,69 @@ public sealed partial class VaultPage : Page
 
         if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
             ViewModel.RemoverItemCommand.Execute(item);
+    }
+
+    private void OnItemRightTapped(object sender, RightTappedRoutedEventArgs e)
+    {
+        // Ignorar clique direito originado nos botões de ação (editar/copiar/excluir)
+        // para não conflitar com seus próprios handlers.
+        if (e.OriginalSource is DependencyObject dep)
+        {
+            var cur = dep;
+            while (cur != null)
+            {
+                if (cur is Button)
+                    return;
+                cur = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(cur);
+            }
+        }
+
+        if ((sender as FrameworkElement)?.DataContext is not VaultItem item)
+            return;
+
+        ViewModel.ItemSelecionado = item;
+
+        var flyout = new MenuFlyout
+        {
+            Placement = FlyoutPlacementMode.Right
+        };
+
+        var editar = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuContexto.Editar")
+        };
+        editar.Click += (_, _) => _ = EditarItemAsync(item);
+        flyout.Items.Add(editar);
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        var copiarUsuario = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuContexto.CopiarUsuario"),
+            IsEnabled = !string.IsNullOrEmpty(item.Username)
+        };
+        copiarUsuario.Click += (_, _) => ViewModel.CopiarUsuarioCommand.Execute(item);
+        flyout.Items.Add(copiarUsuario);
+
+        var copiarSenha = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuContexto.CopiarSenha")
+        };
+        copiarSenha.Click += (_, _) => ViewModel.CopiarSenhaCommand.Execute(item);
+        flyout.Items.Add(copiarSenha);
+
+        flyout.Items.Add(new MenuFlyoutSeparator());
+
+        var excluir = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuContexto.Excluir")
+        };
+        if (App.Current.Resources.TryGetValue("PMDangerBrush", out var brush) && brush is Microsoft.UI.Xaml.Media.SolidColorBrush scb)
+            excluir.Foreground = scb;
+        excluir.Click += async (_, _) => await ConfirmarExclusaoAsync(item);
+        flyout.Items.Add(excluir);
+
+        flyout.ShowAt((FrameworkElement)sender, e.GetPosition((FrameworkElement)sender));
     }
 
     private async void OnItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)

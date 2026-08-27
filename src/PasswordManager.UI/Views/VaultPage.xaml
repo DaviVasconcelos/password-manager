@@ -157,7 +157,7 @@
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="domain:VaultItem">
-                        <Grid>
+                        <Grid RightTapped="OnItemRightTapped" IsRightTapEnabled="True" Background="Transparent" HorizontalAlignment="Stretch">
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup>
                                     <VisualState x:Name="WideItem">
