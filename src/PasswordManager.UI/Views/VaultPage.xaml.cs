@@ -250,8 +250,51 @@ public sealed partial class VaultPage : Page
 
     private async void OnItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
     {
-        if (ViewModel.ItemSelecionado is not null)
-            await EditarItemAsync(ViewModel.ItemSelecionado);
+        if (EncontrarVaultItem(e.OriginalSource as DependencyObject) is VaultItem item)
+            await EditarItemAsync(item);
+    }
+
+    private static VaultItem? EncontrarVaultItem(DependencyObject? origem)
+    {
+        var cur = origem;
+        while (cur != null)
+        {
+            if (cur is FrameworkElement fe && fe.DataContext is VaultItem vi)
+                return vi;
+            cur = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetParent(cur);
+        }
+
+        return null;
+    }
+
+    private void OnItemPointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Grid outer && EncontrarElemento<Border>(outer, "HoverBorder") is Border hover
+            && App.Current.Resources.TryGetValue("PMSurfaceAltBrush", out var brush) && brush is Microsoft.UI.Xaml.Media.Brush b)
+            hover.Background = b;
+    }
+
+    private void OnItemPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
+    {
+        if (sender is Grid outer && EncontrarElemento<Border>(outer, "HoverBorder") is Border hover)
+            hover.Background = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Transparent);
+    }
+
+    private static T? EncontrarElemento<T>(DependencyObject raiz, string nome) where T : FrameworkElement
+    {
+        if (raiz is T t && t.Name == nome)
+            return t;
+
+        int count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(raiz);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(raiz, i);
+            var encontrado = EncontrarElemento<T>(child, nome);
+            if (encontrado != null)
+                return encontrado;
+        }
+
+        return null;
     }
 
     private async Task EditarItemAsync(VaultItem item)

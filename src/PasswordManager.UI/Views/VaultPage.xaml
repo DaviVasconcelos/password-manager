@@ -136,8 +136,8 @@
             <!-- Tabela de itens -->
             <ListView Grid.Row="2"
                       ItemsSource="{x:Bind ViewModel.DisplayedItems}"
-                      SelectedItem="{x:Bind ViewModel.ItemSelecionado, Mode=TwoWay}"
-                      SelectionMode="Single"
+                      SelectionMode="None"
+                      IsItemClickEnabled="False"
                       DoubleTapped="OnItemDoubleTapped">
                 <ListView.Header>
                     <Grid ColumnSpacing="12" Padding="12,8"
@@ -157,7 +157,7 @@
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="domain:VaultItem">
-                        <Grid RightTapped="OnItemRightTapped" IsRightTapEnabled="True" Background="Transparent" HorizontalAlignment="Stretch">
+                        <Grid RightTapped="OnItemRightTapped" IsRightTapEnabled="True" Background="Transparent" HorizontalAlignment="Stretch" PointerEntered="OnItemPointerEntered" PointerExited="OnItemPointerExited">
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup>
                                     <VisualState x:Name="WideItem">
@@ -180,6 +180,7 @@
                                 <RowDefinition Height="*" />
                                 <RowDefinition Height="1" />
                             </Grid.RowDefinitions>
+                            <Border x:Name="HoverBorder" Grid.Row="0" CornerRadius="6" Margin="3" Background="Transparent" />
                             <Grid ColumnSpacing="12" Padding="12,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="2*" />
