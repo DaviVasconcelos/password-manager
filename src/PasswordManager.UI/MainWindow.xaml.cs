@@ -45,6 +45,7 @@ namespace PasswordManager.UI
                 var appWindow = AppWindow.GetFromWindowId(windowId);
                 if (appWindow is null)
                     return;
+                appWindow.SetIcon("Assets\\logo-password-manager.ico");
 
                 var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Nearest);
                 var workArea = displayArea.WorkArea;
