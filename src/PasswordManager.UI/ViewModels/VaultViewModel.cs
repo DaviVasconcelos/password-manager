@@ -147,7 +147,7 @@ public partial class VaultViewModel : ObservableObject
         AddFilter();
     }
 
-    private void AddFilter()
+    private void AddFilter(bool forcarAtualizacao = false)
     {
         var folderId = OpcaoPastaSelecionada?.Pasta?.Id;
         var items = _sessionService.SearchItems(TermoBusca, folderId);
@@ -155,7 +155,8 @@ public partial class VaultViewModel : ObservableObject
         // Evita o recarregamento visual (limpar + re-adicionar com animação)
         // quando o resultado da busca não mudou — ex.: ao fechar o diálogo
         // de pastas sem alterações.
-        if (DisplayedItems.SequenceEqual(items))
+        // Para edição, forçar atualização: SequenceEqual por referência não detecta mutação do item.
+        if (!forcarAtualizacao && DisplayedItems.SequenceEqual(items))
             return;
 
         DisplayedItems.Clear();
@@ -179,7 +180,7 @@ public partial class VaultViewModel : ObservableObject
     {
         await _sessionService.ReloadItemAsync(itemId, title, password, category, username, url, notes);
         await _sessionService.AssignItemToFolderAsync(itemId, pastaId);
-        AddFilter();
+        AddFilter(forcarAtualizacao: true);
     }
 
     public async Task AdicionarPastaAsync(string name)
