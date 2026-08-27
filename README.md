@@ -1,4 +1,4 @@
-# PasswordManager
+<h1 align="center"><img src="src/PasswordManager.UI/Assets/logo-password-manager.png" width="43" height="43" style="vertical-align: middle;" /> PasswordManager</h1>
 
 <p align="center">
   <strong>Gerenciador de senhas local, offline-first, com criptografia de ponta a ponta.</strong><br/>
