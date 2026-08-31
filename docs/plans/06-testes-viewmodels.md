@@ -1,6 +1,6 @@
 # Plano — Item 6: Testes de ViewModels (desacoplar de tipos WinUI)
 
-> **Roadmap:** `AGENTS.md` Fase B item 6. **Status:** PLANEJADO.  
+> **Roadmap:** `AGENTS.md` Fase B item 6. **Status:** ✅ CONCLUÍDO em 2026-08-31 (247 testes, `ea2a5f1` tema já entregue). **Todas as 8 etapas 6.1–6.8 concluídas, Fase B 100%**.  
 > **Objetivo:** tornar `UnlockViewModel`, `VaultViewModel`, `ItemEditorViewModel` e `SettingsViewModel` testáveis em `xUnit`+`FluentAssertions` sem depender de `DispatcherQueue`, `Clipboard` ou `Windows.Globalization` estáticos, cobrindo lógica de negócio da UI (filtros, CRUD, timers, clipboard, troca de tema/idioma).
 
 ## 0. Contexto e problema atual
@@ -118,10 +118,10 @@ Cobertura alvo ≥ 15 testes, nomes pt-BR:
 - Atualizar `AGENTS.md:Current state` (contagem de testes: 189 → ~230) e `AGENTS.md:Roadmap` item 6 para `IMPLEMENTADO`.
 - Atualizar `README.md` (se existir seção de testes) com `dotnet test tests/PasswordManager.UI.Tests/...`.
 
-### Etapa 6.8 — Limpeza e follow-up (opcional, fora do escopo mínimo)
+### Etapa 6.8 — Limpeza e follow-up ✅ CONCLUÍDA
 
-- Remover `using` não usados, garantir `Nullable` e `TreatWarningsAsErrors` se habilitado.
-- Avaliar extrair `IThemeService` se testes de `App.AplicarTema` forem desejados (hoje já coberto em `ea2a5f1`).
+- Remover `using` não usados, garantir `Nullable` e `TreatWarningsAsErrors` se habilitado. **Realizado:** `dotnet build -p:Platform=x64 --configuration Debug` 0 warnings / 0 erros; `Release` 16 warnings apenas de trim do EF Core (`IL2026`, `Microsoft.EntityFrameworkCore.*`, `VaultDbContext.cs:9`, `VaultRepository.cs:150`) — esperado, EF não é trimming-safe e `PublishTrimmed=false` em Debug (ver `PasswordManager.UI.csproj:65`). Nenhum `using` não usado remanescente nos 8 arquivos de `Services/` e `Fakes/`; `Nullable` habilitado em todos os novos `.cs`.
+- Avaliar extrair `IThemeService` se testes de `App.AplicarTema` forem desejados (hoje já coberto em `ea2a5f1`). **Decisão:** **não extrair** — `App.AplicarTema`/`AplicarTemaSalvo` (`App.xaml.cs:192`) é `static` com `RequestedTheme` + `_temaPendente` e leitura direta de `settings.json` antes da DI; testá-lo exigiria mock de `Application.Current`/`DispatcherQueue`. Já validado manualmente e via `SettingsViewModel.OpcoesTema`; não justifica `IThemeService` nesta fase.
 
 ## 3. Riscos e mitigações
 
@@ -134,11 +134,11 @@ Cobertura alvo ≥ 15 testes, nomes pt-BR:
 
 ## 4. Critérios de pronto (DoD) do item 6
 
-- [ ] `VaultViewModel` e `SettingsViewModel` sem `using Microsoft.UI.Dispatching`, `Windows.ApplicationModel.DataTransfer`, `Windows.Globalization`
-- [ ] `tests/PasswordManager.UI.Tests` criado, referenciado em `PasswordManager.slnx` e executado no CI
-- [ ] ≥ 30 testes novos (Vault 15 + Settings/ItemEditor/Unlock 15), todos pt-BR, `FluentAssertions`
-- [ ] `dotnet build PasswordManager.slnx` e `dotnet test PasswordManager.slnx --no-build` verdes local + CI
-- [ ] `AGENTS.md` atualizado (item 6 `IMPLEMENTADO`)
+- [x] `VaultViewModel` e `SettingsViewModel` sem `using Microsoft.UI.Dispatching`, `Windows.ApplicationModel.DataTransfer`, `Windows.Globalization` (só `Services/*` mantém WinRT, ver `grep`)
+- [x] `tests/PasswordManager.UI.Tests` criado (`net8.0-windows10.0.19041.0`, `UseWinUI=false`), referenciado em `PasswordManager.slnx:8` com `*|ARM64→x64` e executado no CI (`-p:Platform=x64`, `ci.yml:33`) — 58 UI tests
+- [x] ≥ 30 testes novos (Vault 23 + Settings 10 + ItemEditor 10 + Unlock 12 + 3 smoke = 58), todos pt-BR, `FluentAssertions`
+- [x] `dotnet build PasswordManager.slnx -p:Platform=x64` e `dotnet test PasswordManager.slnx -p:Platform=x64 --no-build` verdes local + CI (`dotnet ef has-pending-model-changes` OK, 247 testes)
+- [x] `AGENTS.md` atualizado (item 6 `IMPLEMENTADO`, `Current state` 189→247)
 
 ## 5. Referências
 
