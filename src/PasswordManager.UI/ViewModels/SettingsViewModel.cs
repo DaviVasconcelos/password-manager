@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using PasswordManager.Application.Settings;
 using PasswordManager.UI.Localization;
+using PasswordManager.UI.Services;
 
 namespace PasswordManager.UI.ViewModels;
 
@@ -21,6 +22,7 @@ public partial class SettingsViewModel : ObservableObject
 {
     private readonly IAppSettingsService _settingsService;
     private readonly ILocalizationService _localization;
+    private readonly IIdiomaProvider _idiomaProvider;
 
     public IReadOnlyList<int> OpcoesTimeoutAutoLock { get; } = new[] { 1, 2, 5, 10, 15, 30 };
     public IReadOnlyList<int> OpcoesLimpezaClipboard { get; } = new[] { 10, 15, 30, 60, 120 };
@@ -69,10 +71,11 @@ public partial class SettingsViewModel : ObservableObject
 
     private string _idiomaOriginal = AppSettings.IdiomaAuto;
 
-    public SettingsViewModel(IAppSettingsService settingsService, ILocalizationService localization)
+    public SettingsViewModel(IAppSettingsService settingsService, ILocalizationService localization, IIdiomaProvider idiomaProvider)
     {
         _settingsService = settingsService;
         _localization = localization;
+        _idiomaProvider = idiomaProvider ?? throw new ArgumentNullException(nameof(idiomaProvider));
         OpcoesIdioma = ConstruirOpcoesIdioma();
         OpcoesTema = ConstruirOpcoesTema();
     }
@@ -94,17 +97,7 @@ public partial class SettingsViewModel : ObservableObject
             new(AppSettings.IdiomaAuto, _localization.GetString("Settings_Idioma_Opcao_Auto"))
         };
 
-        IReadOnlyList<string> manifest;
-        try
-        {
-            manifest = Windows.Globalization.ApplicationLanguages.ManifestLanguages;
-            if (manifest == null || manifest.Count == 0)
-                manifest = Microsoft.Windows.Globalization.ApplicationLanguages.ManifestLanguages;
-        }
-        catch
-        {
-            manifest = Array.Empty<string>();
-        }
+        var manifest = _idiomaProvider.ManifestLanguages;
 
         var codigos = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         if (manifest != null)
@@ -147,29 +140,13 @@ public partial class SettingsViewModel : ObservableObject
         return lista;
     }
 
-    private static string ObterIdiomaEfetivo(string codigo)
+    private string ObterIdiomaEfetivo(string codigo)
     {
         if (string.Equals(codigo, AppSettings.IdiomaAuto, StringComparison.OrdinalIgnoreCase))
         {
-            try
-            {
-                var sistema = Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
-                if (!string.IsNullOrEmpty(sistema))
-                    return sistema;
-            }
-            catch
-            {
-            }
-
-            try
-            {
-                var sistema2 = Microsoft.Windows.Globalization.ApplicationLanguages.Languages.FirstOrDefault();
-                if (!string.IsNullOrEmpty(sistema2))
-                    return sistema2;
-            }
-            catch
-            {
-            }
+            var sistema = _idiomaProvider.Languages.FirstOrDefault();
+            if (!string.IsNullOrEmpty(sistema))
+                return sistema;
 
             return AppSettings.IdiomaEnUS;
         }
