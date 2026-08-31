@@ -39,7 +39,7 @@ jobs:
 
       - name: Executar os testes de UI (ViewModels)
         timeout-minutes: 5
-        run: dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj --configuration Debug --no-build -p:Platform=x64 --logger trx --results-directory TestResults --blame-hang --blame-hang-timeout 60s
+        run: dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj --configuration Debug --no-build --logger trx --results-directory TestResults --blame-hang --blame-hang-timeout 60s
 
       - name: Enviar os resultados dos testes
         if: always()
