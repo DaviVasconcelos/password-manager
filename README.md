@@ -390,12 +390,12 @@ Ordem sugerida **A → B → C → D** (itens concluídos marcados, decisões re
 - [x] **Configurações** — `IAppSettingsService` + `AppSettingsService` (`settings.json`) + `SettingsViewModel`/`SettingsContent`
 - [x] **Auto-lock por inatividade** — `DispatcherQueueTimer` na `VaultPage` (padrão 2 min, só inatividade)
 - [x] **Trocar senha mestra na UI** — exige senha atual (derivação + comparação em tempo constante)
-- [ ] **Tema claro/escuro/sistema** — adiado para depois da Fase A
+- [x] **Tema claro/escuro/sistema**
 
 ### Fase B — Engenharia
 
 - [x] **Migrations EF Core** no lugar de `EnsureCreated` (`dotnet-ef` 8.0.30 via manifest local em `.config/`; checagem de modelo pendente no CI)
-- [ ] **Testes de ViewModels** — desacoplar de tipos WinUI para cobertura com xUnit/FluentAssertions
+- [x] **Testes de ViewModels** — desacoplar de tipos WinUI para cobertura com xUnit/FluentAssertions
 - [x] **Recursos/i18n** — ADR 0007, PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`
 
 ### Fase C — Features de produto
