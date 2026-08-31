@@ -8,6 +8,7 @@ jobs:
   build-and-test:
     name: Compilar e testar (Windows)
     runs-on: windows-latest
+    timeout-minutes: 15
 
     steps:
       - name: Obter o código
@@ -32,8 +33,13 @@ jobs:
       - name: Compilar a solution
         run: dotnet build PasswordManager.slnx --configuration Debug -p:Platform=x64
 
-      - name: Executar os testes
-        run: dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --logger trx --results-directory TestResults
+      - name: Executar os testes (Domain/Application/Infrastructure)
+        timeout-minutes: 10
+        run: dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --filter "FullyQualifiedName!~PasswordManager.UI.Tests" --logger trx --results-directory TestResults --blame-hang --blame-hang-timeout 60s
+
+      - name: Executar os testes de UI (ViewModels)
+        timeout-minutes: 5
+        run: dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj --configuration Debug --no-build -p:Platform=x64 --logger trx --results-directory TestResults --blame-hang --blame-hang-timeout 60s
 
       - name: Enviar os resultados dos testes
         if: always()
