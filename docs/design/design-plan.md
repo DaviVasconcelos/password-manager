@@ -10,7 +10,7 @@
 3. **Força de senha "Média"**: laranja `#F8A800` (claro) / `#FFB900` (escuro) — token `PMWarningBrush` adicionado ao design system.
 4. **Toast "senha copiada"**: `InfoBar` nativo (Severity=Success) em vez de banner custom.
 5. **Excluir item/pasta** ganha diálogo de confirmação (ações inline facilitam clique acidental).
-6. **Tema**: tokens via `ThemeDictionaries` seguem o tema do SO; toggle manual continua adiado (roadmap item 4).
+6. **Tema**: tokens via `ThemeDictionaries` seguem o tema do SO; **toggle manual implementado** (`ea2a5f1`) — `AppSettings.Tema` (`sistema`/`claro`/`escuro`), `App.AplicarTema`/`AplicarTemaSalvo` (`App.xaml.cs:192`) com `RequestedTheme` + tema pendente, `SettingsViewModel.OpcoesTema`/`TemaSelecionado` e `SettingsContent.xaml` (ComboBox), persistido em `settings.json` (roadmap item 4 **IMPLEMENTADO**).
 7. **Modo criar/desbloquear na UnlockPage**: o subtítulo fixo "Seu cofre seguro" é mantido, e o modo (`TituloModo`) aparece como rótulo acima dos campos — preserva a função existente sem quebrar o visual.
 
 ## Como atualizar o snapshot quando o design mudar
