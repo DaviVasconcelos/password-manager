@@ -10,6 +10,7 @@ using PasswordManager.Infrastructure.ExportImport;
 using PasswordManager.Infrastructure.Persistence;
 using PasswordManager.Infrastructure.Settings;
 using PasswordManager.UI.Localization;
+using PasswordManager.UI.Services;
 using PasswordManager.UI.ViewModels;
 using System;
 using System.IO;
@@ -365,6 +366,9 @@ namespace PasswordManager.UI
                 new AppSettingsService(Path.Combine(appDataDir, "settings.json")));
 
             services.AddSingleton<ILocalizationService, LocalizationService>();
+            services.AddSingleton<IClipboardService, ClipboardService>();
+            services.AddSingleton<ITimerFactory, DispatcherQueueTimerFactory>();
+            services.AddSingleton<IIdiomaProvider, ApplicationLanguagesProvider>();
 
             services.AddSingleton<IVaultRepository, VaultRepository>();
             services.AddSingleton<IExportImportService, ExportImportService>();

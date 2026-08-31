@@ -4,12 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Microsoft.UI.Dispatching;
 using PasswordManager.Application.Settings;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Domain.Entities;
 using PasswordManager.UI.Localization;
-using Windows.ApplicationModel.DataTransfer;
+using PasswordManager.UI.Services;
 
 namespace PasswordManager.UI.ViewModels;
 
@@ -27,9 +26,12 @@ public partial class VaultViewModel : ObservableObject
     private readonly IVaultSessionService _sessionService;
     private readonly IAppSettingsService _settingsService;
     private readonly ILocalizationService _localization;
-    private readonly DispatcherQueueTimer _timerLimparClipboard;
-    private readonly DispatcherQueueTimer _timerInatividade;
-    private readonly DispatcherQueueTimer _timerInfoBanner;
+    private readonly IClipboardService _clipboardService;
+    private readonly ITimer _timerLimparClipboard;
+    private readonly ITimer _timerInatividade;
+    private readonly ITimer _timerInfoBanner;
+
+    private static readonly TimeSpan DuracaoInfoBanner = TimeSpan.FromSeconds(4);
 
     private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(2);
     private TimeSpan _tempoLimparClipboard = TimeSpan.FromSeconds(30);
@@ -68,16 +70,21 @@ public partial class VaultViewModel : ObservableObject
     public VaultViewModel(
         IVaultSessionService sessionService,
         IAppSettingsService settingsService,
-        ILocalizationService localization)
+        ILocalizationService localization,
+        ITimerFactory timerFactory,
+        IClipboardService clipboardService)
     {
         _sessionService = sessionService;
         _settingsService = settingsService;
         _localization = localization;
-        _timerLimparClipboard = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+        if (timerFactory is null) throw new ArgumentNullException(nameof(timerFactory));
+
+        _timerLimparClipboard = timerFactory.Create();
         _timerLimparClipboard.Tick += OnTimerCleanClipboardTick;
-        _timerInatividade = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _timerInatividade = timerFactory.Create();
         _timerInatividade.Tick += OnTimerInatividadeTick;
-        _timerInfoBanner = DispatcherQueue.GetForCurrentThread().CreateTimer();
+        _timerInfoBanner = timerFactory.Create();
         _timerInfoBanner.Tick += OnTimerInfoBannerTick;
     }
 
@@ -237,9 +244,7 @@ public partial class VaultViewModel : ObservableObject
         if (item is null)
             return;
 
-        var pacote = new DataPackage();
-        pacote.SetText(item.Password);
-        Clipboard.SetContent(pacote);
+        _clipboardService.SetText(item.Password);
 
         SenhaCopiada = true;
         _timerLimparClipboard.Stop();
@@ -257,9 +262,7 @@ public partial class VaultViewModel : ObservableObject
         if (item is null || string.IsNullOrEmpty(item.Username))
             return;
 
-        var pacote = new DataPackage();
-        pacote.SetText(item.Username);
-        Clipboard.SetContent(pacote);
+        _clipboardService.SetText(item.Username);
     }
 
     [RelayCommand]
@@ -288,7 +291,7 @@ public partial class VaultViewModel : ObservableObject
         TextoInfoBanner = texto;
         InfoBannerVisivel = true;
         _timerInfoBanner.Stop();
-        _timerInfoBanner.Interval = TimeSpan.FromSeconds(4);
+        _timerInfoBanner.Interval = DuracaoInfoBanner;
         _timerInfoBanner.Start();
     }
 
@@ -312,7 +315,7 @@ public partial class VaultViewModel : ObservableObject
         _timerInatividade.Start();
     }
 
-    private void OnTimerInatividadeTick(DispatcherQueueTimer sender, object args) => Trancar();
+    private void OnTimerInatividadeTick(object? sender, object args) => Trancar();
 
     /// <summary>
     /// Troca a senha mestra exigindo a senha atual (verificada pelo serviço
@@ -321,16 +324,14 @@ public partial class VaultViewModel : ObservableObject
     public Task TrocarSenhaMestraAsync(string senhaAtual, string novaSenhaMestra)
         => _sessionService.ChangeMasterPasswordAsync(senhaAtual, novaSenhaMestra);
 
-    private void OnTimerCleanClipboardTick(DispatcherQueueTimer sender, object args)
+    private void OnTimerCleanClipboardTick(object? sender, object args)
     {
-        var package = new DataPackage();
-        package.SetText(string.Empty);
-        Clipboard.SetContent(package);
+        _clipboardService.Clear();
         SenhaCopiada = false;
         _timerLimparClipboard.Stop();
     }
 
-    private void OnTimerInfoBannerTick(DispatcherQueueTimer sender, object args)
+    private void OnTimerInfoBannerTick(object? sender, object args)
     {
         _timerInfoBanner.Stop();
         InfoBannerVisivel = false;
