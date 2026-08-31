@@ -30,10 +30,10 @@ jobs:
         run: dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure
 
       - name: Compilar a solution
-        run: dotnet build PasswordManager.slnx --configuration Debug
+        run: dotnet build PasswordManager.slnx --configuration Debug -p:Platform=x64
 
       - name: Executar os testes
-        run: dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx --results-directory TestResults
+        run: dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --logger trx --results-directory TestResults
 
       - name: Enviar os resultados dos testes
         if: always()
