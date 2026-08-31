@@ -22,6 +22,16 @@ namespace PasswordManager.UI
         public MainWindow()
         {
             InitializeComponent();
+            // Aplicar tema pendente (definido por App.AplicarTema antes da janela existir).
+            try
+            {
+                if (Content is FrameworkElement raizInicial)
+                    raizInicial.RequestedTheme = App.ObterTemaPendente();
+            }
+            catch
+            {
+            }
+
             Title = App.Services.GetRequiredService<ILocalizationService>().GetString("MainWindow.Title");
             ContentFrame.Navigate(typeof(UnlockPage));
 
@@ -84,12 +94,15 @@ namespace PasswordManager.UI
         /// <summary>
         /// Pinta a barra de título com os tokens do design system
         /// (sem isso, ela segue o tema do sistema e destoa do app).
+        /// Usa cores fixas por tema em vez de ResourceLookup via App.Current
+        /// (que ignora o RequestedTheme da janela e retorna sempre o tema do app).
         /// </summary>
         private void AtualizarBarraTitulo()
         {
             var escuro = (Content as FrameworkElement)?.ActualTheme != ElementTheme.Light;
-            var fundo = CorTema("PMBackgroundBrush", escuro, Color.FromArgb(255, 0x1C, 0x1C, 0x1C), Color.FromArgb(255, 0xF3, 0xF3, 0xF3));
-            var texto = CorTema("PMTextPrimaryBrush", escuro, Color.FromArgb(255, 0xFF, 0xFF, 0xFF), Color.FromArgb(255, 0x1A, 0x1A, 0x1A));
+            // Cores idênticas aos tokens PMBackgroundBrush / PMTextPrimaryBrush.
+            var fundo = escuro ? Color.FromArgb(255, 0x1C, 0x1C, 0x1C) : Color.FromArgb(255, 0xF3, 0xF3, 0xF3);
+            var texto = escuro ? Color.FromArgb(255, 0xFF, 0xFF, 0xFF) : Color.FromArgb(255, 0x1A, 0x1A, 0x1A);
             var hover = escuro ? Color.FromArgb(255, 0x2D, 0x2D, 0x2D) : Color.FromArgb(255, 0xE0, 0xE0, 0xE0);
 
             var barra = AppWindow.TitleBar;
@@ -102,13 +115,6 @@ namespace PasswordManager.UI
             barra.ButtonInactiveBackgroundColor = fundo;
             barra.ButtonInactiveForegroundColor = texto;
             barra.ButtonHoverBackgroundColor = hover;
-        }
-
-        private static Color CorTema(string chave, bool escuro, Color escuroFallback, Color claroFallback)
-        {
-            if (App.Current.Resources.TryGetValue(chave, out object? valor) && valor is SolidColorBrush brush)
-                return brush.Color;
-            return escuro ? escuroFallback : claroFallback;
         }
 
         private static class WindowMinSizeHelper

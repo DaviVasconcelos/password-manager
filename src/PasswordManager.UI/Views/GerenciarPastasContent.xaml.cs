@@ -66,7 +66,7 @@ public sealed partial class GerenciarPastasContent : UserControl
             HorizontalAlignment = HorizontalAlignment.Right
         };
 
-        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240 };
+        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240, RequestedTheme = App.ObterTemaPendente() };
         conteudo.Children.Add(nomeBox);
         conteudo.Children.Add(salvar);
 
@@ -130,7 +130,7 @@ public sealed partial class GerenciarPastasContent : UserControl
         botoes.Children.Add(cancelar);
         botoes.Children.Add(excluir);
 
-        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240 };
+        var conteudo = new StackPanel { Spacing = 8, MinWidth = 240, RequestedTheme = App.ObterTemaPendente() };
         conteudo.Children.Add(texto);
         conteudo.Children.Add(botoes);
 

@@ -9,6 +9,19 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,4,14,4">
         <StackPanel Width="400" Spacing="12">
+            <!-- Aparência -->
+            <TextBlock x:Uid="Settings_Aparencia" Style="{StaticResource PMSectionHeaderStyle}" />
+            <ComboBox x:Uid="Settings_Tema_ComboBox"
+                      Style="{StaticResource PMComboBoxStyle}"
+                      ItemsSource="{x:Bind ViewModel.OpcoesTema}"
+                      SelectedItem="{x:Bind ViewModel.TemaSelecionado, Mode=TwoWay}"
+                      DisplayMemberPath="NomeExibicao"
+                      HorizontalAlignment="Stretch" />
+
+            <Border Height="1"
+                    Background="{ThemeResource PMBorderSubtleBrush}"
+                    Margin="0,4,0,0" />
+
             <!-- Segurança -->
             <TextBlock x:Uid="Settings_Seguranca" Style="{StaticResource PMSectionHeaderStyle}" />
             <ComboBox x:Uid="Settings_TempoInatividade"

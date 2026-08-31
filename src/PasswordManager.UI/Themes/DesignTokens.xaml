@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
     Tokens do design system (fonte: Figma PasswordManager, canvas "Design System").
-    Cores por tema: "Light" e "Default" (= escuro). Tipografia Segoe UI Variable.
+    Cores por tema: "Light", "Dark" e "Default" (= escuro, fallback). Tipografia Segoe UI Variable.
+    HighContrast herda do sistema; não há tokens dedicados — usa fallback Default/Dark.
 -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -48,6 +49,26 @@
             <SolidColorBrush x:Key="PMAccentHoverBrush" Color="#79D3FF" />
             <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#45BFF5" />
             <!-- Banner "senha copiada" (tema escuro, cores do Figma) -->
+            <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
+            <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+            <SolidColorBrush x:Key="PMAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="PMSurfaceBrush" Color="#202020" />
+            <SolidColorBrush x:Key="PMSurfaceAltBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="PMTextPrimaryBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PMTextSecondaryBrush" Color="#9E9E9E" />
+            <SolidColorBrush x:Key="PMTextOnAccentBrush" Color="#000000" />
+            <SolidColorBrush x:Key="PMBorderSubtleBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMDangerBrush" Color="#FF6767" />
+            <SolidColorBrush x:Key="PMSuccessBrush" Color="#6CCB5F" />
+            <SolidColorBrush x:Key="PMWarningBrush" Color="#FFB900" />
+            <SolidColorBrush x:Key="PMBackgroundBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="PMBadgeBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMButtonHoverBrush" Color="#383838" />
+            <SolidColorBrush x:Key="PMButtonPressedBrush" Color="#414141" />
+            <SolidColorBrush x:Key="PMAccentHoverBrush" Color="#79D3FF" />
+            <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#45BFF5" />
             <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
             <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
         </ResourceDictionary>

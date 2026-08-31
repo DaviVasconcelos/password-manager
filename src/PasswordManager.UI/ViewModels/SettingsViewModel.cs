@@ -10,6 +10,8 @@ namespace PasswordManager.UI.ViewModels;
 
 public sealed record OpcaoIdioma(string Codigo, string NomeExibicao);
 
+public sealed record OpcaoTema(string Codigo, string NomeExibicao);
+
 /// <summary>
 /// ViewModel da tela de configurações: timeout de auto-lock, tempo de limpeza
 /// da área de transferência e defaults do gerador de senha. As opções são
@@ -24,6 +26,8 @@ public partial class SettingsViewModel : ObservableObject
     public IReadOnlyList<int> OpcoesLimpezaClipboard { get; } = new[] { 10, 15, 30, 60, 120 };
 
     public IReadOnlyList<OpcaoIdioma> OpcoesIdioma { get; }
+
+    public IReadOnlyList<OpcaoTema> OpcoesTema { get; }
 
     [ObservableProperty]
     private int timeoutAutoLockMinutes;
@@ -51,6 +55,9 @@ public partial class SettingsViewModel : ObservableObject
     private OpcaoIdioma? idiomaSelecionado;
 
     [ObservableProperty]
+    private OpcaoTema? temaSelecionado;
+
+    [ObservableProperty]
     private string? erro;
 
     public string TamanhoSenhaTexto => $"{PasswordGeneratorLength} {_localization.GetString("ItemEditor_Tamanho_Sufixo")}";
@@ -67,6 +74,17 @@ public partial class SettingsViewModel : ObservableObject
         _settingsService = settingsService;
         _localization = localization;
         OpcoesIdioma = ConstruirOpcoesIdioma();
+        OpcoesTema = ConstruirOpcoesTema();
+    }
+
+    private IReadOnlyList<OpcaoTema> ConstruirOpcoesTema()
+    {
+        return new List<OpcaoTema>
+        {
+            new(AppSettings.TemaSistema, _localization.GetString("Settings_Tema_Opcao_Sistema")),
+            new(AppSettings.TemaClaro, _localization.GetString("Settings_Tema_Opcao_Claro")),
+            new(AppSettings.TemaEscuro, _localization.GetString("Settings_Tema_Opcao_Escuro")),
+        };
     }
 
     private IReadOnlyList<OpcaoIdioma> ConstruirOpcoesIdioma()
@@ -174,6 +192,7 @@ public partial class SettingsViewModel : ObservableObject
         IncludeSymbols = settings.PasswordGeneratorIncludeSymbols;
         _idiomaOriginal = settings.Idioma;
         IdiomaSelecionado = OpcoesIdioma.FirstOrDefault(o => o.Codigo == settings.Idioma) ?? OpcoesIdioma[0];
+        TemaSelecionado = OpcoesTema.FirstOrDefault(o => string.Equals(o.Codigo, settings.Tema, StringComparison.OrdinalIgnoreCase)) ?? OpcoesTema[0];
         RequerReinicio = false;
         Erro = null;
     }
@@ -189,6 +208,7 @@ public partial class SettingsViewModel : ObservableObject
         try
         {
             var codigoIdioma = IdiomaSelecionado?.Codigo ?? AppSettings.IdiomaAuto;
+            var codigoTema = TemaSelecionado?.Codigo ?? AppSettings.TemaSistema;
             var settings = new AppSettings
             {
                 AutoLockTimeoutMinutes = TimeoutAutoLockMinutes,
@@ -198,7 +218,8 @@ public partial class SettingsViewModel : ObservableObject
                 PasswordGeneratorIncludeUppercase = IncludeUppercase,
                 PasswordGeneratorIncludeDigits = IncludeDigits,
                 PasswordGeneratorIncludeSymbols = IncludeSymbols,
-                Idioma = codigoIdioma
+                Idioma = codigoIdioma,
+                Tema = codigoTema
             };
 
             await _settingsService.SaveAsync(settings);

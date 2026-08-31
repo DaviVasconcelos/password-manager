@@ -169,6 +169,8 @@ public sealed partial class VaultPage : Page
         await ConfirmarExclusaoAsync(item);
     }
 
+    private void AplicarTemaDialog(ContentDialog dialog) => dialog.RequestedTheme = App.ObterTemaPendente();
+
     private async Task ConfirmarExclusaoAsync(VaultItem item)
     {
         var dialogo = new ContentDialog
@@ -178,7 +180,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogExcluirItem.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogExcluirItem.CloseButtonText"),
             DefaultButton = ContentDialogButton.Close,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
@@ -240,8 +243,10 @@ public sealed partial class VaultPage : Page
         {
             Text = _localization.GetString("VaultPage_MenuContexto.Excluir")
         };
-        if (App.Current.Resources.TryGetValue("PMDangerBrush", out var brush) && brush is Microsoft.UI.Xaml.Media.SolidColorBrush scb)
-            excluir.Foreground = scb;
+        // Usar cor fixa por tema em vez de App.Current.Resources (que ignora o tema da janela).
+        var escuroMenu = ActualTheme != ElementTheme.Light;
+        excluir.Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(
+            escuroMenu ? Windows.UI.Color.FromArgb(255, 0xFF, 0x67, 0x67) : Windows.UI.Color.FromArgb(255, 0xD1, 0x34, 0x38));
         excluir.Click += async (_, _) => await ConfirmarExclusaoAsync(item);
         flyout.Items.Add(excluir);
 
@@ -269,9 +274,17 @@ public sealed partial class VaultPage : Page
 
     private void OnItemPointerEntered(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
     {
-        if (sender is Grid outer && EncontrarElemento<Border>(outer, "HoverBorder") is Border hover
-            && App.Current.Resources.TryGetValue("PMSurfaceAltBrush", out var brush) && brush is Microsoft.UI.Xaml.Media.Brush b)
-            hover.Background = b;
+        if (sender is Grid outer && EncontrarElemento<Border>(outer, "HoverBorder") is Border hover)
+        {
+            // Não usar App.Current.Resources — ignora o RequestedTheme da janela.
+            // Resolve via ActualTheme da página (herda da janela).
+            var escuro = ActualTheme != ElementTheme.Light;
+            // Em sistema (Default) ActualTheme já é Light/Dark conforme SO, então o check acima basta.
+            // PMSurfaceAltBrush: Light #F3F3F3, Dark #2D2D2D.
+            hover.Background = escuro
+                ? new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 0x2D, 0x2D, 0x2D))
+                : new Microsoft.UI.Xaml.Media.SolidColorBrush(Windows.UI.Color.FromArgb(255, 0xF3, 0xF3, 0xF3));
+        }
     }
 
     private void OnItemPointerExited(object sender, Microsoft.UI.Xaml.Input.PointerRoutedEventArgs e)
@@ -339,7 +352,8 @@ public sealed partial class VaultPage : Page
             Title = _localization.GetString("VaultPage_DialogGerenciarPastas.Title"),
             Content = new GerenciarPastasContent(),
             CloseButtonText = _localization.GetString("VaultPage_DialogGerenciarPastas.CloseButtonText"),
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         await dialogo.ShowAsync();
@@ -358,19 +372,32 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogConfiguracoes.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogConfiguracoes.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         dialogo.PrimaryButtonClick += async (_, args) =>
         {
-            if (!await content.ViewModel.SalvarAsync())
-                args.Cancel = true;
+            var deferral = args.GetDeferral();
+            try
+            {
+                if (!await content.ViewModel.SalvarAsync())
+                    args.Cancel = true;
+            }
+            finally
+            {
+                deferral.Complete();
+            }
         };
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return;
 
         ViewModel.AplicarConfiguracoes();
+        // Tema aplica ao vivo, sem reiniciar.
+        var temaAplicar = content.ViewModel.TemaSelecionado?.Codigo
+            ?? PasswordManager.Application.Settings.AppSettings.TemaSistema;
+        App.AplicarTema(temaAplicar);
 
         if (content.ViewModel.RequerReinicio)
             await SolicitarReinicioIdiomaAsync();
@@ -385,7 +412,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("Settings_Idioma_Reiniciar_Agora"),
             CloseButtonText = _localization.GetString("Settings_Idioma_Reiniciar_Depois"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         if (await confirmacao.ShowAsync() != ContentDialogResult.Primary)
@@ -461,7 +489,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         var textoBotaoAlterar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText");
@@ -580,7 +609,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogGenerico.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogGenerico.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
     }
 
@@ -706,7 +736,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogContinuar.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogContinuar.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
@@ -741,7 +772,8 @@ public sealed partial class VaultPage : Page
             PrimaryButtonText = _localization.GetString("VaultPage_DialogPedirSenha.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("VaultPage_DialogPedirSenha.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
@@ -757,7 +789,8 @@ public sealed partial class VaultPage : Page
             Title = _localization.GetString("VaultPage_DialogErro.Title"),
             Content = mensagem,
             CloseButtonText = _localization.GetString("VaultPage_DialogErro.CloseButtonText"),
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         await dialogo.ShowAsync();
@@ -770,7 +803,8 @@ public sealed partial class VaultPage : Page
             Title = _localization.GetString("VaultPage_DialogImportacaoConcluida.Title"),
             Content = mensagem,
             CloseButtonText = _localization.GetString("VaultPage_DialogImportacaoConcluida.CloseButtonText"),
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         await dialogo.ShowAsync();

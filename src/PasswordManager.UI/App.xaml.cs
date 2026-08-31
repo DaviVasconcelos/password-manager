@@ -63,6 +63,7 @@ namespace PasswordManager.UI
         public App()
         {
             AplicarIdiomaSalvo();
+            AplicarTemaSalvo();
             InitializeComponent();
         }
 
@@ -185,6 +186,122 @@ namespace PasswordManager.UI
         }
 
         /// <summary>
+        /// Aplica o tema persistido em settings.json (sistema/claro/escuro).
+        /// Lê o arquivo diretamente para funcionar antes da DI estar pronta.
+        /// </summary>
+        private static void AplicarTemaSalvo()
+        {
+            try
+            {
+                var tema = LerTemaDoDisco() ?? AppSettings.TemaSistema;
+                AplicarTema(tema);
+            }
+            catch
+            {
+            }
+        }
+
+        private static string? LerTemaDoDisco()
+        {
+            try
+            {
+                var caminho = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "PasswordManager", "settings.json");
+                if (!File.Exists(caminho))
+                    return null;
+
+                var json = File.ReadAllText(caminho);
+                using var doc = System.Text.Json.JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("tema", out var el) && el.ValueKind == System.Text.Json.JsonValueKind.String)
+                    return el.GetString();
+                if (doc.RootElement.TryGetProperty("Tema", out var el2) && el2.ValueKind == System.Text.Json.JsonValueKind.String)
+                    return el2.GetString();
+            }
+            catch
+            {
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Aplica o tema na janela principal (e guarda como pendente se a
+        /// janela ainda não existir). "sistema" = Default (segue o SO).
+        /// </summary>
+        public static void AplicarTema(string tema)
+        {
+            var requested = ConverterParaElementTheme(tema);
+            _temaPendente = requested;
+
+            try
+            {
+                // Prioridade: janela real exibida (criada via new MainWindow() em OnLaunched).
+                // O singleton de DI (AddSingleton&lt;MainWindow&gt;) é uma instância diferente
+                // e não está na tela — atualizá-la não tem efeito visível.
+                if (Current is App app && app._window?.Content is FrameworkElement rootReal)
+                {
+                    // Garantir execução na UI thread.
+                    if (rootReal.DispatcherQueue.HasThreadAccess)
+                    {
+                        AplicarTemaNoElemento(rootReal, requested);
+                    }
+                    else
+                    {
+                        rootReal.DispatcherQueue.TryEnqueue(() => AplicarTemaNoElemento(rootReal, requested));
+                    }
+                    return;
+                }
+
+                if (_serviceProvider is not null)
+                {
+                    try
+                    {
+                        var mainWindow = _serviceProvider.GetService<MainWindow>();
+                        if (mainWindow?.Content is FrameworkElement root)
+                        {
+                            AplicarTemaNoElemento(root, requested);
+                            return;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private static void AplicarTemaNoElemento(FrameworkElement root, ElementTheme requested)
+        {
+            root.RequestedTheme = requested;
+            // Garantir propagação ao Frame interno (caso o tema esteja setado no Frame)
+            // e à página atual (WinUI às vezes não propaga para Page já carregada).
+            if (root is Microsoft.UI.Xaml.Controls.Grid grid && grid.Children.Count > 0
+                && grid.Children[0] is FrameworkElement frame)
+            {
+                frame.RequestedTheme = requested;
+                if (frame is Microsoft.UI.Xaml.Controls.Frame f && f.Content is FrameworkElement page)
+                    page.RequestedTheme = requested;
+            }
+        }
+
+        private static ElementTheme _temaPendente = ElementTheme.Default;
+
+        internal static ElementTheme ObterTemaPendente() => _temaPendente;
+
+        private static ElementTheme ConverterParaElementTheme(string tema)
+        {
+            if (string.Equals(tema, AppSettings.TemaClaro, StringComparison.OrdinalIgnoreCase))
+                return ElementTheme.Light;
+            if (string.Equals(tema, AppSettings.TemaEscuro, StringComparison.OrdinalIgnoreCase))
+                return ElementTheme.Dark;
+            return ElementTheme.Default;
+        }
+
+        /// <summary>
         /// Invoked when the application is launched.
         /// </summary>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
@@ -197,12 +314,23 @@ namespace PasswordManager.UI
             {
                 var settingsService = _serviceProvider.GetRequiredService<IAppSettingsService>();
                 AplicarOverrideIdioma(settingsService.Get().Idioma);
+                AplicarTema(settingsService.Get().Tema);
             }
             catch
             {
             }
 
             _window = new MainWindow();
+            // Aplicar tema pendente na nova janela (caso AplicarTema tenha sido chamado antes dela existir).
+            try
+            {
+                if (_window.Content is FrameworkElement root)
+                    root.RequestedTheme = _temaPendente;
+            }
+            catch
+            {
+            }
+
             MainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
             _window.Activate();
         }

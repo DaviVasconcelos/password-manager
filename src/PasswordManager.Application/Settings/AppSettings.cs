@@ -47,6 +47,15 @@ public sealed record AppSettings
     public const string IdiomaPtBR = "pt-BR";
     public const string IdiomaEnUS = "en-US";
 
+    /// <summary>
+    /// Tema da interface: "sistema" (segue o SO), "claro" ou "escuro".
+    /// </summary>
+    public string Tema { get; init; } = TemaSistema;
+
+    public const string TemaSistema = "sistema";
+    public const string TemaClaro = "claro";
+    public const string TemaEscuro = "escuro";
+
     public static AppSettings Default { get; } = new();
 
     /// <summary>
@@ -88,5 +97,13 @@ public sealed record AppSettings
                 throw new ArgumentException($"Idioma inválido: \"{Idioma}\".", nameof(Idioma));
             }
         }
+
+        if (string.IsNullOrWhiteSpace(Tema))
+            throw new ArgumentException("O tema não pode ser vazio.", nameof(Tema));
+
+        if (!string.Equals(Tema, TemaSistema, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(Tema, TemaClaro, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(Tema, TemaEscuro, StringComparison.OrdinalIgnoreCase))
+            throw new ArgumentException($"Tema inválido: \"{Tema}\". Use \"{TemaSistema}\", \"{TemaClaro}\" ou \"{TemaEscuro}\".", nameof(Tema));
     }
 }

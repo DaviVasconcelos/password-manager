@@ -137,7 +137,8 @@ public sealed partial class UnlockPage : Page
             PrimaryButtonText = _localization.GetString("UnlockPage_DialogImportarBackup.PrimaryButtonText"),
             CloseButtonText = _localization.GetString("UnlockPage_DialogImportarBackup.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
-            XamlRoot = XamlRoot
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
         };
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)

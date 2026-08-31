@@ -135,7 +135,12 @@
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>Todas as pastas</value></data>
 
-  <!-- SettingsContent -->
+   <!-- SettingsContent -->
+  <data name="Settings_Aparencia.Text" xml:space="preserve"><value>Aparência</value></data>
+  <data name="Settings_Tema_ComboBox.Header" xml:space="preserve"><value>Tema</value></data>
+  <data name="Settings_Tema_Opcao_Sistema" xml:space="preserve"><value>Sistema</value></data>
+  <data name="Settings_Tema_Opcao_Claro" xml:space="preserve"><value>Claro</value></data>
+  <data name="Settings_Tema_Opcao_Escuro" xml:space="preserve"><value>Escuro</value></data>
   <data name="Settings_Seguranca.Text" xml:space="preserve"><value>Segurança</value></data>
   <data name="Settings_TempoInatividade.Header" xml:space="preserve"><value>Timeout de bloqueio automático</value></data>
   <data name="Settings_LimpezaClipboard.Header" xml:space="preserve"><value>Tempo para limpar área de transferência</value></data>
