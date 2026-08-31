@@ -79,7 +79,7 @@ public partial class UnlockViewModel : ObservableObject
     private bool CanCreate() => !Ocupado && !string.IsNullOrWhiteSpace(SenhaMestra)
         && !string.IsNullOrWhiteSpace(ConfirmacaoSenha);
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanUnlock))]
     private async Task UnlockAsync()
     {
         Erro = null;
@@ -103,7 +103,7 @@ public partial class UnlockViewModel : ObservableObject
         }
     }
 
-    [RelayCommand]
+    [RelayCommand(CanExecute = nameof(CanCreate))]
     private async Task CreateAsync()
     {
         if (SenhaMestra != ConfirmacaoSenha)
