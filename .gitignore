@@ -436,3 +436,10 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# Cert sideload local (gerado por scripts/new-sideload-cert.ps1 e pelo CI)
+src/PasswordManager.UI/PasswordManager.cer
+src/PasswordManager.UI/PasswordManager_Sideload.pfx
+sideload.pfx
+PasswordManager.cer
+dist-sideload/

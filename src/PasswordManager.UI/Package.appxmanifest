@@ -10,14 +10,14 @@
 
   <Identity
     Name="da5fdcb9-00c2-4650-9224-0625ebd58ab1"
-    Publisher="CN=Davi"
-    Version="0.0.0.1" />
+    Publisher="CN=PasswordManager"
+    Version="0.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="da5fdcb9-00c2-4650-9224-0625ebd58ab1" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>PasswordManager.UI</DisplayName>
-    <PublisherDisplayName>Davi</PublisherDisplayName>
+    <DisplayName>PasswordManager</DisplayName>
+    <PublisherDisplayName>PasswordManager</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
@@ -35,8 +35,8 @@
       Executable="$targetnametoken$.exe"
       EntryPoint="$targetentrypoint$">
       <uap:VisualElements
-        DisplayName="PasswordManager.UI"
-        Description="PasswordManager.UI"
+        DisplayName="PasswordManager"
+        Description="Gerenciador de senhas local e offline"
         BackgroundColor="transparent"
         Square150x150Logo="Assets\Square150x150Logo.png"
         Square44x44Logo="Assets\Square44x44Logo.png">
