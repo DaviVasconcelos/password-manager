@@ -17,12 +17,34 @@
   <data name="UnlockPage_BtnCriarCofre.Content" xml:space="preserve"><value>Criar cofre</value></data>
   <data name="UnlockPage_BtnImportarBackup.Content" xml:space="preserve"><value>Importar backup...</value></data>
 
-  <!-- UnlockViewModel -->
+   <!-- UnlockViewModel -->
   <data name="UnlockViewModel_TituloModo_Criar" xml:space="preserve"><value>Criar novo cofre</value></data>
   <data name="UnlockViewModel_TituloModo_Desbloquear" xml:space="preserve"><value>Desbloquear cofre</value></data>
   <data name="UnlockViewModel_Erro_SenhaIncorreta" xml:space="preserve"><value>Senha mestra incorreta ou cofre corrompido.</value></data>
   <data name="UnlockViewModel_Erro_SenhasNaoConferem" xml:space="preserve"><value>As senhas não conferem.</value></data>
   <data name="UnlockViewModel_Erro_ArquivoCorrompido" xml:space="preserve"><value>Senha mestra incorreta ou arquivo corrompido.</value></data>
+
+  <!-- UnlockPage - Multi-arquivo (ADR 0008) -->
+  <data name="UnlockPage_ListaCofres.Header" xml:space="preserve"><value>Seus cofres</value></data>
+  <data name="UnlockPage_CofreSelecionado.Text" xml:space="preserve"><value>Cofre selecionado: {0}</value></data>
+  <data name="UnlockPage_NovoNomeBox.PlaceholderText" xml:space="preserve"><value>Nome do novo cofre (ex: Pessoal)</value></data>
+  <data name="UnlockPage_BtnNovoArquivo.Content" xml:space="preserve"><value>+ Novo arquivo</value></data>
+  <data name="UnlockPage_BtnRenomear.Content" xml:space="preserve"><value>Renomear</value></data>
+  <data name="UnlockPage_BtnExcluir.Content" xml:space="preserve"><value>Excluir</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.Title" xml:space="preserve"><value>Novo arquivo de cofre</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.Text" xml:space="preserve"><value>Digite um nome para o novo cofre. Deixe em branco para gerar automaticamente (vault-1, vault-2, ...).</value></data>
+  <data name="UnlockPage_DialogNovoArquivoSenha.Text" xml:space="preserve"><value>Defina a senha mestra para o novo arquivo.</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.PrimaryButtonText" xml:space="preserve"><value>Criar</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="UnlockPage_DialogRenomear.Title" xml:space="preserve"><value>Renomear cofre</value></data>
+  <data name="UnlockPage_DialogRenomear.Text" xml:space="preserve"><value>Digite o novo nome para o cofre.</value></data>
+  <data name="UnlockPage_DialogRenomear.PrimaryButtonText" xml:space="preserve"><value>Renomear</value></data>
+  <data name="UnlockPage_DialogRenomear.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="UnlockPage_DialogExcluir.Title" xml:space="preserve"><value>Excluir cofre</value></data>
+  <data name="UnlockPage_DialogExcluir.Mensagem" xml:space="preserve"><value>Excluir o cofre "{0}"? Esta ação remove o arquivo local e não pode ser desfeita.</value></data>
+  <data name="UnlockPage_DialogExcluir.PrimaryButtonText" xml:space="preserve"><value>Excluir</value></data>
+  <data name="UnlockPage_DialogExcluir.CloseButtonText" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="UnlockPage_Erro_NenhumCofreSelecionado" xml:space="preserve"><value>Selecione um cofre primeiro.</value></data>
 
   <!-- UnlockPage Dialog - Importar backup -->
   <data name="UnlockPage_DialogImportarBackup.Title" xml:space="preserve"><value>Importar backup</value></data>

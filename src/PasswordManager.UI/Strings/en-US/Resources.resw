@@ -17,12 +17,34 @@
   <data name="UnlockPage_BtnCriarCofre.Content" xml:space="preserve"><value>Create vault</value></data>
   <data name="UnlockPage_BtnImportarBackup.Content" xml:space="preserve"><value>Import backup...</value></data>
 
-  <!-- UnlockViewModel -->
+   <!-- UnlockViewModel -->
   <data name="UnlockViewModel_TituloModo_Criar" xml:space="preserve"><value>Create new vault</value></data>
   <data name="UnlockViewModel_TituloModo_Desbloquear" xml:space="preserve"><value>Unlock vault</value></data>
   <data name="UnlockViewModel_Erro_SenhaIncorreta" xml:space="preserve"><value>Incorrect master password or corrupted vault.</value></data>
   <data name="UnlockViewModel_Erro_SenhasNaoConferem" xml:space="preserve"><value>Passwords do not match.</value></data>
   <data name="UnlockViewModel_Erro_ArquivoCorrompido" xml:space="preserve"><value>Incorrect master password or corrupted file.</value></data>
+
+  <!-- UnlockPage - Multi-file (ADR 0008) -->
+  <data name="UnlockPage_ListaCofres.Header" xml:space="preserve"><value>Your vaults</value></data>
+  <data name="UnlockPage_CofreSelecionado.Text" xml:space="preserve"><value>Selected vault: {0}</value></data>
+  <data name="UnlockPage_NovoNomeBox.PlaceholderText" xml:space="preserve"><value>New vault name (e.g. Personal)</value></data>
+  <data name="UnlockPage_BtnNovoArquivo.Content" xml:space="preserve"><value>+ New file</value></data>
+  <data name="UnlockPage_BtnRenomear.Content" xml:space="preserve"><value>Rename</value></data>
+  <data name="UnlockPage_BtnExcluir.Content" xml:space="preserve"><value>Delete</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.Title" xml:space="preserve"><value>New vault file</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.Text" xml:space="preserve"><value>Enter a name for the new vault. Leave blank to auto-generate (vault-1, vault-2, ...).</value></data>
+  <data name="UnlockPage_DialogNovoArquivoSenha.Text" xml:space="preserve"><value>Set the master password for the new file.</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.PrimaryButtonText" xml:space="preserve"><value>Create</value></data>
+  <data name="UnlockPage_DialogNovoArquivo.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="UnlockPage_DialogRenomear.Title" xml:space="preserve"><value>Rename vault</value></data>
+  <data name="UnlockPage_DialogRenomear.Text" xml:space="preserve"><value>Enter the new name for the vault.</value></data>
+  <data name="UnlockPage_DialogRenomear.PrimaryButtonText" xml:space="preserve"><value>Rename</value></data>
+  <data name="UnlockPage_DialogRenomear.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="UnlockPage_DialogExcluir.Title" xml:space="preserve"><value>Delete vault</value></data>
+  <data name="UnlockPage_DialogExcluir.Mensagem" xml:space="preserve"><value>Delete vault "{0}"? This removes the local file and cannot be undone.</value></data>
+  <data name="UnlockPage_DialogExcluir.PrimaryButtonText" xml:space="preserve"><value>Delete</value></data>
+  <data name="UnlockPage_DialogExcluir.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
+  <data name="UnlockPage_Erro_NenhumCofreSelecionado" xml:space="preserve"><value>Select a vault first.</value></data>
 
   <!-- UnlockPage Dialog - Importar backup -->
   <data name="UnlockPage_DialogImportarBackup.Title" xml:space="preserve"><value>Import backup</value></data>
