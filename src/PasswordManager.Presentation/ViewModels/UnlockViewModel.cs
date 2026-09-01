@@ -56,7 +56,10 @@ public partial class UnlockViewModel : ObservableObject
     public ObservableCollection<VaultDescriptor> Cofres { get; } = new();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NomeCofreSelecionado))]
     private VaultDescriptor? cofreSelecionado;
+
+    public string NomeCofreSelecionado => CofreSelecionado?.Nome ?? string.Empty;
 
     [ObservableProperty]
     private string novoNomeCofre = string.Empty;
@@ -163,6 +166,8 @@ public partial class UnlockViewModel : ObservableObject
             var nome = string.IsNullOrWhiteSpace(NovoNomeCofre) ? null : NovoNomeCofre.Trim();
             await Task.Run(async () => await _sessionService.CreateAsync(nome, SenhaMestra));
             await RecarregarCofresAsync();
+            if (_sessionService.CofreAtivo is not null)
+                CofreSelecionado = Cofres.FirstOrDefault(c => c.Id == _sessionService.CofreAtivo.Id) ?? CofreSelecionado;
             Unlocked?.Invoke();
         }
         catch (InvalidOperationException ex)
@@ -189,12 +194,12 @@ public partial class UnlockViewModel : ObservableObject
         Ocupado = true;
         try
         {
-            if (string.IsNullOrWhiteSpace(SenhaMestra))
+            if (string.IsNullOrWhiteSpace(SenhaMestra) || string.IsNullOrWhiteSpace(ConfirmacaoSenha))
             {
-                Erro = _localization.GetString("UnlockViewModel_Erro_SenhaIncorreta");
+                Erro = _localization.GetString("UnlockViewModel_Erro_SenhasNaoConferem");
                 return;
             }
-            if (SenhaMestra != ConfirmacaoSenha && !string.IsNullOrWhiteSpace(ConfirmacaoSenha))
+            if (SenhaMestra != ConfirmacaoSenha)
             {
                 Erro = _localization.GetString("UnlockViewModel_Erro_SenhasNaoConferem");
                 return;
@@ -204,8 +209,14 @@ public partial class UnlockViewModel : ObservableObject
             nomeEfetivo = string.IsNullOrWhiteSpace(nomeEfetivo) ? null : nomeEfetivo;
 
             await Task.Run(async () => await _sessionService.CreateAsync(nomeEfetivo, SenhaMestra));
-            await RecarregarCofresAsync();
-            Unlocked?.Invoke();
+            // Não entra direto: sempre troca para o último cofre criado (por CriadoEm) e exige desbloqueio manual — atômico para evitar flicker
+            _sessionService.Lock();
+            var listaAposCriacao = await _sessionService.ListarCofresAsync();
+            var ultimoCriado = listaAposCriacao.OrderByDescending(x => x.CriadoEm).FirstOrDefault();
+            await RecarregarCofresAsync(ultimoCriado?.Id);
+            SenhaMestra = string.Empty;
+            ConfirmacaoSenha = string.Empty;
+            NovoNomeCofre = string.Empty;
         }
         catch (InvalidOperationException ex)
         {
@@ -291,12 +302,12 @@ public partial class UnlockViewModel : ObservableObject
         }
     }
 
-    private async Task RecarregarCofresAsync()
+    private async Task RecarregarCofresAsync(Guid? forcarSelecaoId = null)
     {
         try
         {
             var lista = await _sessionService.ListarCofresAsync();
-            var selecionadoId = CofreSelecionado?.Id ?? _sessionService.CofreAtivo?.Id;
+            var selecionadoId = forcarSelecaoId ?? CofreSelecionado?.Id ?? _sessionService.CofreAtivo?.Id;
             Cofres.Clear();
             foreach (var d in lista.OrderBy(x => x.Nome, StringComparer.OrdinalIgnoreCase))
                 Cofres.Add(d);

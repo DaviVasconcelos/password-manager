@@ -7,6 +7,7 @@ using PasswordManager.Application.VaultRegistry;
 using PasswordManager.UI.Localization;
 using PasswordManager.UI.ViewModels;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -34,6 +35,15 @@ public sealed partial class UnlockPage : Page
 
         SenhaMestraBox.PasswordChanged += (_, _) => ViewModel.SenhaMestra = SenhaMestraBox.Password;
         ConfirmacaoBox.PasswordChanged += (_, _) => ViewModel.ConfirmacaoSenha = ConfirmacaoBox.Password;
+        ViewModel.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(ViewModel.SenhaMestra) && string.IsNullOrEmpty(ViewModel.SenhaMestra) && !string.IsNullOrEmpty(SenhaMestraBox.Password))
+                SenhaMestraBox.Password = string.Empty;
+            if (e.PropertyName == nameof(ViewModel.ConfirmacaoSenha) && string.IsNullOrEmpty(ViewModel.ConfirmacaoSenha) && !string.IsNullOrEmpty(ConfirmacaoBox.Password))
+                ConfirmacaoBox.Password = string.Empty;
+            if (e.PropertyName == nameof(ViewModel.NovoNomeCofre) && string.IsNullOrEmpty(ViewModel.NovoNomeCofre) && !string.IsNullOrEmpty(NovoNomeBox.Text))
+                NovoNomeBox.Text = string.Empty;
+        };
         SenhaMestraBox.Focus(FocusState.Keyboard);
     }
 
@@ -47,21 +57,16 @@ public sealed partial class UnlockPage : Page
     /// </summary>
     private async void OnCofresSelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (CofresListView.SelectedItem is VaultDescriptor descriptor)
+        if (e.AddedItems.FirstOrDefault() is VaultDescriptor descriptor)
         {
             ViewModel.CofreSelecionado = descriptor;
             await ViewModel.SelecionarCofreAsync(descriptor.Id);
-            AtualizarTextoCofreSelecionado();
         }
-    }
-
-    private void AtualizarTextoCofreSelecionado()
-    {
-        if (ViewModel.CofreSelecionado is not null)
-            CofreSelecionadoText.Text = string.Format(
-                _localization.GetString("UnlockPage_CofreSelecionado.Text"), ViewModel.CofreSelecionado.Nome);
-        else
-            CofreSelecionadoText.Text = string.Empty;
+        else if (sender is ListView lv && lv.SelectedItem is VaultDescriptor d2)
+        {
+            ViewModel.CofreSelecionado = d2;
+            await ViewModel.SelecionarCofreAsync(d2.Id);
+        }
     }
 
     /// <summary>
@@ -106,9 +111,6 @@ public sealed partial class UnlockPage : Page
         try
         {
             await ViewModel.InitializeAsync();
-            AtualizarTextoCofreSelecionado();
-            if (ViewModel.CofreSelecionado is not null)
-                CofresListView.SelectedItem = ViewModel.CofreSelecionado;
         }
         catch (Exception ex)
         {
@@ -121,8 +123,15 @@ public sealed partial class UnlockPage : Page
         Frame.Navigate(typeof(VaultPage));
     }
 
+    private void OcultarVaultsFlyout()
+    {
+        try { BtnVaultPicker.Flyout?.Hide(); } catch { }
+    }
+
     private async void OnNovoArquivoClick(object sender, RoutedEventArgs e)
     {
+        OcultarVaultsFlyout();
+
         var nome = await PedirNomeAsync();
         if (nome is null)
             return;
@@ -138,41 +147,42 @@ public sealed partial class UnlockPage : Page
         ConfirmacaoBox.Password = senhas.Value.confirmacao;
 
         await ViewModel.CriarNovoArquivoAsync(nome);
-        AtualizarTextoCofreSelecionado();
     }
 
     private async void OnRenomearClick(object sender, RoutedEventArgs e)
     {
-        var selecionado = ViewModel.CofreSelecionado ?? CofresListView.SelectedItem as VaultDescriptor;
+        var selecionado = ViewModel.CofreSelecionado;
         if (selecionado is null)
         {
             ViewModel.Erro = _localization.GetString("UnlockPage_Erro_NenhumCofreSelecionado");
             return;
         }
+
+        OcultarVaultsFlyout();
 
         var novoNome = await PedirNovoNomeAsync(selecionado.Nome);
         if (novoNome is null)
             return;
 
         await ViewModel.RenomearCofreAsync(selecionado.Id, novoNome);
-        AtualizarTextoCofreSelecionado();
     }
 
     private async void OnExcluirClick(object sender, RoutedEventArgs e)
     {
-        var selecionado = ViewModel.CofreSelecionado ?? CofresListView.SelectedItem as VaultDescriptor;
+        var selecionado = ViewModel.CofreSelecionado;
         if (selecionado is null)
         {
             ViewModel.Erro = _localization.GetString("UnlockPage_Erro_NenhumCofreSelecionado");
             return;
         }
 
+        OcultarVaultsFlyout();
+
         var confirmar = await ConfirmarExclusaoAsync(selecionado.Nome);
         if (!confirmar)
             return;
 
         await ViewModel.ExcluirCofreAsync(selecionado.Id);
-        AtualizarTextoCofreSelecionado();
     }
 
     private async void OnImportarBackupClick(object sender, RoutedEventArgs e)
@@ -189,7 +199,6 @@ public sealed partial class UnlockPage : Page
         var conteudo = new byte[buffer.Length];
         DataReader.FromBuffer(buffer).ReadBytes(conteudo);
         await ViewModel.ImportarAsync(conteudo, senha);
-        AtualizarTextoCofreSelecionado();
     }
 
     private async Task<StorageFile?> EscolherArquivoBackupAsync()
@@ -241,7 +250,7 @@ public sealed partial class UnlockPage : Page
             PlaceholderText = _localization.GetString("UnlockPage_NovoNomeBox.PlaceholderText")
         };
 
-        var painel = new StackPanel { Spacing = 8 };
+        var painel = new StackPanel { Spacing = 8, MinWidth = 360, MinHeight = 120 };
         painel.Children.Add(new TextBlock
         {
             Text = _localization.GetString("UnlockPage_DialogNovoArquivo.Text"),
@@ -259,13 +268,15 @@ public sealed partial class UnlockPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        dialogo.MinWidth = 420;
+        dialogo.MinHeight = 300;
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
             return null;
 
-        var nome = nomeBox.Text?.Trim();
-        // Nome vazio -> gera vault-1/vault-2 automaticamente
-        return string.IsNullOrWhiteSpace(nome) ? null : nome;
+        // Retorna string vazia quando em branco para gerar vault-1/vault-2 automaticamente
+        // (null é apenas para cancelamento)
+        return nomeBox.Text?.Trim() ?? string.Empty;
     }
 
     private async Task<(string senha, string confirmacao)?> PedirSenhaCriacaoAsync()
@@ -281,7 +292,15 @@ public sealed partial class UnlockPage : Page
             PasswordRevealMode = PasswordRevealMode.Peek
         };
 
-        var painel = new StackPanel { Spacing = 8 };
+        var erro = new TextBlock
+        {
+            Foreground = new Microsoft.UI.Xaml.Media.SolidColorBrush(Microsoft.UI.Colors.Red),
+            TextWrapping = TextWrapping.Wrap,
+            Visibility = Visibility.Collapsed,
+            FontSize = 12
+        };
+
+        var painel = new StackPanel { Spacing = 8, MinWidth = 360, MinHeight = 120 };
         painel.Children.Add(new TextBlock
         {
             Text = _localization.GetString("UnlockPage_DialogNovoArquivoSenha.Text"),
@@ -289,6 +308,7 @@ public sealed partial class UnlockPage : Page
         });
         painel.Children.Add(senhaBox);
         painel.Children.Add(confirmBox);
+        painel.Children.Add(erro);
 
         var dialogo = new ContentDialog
         {
@@ -298,7 +318,38 @@ public sealed partial class UnlockPage : Page
             CloseButtonText = _localization.GetString("UnlockPage_DialogNovoArquivo.CloseButtonText"),
             DefaultButton = ContentDialogButton.Primary,
             XamlRoot = XamlRoot,
-            RequestedTheme = App.ObterTemaPendente()
+            RequestedTheme = App.ObterTemaPendente(),
+            IsPrimaryButtonEnabled = false
+        };
+        dialogo.MinWidth = 420;
+        dialogo.MinHeight = 300;
+
+        void AtualizarBotao()
+        {
+            dialogo.IsPrimaryButtonEnabled = !string.IsNullOrWhiteSpace(senhaBox.Password) && !string.IsNullOrWhiteSpace(confirmBox.Password);
+            erro.Visibility = Visibility.Collapsed;
+            erro.Text = string.Empty;
+        }
+
+        senhaBox.PasswordChanged += (_, _) => AtualizarBotao();
+        confirmBox.PasswordChanged += (_, _) => AtualizarBotao();
+
+        dialogo.PrimaryButtonClick += (_, args) =>
+        {
+            if (string.IsNullOrWhiteSpace(senhaBox.Password) || string.IsNullOrWhiteSpace(confirmBox.Password))
+            {
+                erro.Text = _localization.GetString("UnlockViewModel_Erro_SenhasNaoConferem");
+                erro.Visibility = Visibility.Visible;
+                args.Cancel = true;
+                return;
+            }
+
+            if (senhaBox.Password != confirmBox.Password)
+            {
+                erro.Text = _localization.GetString("UnlockViewModel_Erro_SenhasNaoConferem");
+                erro.Visibility = Visibility.Visible;
+                args.Cancel = true;
+            }
         };
 
         if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
