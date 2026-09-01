@@ -78,18 +78,25 @@ jobs:
       - name: Instalar WiX Toolset
         run: dotnet tool install --global wix --version 5.0.2
 
+      - name: Instalar WiX UI extension
+        run: wix extension add -g WixToolset.UI.wixext --version 5.0.2
+
       - name: Gerar MSI com WiX
         shell: pwsh
         run: |
           $publishDir = (Resolve-Path publish).Path
           Write-Host "PublishDir: $publishDir"
           Get-ChildItem $publishDir | Format-Table Name, Length | Out-String -Width 200 | Write-Host
+          # Verificar Assets do ícone (correção de ícone ausente)
+          if (Test-Path "$publishDir/Assets/logo-password-manager.ico") { Write-Host "Ícone encontrado em publish/Assets/logo-password-manager.ico" } else { Write-Warning "Ícone NÃO encontrado em publish/Assets/" }
           # Gerar AppFiles.wxs via PowerShell (heat removido no WiX v5)
           powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir "$publishDir" -Output "installer/AppFiles.wxs"
           if (-not (Test-Path installer/AppFiles.wxs)) { throw "AppFiles.wxs não gerado" }
           Write-Host "AppFiles.wxs gerado:"; Get-Content installer/AppFiles.wxs | Select-Object -First 20 | Out-String | Write-Host
-          # Build MSI (sem UI custom - next-next basico, sem cert)
-          wix build -arch x64 -d PublishDir="$publishDir" -o "PasswordManager-0.1.0-x64.msi" installer/Package.wxs installer/AppFiles.wxs
+          # Build MSI com UI traduzida (pt-BR + en-US), seleção de idioma, pasta e atalho desktop opcional
+          # WixUI_Custom + LanguageSelectionDlg + VerifyReadyDlg_Custom implementam: 1) seleção de idioma, 2) escolha de pasta, 3) checkbox desktop
+          # Bilingual (pt-BR/en-US) para dialogs padrão localizados via WixToolset.UI.wixext; custom dialogs via Strings_pt-BR (neutro)
+          wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir="$publishDir" -o "PasswordManager-0.1.0-x64.msi" installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
           if (-not (Test-Path "PasswordManager-0.1.0-x64.msi")) { throw "MSI não gerado" }
           Get-ChildItem "PasswordManager-0.1.0-x64.msi" | Format-List Name,Length | Out-String | Write-Host
 

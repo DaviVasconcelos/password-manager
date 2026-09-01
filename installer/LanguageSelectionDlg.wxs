@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+    <UI>
+      <Dialog Id="LanguageSelectionDlg" Width="370" Height="270" Title="!(loc.LanguageDlg_Title)">
+        <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="WixUI_Bmp_Banner" />
+        <Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
+        <Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
+        <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.LanguageDlg_Title)" />
+        <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.LanguageDlg_Description)" />
+        <Control Id="LangLabel" Type="Text" X="20" Y="60" Width="330" Height="18" NoPrefix="yes" Text="!(loc.LanguageDlg_Label)" />
+        <Control Id="LangGroup" Type="RadioButtonGroup" X="20" Y="80" Width="330" Height="60" Property="INSTALLER_LANGUAGE" Text="!(loc.LanguageDlg_Group)">
+          <RadioButtonGroup Property="INSTALLER_LANGUAGE">
+            <RadioButton Value="pt-BR" X="0" Y="0" Width="300" Height="18" Text="!(loc.LanguageDlg_ptBR)" />
+            <RadioButton Value="en-US" X="0" Y="20" Width="300" Height="18" Text="!(loc.LanguageDlg_enUS)" />
+          </RadioButtonGroup>
+        </Control>
+        <Control Id="InfoText" Type="Text" X="20" Y="145" Width="330" Height="30" Transparent="yes" NoPrefix="yes" Text="!(loc.LanguageDlg_Info)" />
+        <Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" Disabled="yes" />
+        <Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)">
+          <Publish Event="NewDialog" Value="WelcomeDlg" Condition="1" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="243" Width="56" Height="17" Cancel="yes" Text="!(loc.WixUICancel)">
+          <Publish Event="SpawnDialog" Value="CancelDlg" Condition="1" />
+        </Control>
+      </Dialog>
+    </UI>
+  </Fragment>
+</Wix>

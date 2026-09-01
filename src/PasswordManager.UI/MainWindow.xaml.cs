@@ -55,7 +55,28 @@ namespace PasswordManager.UI
                 var appWindow = AppWindow.GetFromWindowId(windowId);
                 if (appWindow is null)
                     return;
-                appWindow.SetIcon("Assets\\logo-password-manager.ico");
+                // Ícone da janela (canto superior esquerdo) e barra de tarefas:
+                // usar caminho absoluto baseado no diretório do executável — o
+                // caminho relativo "Assets\\..." falha quando CurrentDirectory != INSTALLFOLDER.
+                var baseDir = System.AppContext.BaseDirectory;
+                var candidatos = new[]
+                {
+                    System.IO.Path.Combine(baseDir, "Assets", "logo-password-manager.ico"),
+                    System.IO.Path.Combine(baseDir, "logo-password-manager.ico"),
+                    "Assets\\logo-password-manager.ico"
+                };
+                foreach (var iconPath in candidatos)
+                {
+                    try
+                    {
+                        if (System.IO.File.Exists(iconPath))
+                        {
+                            appWindow.SetIcon(iconPath);
+                            break;
+                        }
+                    }
+                    catch { }
+                }
 
                 var displayArea = DisplayArea.GetFromWindowId(windowId, DisplayAreaFallback.Nearest);
                 var workArea = displayArea.WorkArea;

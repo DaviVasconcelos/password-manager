@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="en-US" Codepage="1252" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductName" Value="PasswordManager" />
+  <String Id="Manufacturer" Value="PasswordManager" />
+  <String Id="PackageDescription" Value="Local and offline password manager" />
+  <String Id="MajorUpgradeDowngradeError" Value="A newer version is already installed." />
+  <String Id="ProductFeatureDescription" Value="Main application and shortcuts" />
+  <String Id="ShortcutName" Value="PasswordManager" />
+  <String Id="ShortcutDescription" Value="Local and offline password manager" />
+  <String Id="DesktopFeatureTitle" Value="Desktop Shortcut" />
+  <String Id="DesktopFeatureDescription" Value="Create a shortcut on the desktop" />
+  <String Id="LanguageDlg_Title" Value="Language Selection" />
+  <String Id="LanguageDlg_Description" Value="Choose the installer language" />
+  <String Id="LanguageDlg_Label" Value="Select the language to use during installation:" />
+  <String Id="LanguageDlg_Group" Value="Language" />
+  <String Id="LanguageDlg_ptBR" Value="Português (Brasil)" />
+  <String Id="LanguageDlg_enUS" Value="English" />
+  <String Id="LanguageDlg_Info" Value="The application language can be changed later in Settings." />
+  <String Id="DesktopDlg_Title" Value="Desktop Shortcut" />
+  <String Id="DesktopDlg_Description" Value="Choose whether to create a desktop shortcut" />
+  <String Id="DesktopDlg_Checkbox" Value="Create desktop shortcut" />
+  <String Id="DesktopDlg_Info" Value="You can change this later by deleting or creating the shortcut manually." />
+</WixLocalization>

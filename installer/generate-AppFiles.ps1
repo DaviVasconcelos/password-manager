@@ -18,6 +18,34 @@ $sb = New-Object System.Text.StringBuilder
 [void]$sb.AppendLine('<?xml version="1.0" encoding="UTF-8"?>')
 [void]$sb.AppendLine('<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">')
 [void]$sb.AppendLine('  <Fragment>')
+# Criar definições de diretórios relativos (ex.: Assets -> INSTALLFOLDER\Assets)
+# Suporta subpastas aninhadas via cadeia de Directory
+$dirMap = @{}
+foreach ($relDir in $dirs.Keys | Where-Object { $_ -ne "" } | Sort-Object) {
+    $parts = $relDir -split '[\\/]'
+    $acum = ""
+    $parentId = "INSTALLFOLDER"
+    for ($i = 0; $i -lt $parts.Length; $i++) {
+        $acum = if ($acum -eq "") { $parts[$i] } else { "$acum\$($parts[$i])" }
+        $id = "dir_" + ($acum -replace '[^a-zA-Z0-9]', '_')
+        if (-not $dirMap.ContainsKey($id)) {
+            $leaf = $parts[$i]
+            # Primeiro nível fica sob INSTALLFOLDER, níveis seguintes sob o pai
+            if ($i -eq 0) {
+                [void]$sb.AppendLine("    <DirectoryRef Id=`"INSTALLFOLDER`">")
+                [void]$sb.AppendLine("      <Directory Id=`"$id`" Name=`"$leaf`" />")
+                [void]$sb.AppendLine("    </DirectoryRef>")
+            } else {
+                $parentAcum = ($parts[0..($i-1)] -join '\')
+                $parentId2 = "dir_" + ($parentAcum -replace '[^a-zA-Z0-9]', '_')
+                [void]$sb.AppendLine("    <DirectoryRef Id=`"$parentId2`">")
+                [void]$sb.AppendLine("      <Directory Id=`"$id`" Name=`"$leaf`" />")
+                [void]$sb.AppendLine("    </DirectoryRef>")
+            }
+            $dirMap[$id] = $true
+        }
+    }
+}
 [void]$sb.AppendLine('    <ComponentGroup Id="AppFiles" Directory="INSTALLFOLDER">')
 foreach ($f in $files) {
     $rel = $f.FullName.Substring($publishDir.Length + 1)

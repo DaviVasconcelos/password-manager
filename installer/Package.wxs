@@ -1,30 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Instalador MSI next-next para PasswordManager (WinUI 3 unpackaged).
+  Instalador MSI para PasswordManager (WinUI 3 unpackaged).
 
-  Build: dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 self-contained -o publish
-         wix heat dir publish -cg AppFiles -dr INSTALLFOLDER -var var.PublishDir -o installer/AppFiles.wxs
-         wix build -arch x64 -d PublishDir=publish -o PasswordManager.msi installer/Package.wxs installer/AppFiles.wxs
+  Fluxo UI (WixUI_InstallDir_Custom):
+    1) LanguageSelectionDlg - seleção de idioma (pt-BR / en-US)
+    2) WelcomeDlg
+    3) LicenseAgreementDlg
+    4) InstallDirDlg - escolha da pasta (WIXUI_INSTALLDIR = INSTALLFOLDER)
+    5) VerifyReadyDlg_Custom - checkbox opcional "Criar atalho na área de trabalho"
+    6) Progress / Exit
 
-  O CI (.github/workflows/ci.yml) faz exatamente isso e publica PasswordManager-*.msi como artefato.
-  Version vem de Package/@Version (sincronize com git tag). UpgradeCode é estável - não altere.
+  Build (local):
+    dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 -self-contained -o publish
+    powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
+    wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir=publish -o PasswordManager.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl -loc installer/Loc/Strings_en-US.wxl
+
+  UpgradeCode é estável - não altere.
+  Correções: ícone via AppWindow.SetIcon com Assets copiado; MSI com UI completa.
 -->
-<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-  <Package Name="PasswordManager"
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+  <Package Name="!(loc.ProductName)"
            Version="0.1.0"
-           Manufacturer="PasswordManager"
+           Manufacturer="!(loc.Manufacturer)"
            UpgradeCode="DA5FDCB9-00C2-4650-9224-0625EBD58AB1"
            Language="1033"
            Codepage="1252"
            Scope="perMachine">
 
-    <SummaryInformation Keywords="PasswordManager" Description="Gerenciador de senhas local e offline" Manufacturer="PasswordManager" />
+    <SummaryInformation Keywords="PasswordManager" Description="!(loc.PackageDescription)" Manufacturer="!(loc.Manufacturer)" />
 
-    <!-- Permite upgrade major (remove versão antiga) -->
-    <MajorUpgrade DowngradeErrorMessage="Uma versão mais recente já está instalada." />
+    <MajorUpgrade DowngradeErrorMessage="!(loc.MajorUpgradeDowngradeError)" />
 
-    <!-- Media: MSI single cab -->
     <Media Id="1" Cabinet="PasswordManager.cab" EmbedCab="yes" />
+
+    <!-- Propriedades de UI -->
+    <Property Id="CREATE_DESKTOP_SHORTCUT" Value="1" />
+    <Property Id="INSTALLER_LANGUAGE" Value="pt-BR" Secure="yes" />
+
+    <!-- UI custom: LanguageSelectionDlg + VerifyReady com checkbox desktop -->
+    <ui:WixUI Id="WixUI_InstallDir_Custom" InstallDirectory="INSTALLFOLDER" />
 
     <!-- ESTRUTURA DE DIRETÓRIOS -->
     <StandardDirectory Id="ProgramFiles64Folder">
@@ -35,24 +51,27 @@
     </StandardDirectory>
     <StandardDirectory Id="DesktopFolder" />
 
-    <!-- FEATURE PRINCIPAL -->
-    <Feature Id="ProductFeature" Title="PasswordManager" Level="1">
+    <!-- FEATURES -->
+    <Feature Id="ProductFeature" Title="!(loc.ProductName)" Level="1" Description="!(loc.ProductFeatureDescription)" Display="expand" ConfigurableDirectory="INSTALLFOLDER">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
+    </Feature>
+    <Feature Id="DesktopShortcutFeature" Title="!(loc.DesktopFeatureTitle)" Description="!(loc.DesktopFeatureDescription)" Level="1">
+      <Level Value="0" Condition="NOT CREATE_DESKTOP_SHORTCUT" />
       <ComponentRef Id="DesktopShortcut" />
     </Feature>
 
-    <!-- Atalho no Menu Iniciar -->
+    <!-- Atalho no Menu Iniciar (sempre) -->
     <Component Id="StartMenuShortcut" Directory="ProgramMenuDir" Guid="B43AD99D-12E0-4698-85B3-6B1C711B766C">
-      <Shortcut Id="StartMenuShortcut" Name="PasswordManager" Description="Gerenciador de senhas local e offline"
+      <Shortcut Id="StartMenuShortcut" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
                 Target="[INSTALLFOLDER]PasswordManager.UI.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon.exe" />
       <RegistryValue Root="HKCU" Key="Software\PasswordManager" Name="installed" Type="integer" Value="1" KeyPath="yes" />
       <RemoveFolder Id="CleanUpShortCut" Directory="ProgramMenuDir" On="uninstall" />
     </Component>
 
-    <!-- Atalho na Área de Trabalho -->
+    <!-- Atalho na Área de Trabalho (opcional) -->
     <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="C43AD99D-12E0-4698-85B3-6B1C711B766D">
-      <Shortcut Id="DesktopShortcut" Name="PasswordManager" Description="Gerenciador de senhas local e offline"
+      <Shortcut Id="DesktopShortcut" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
                 Target="[INSTALLFOLDER]PasswordManager.UI.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon.exe" />
       <RegistryValue Root="HKCU" Key="Software\PasswordManager" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
     </Component>
@@ -60,8 +79,6 @@
     <Icon Id="AppIcon.exe" SourceFile="src\PasswordManager.UI\Assets\logo-password-manager.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.exe" />
     <Property Id="ARPHELPLINK" Value="https://github.com/DaviVasconcelos/password-manager" />
-
-
 
   </Package>
 </Wix>

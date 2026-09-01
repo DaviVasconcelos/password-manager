@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<WixLocalization Culture="pt-BR" Codepage="1252" xmlns="http://wixtoolset.org/schemas/v4/wxl">
+  <String Id="ProductName" Value="PasswordManager" />
+  <String Id="Manufacturer" Value="PasswordManager" />
+  <String Id="PackageDescription" Value="Gerenciador de senhas local e offline" />
+  <String Id="MajorUpgradeDowngradeError" Value="Uma versão mais recente já está instalada." />
+  <String Id="ProductFeatureDescription" Value="Aplicação principal e atalhos" />
+  <String Id="ShortcutName" Value="PasswordManager" />
+  <String Id="ShortcutDescription" Value="Gerenciador de senhas local e offline" />
+  <String Id="DesktopFeatureTitle" Value="Atalho na Área de Trabalho" />
+  <String Id="DesktopFeatureDescription" Value="Cria atalho na área de trabalho" />
+  <String Id="LanguageDlg_Title" Value="Seleção de Idioma" />
+  <String Id="LanguageDlg_Description" Value="Escolha o idioma do instalador" />
+  <String Id="LanguageDlg_Label" Value="Selecione o idioma a ser usado durante a instalação:" />
+  <String Id="LanguageDlg_Group" Value="Idioma" />
+  <String Id="LanguageDlg_ptBR" Value="Português (Brasil)" />
+  <String Id="LanguageDlg_enUS" Value="English" />
+  <String Id="LanguageDlg_Info" Value="O idioma da aplicação pode ser alterado depois em Configurações." />
+  <String Id="DesktopDlg_Title" Value="Atalho na Área de Trabalho" />
+  <String Id="DesktopDlg_Description" Value="Escolha se deseja criar atalho na área de trabalho" />
+  <String Id="DesktopDlg_Checkbox" Value="Criar atalho na área de trabalho" />
+  <String Id="DesktopDlg_Info" Value="Você pode alterar isso depois apagando ou criando o atalho manualmente." />
+</WixLocalization>
