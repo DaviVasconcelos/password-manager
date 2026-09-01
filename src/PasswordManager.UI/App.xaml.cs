@@ -5,10 +5,12 @@ using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.PasswordGeneration;
 using PasswordManager.Application.Settings;
 using PasswordManager.Application.VaultSession;
+using PasswordManager.Application.VaultRegistry;
 using PasswordManager.Infrastructure.Cryptography;
 using PasswordManager.Infrastructure.ExportImport;
 using PasswordManager.Infrastructure.Persistence;
 using PasswordManager.Infrastructure.Settings;
+using PasswordManager.Infrastructure.VaultRegistry;
 using PasswordManager.UI.Localization;
 using PasswordManager.UI.Services;
 using PasswordManager.UI.ViewModels;
@@ -345,21 +347,31 @@ namespace PasswordManager.UI
                 "PasswordManager");
             Directory.CreateDirectory(appDataDir);
 
+            var vaultsDir = Path.Combine(appDataDir, "Vaults");
+            var vaultsJsonPath = Path.Combine(appDataDir, "vaults.json");
+            Directory.CreateDirectory(vaultsDir);
+
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
             services.AddSingleton<IPasswordStrengthEvaluator, PasswordStrengthEvaluator>();
 
-            services.AddSingleton<VaultDbContext>(_ =>
+            services.AddSingleton<IVaultDbContextFactory, VaultDbContextFactory>();
+
+            services.AddSingleton<IVaultRegistry>(sp =>
             {
-                var bankPath = Path.Combine(appDataDir, "vault.db");
+                var registry = new FileSystemVaultRegistry(vaultsJsonPath, vaultsDir);
+                // Inicialização síncrona no startup: cria pastas, migra vault.db legado -> Vaults/vault-1.db
+                registry.InicializarAsync().GetAwaiter().GetResult();
+                return registry;
+            });
 
-                var options = new DbContextOptionsBuilder<VaultDbContext>()
-                    .UseSqlite($"Data Source={bankPath}")
-                    .Options;
-
-                var context = new VaultDbContext(options);
-                VaultDatabaseMigrator.ApplyMigrations(context);
-                return context;
+            // Legado: mantém VaultDbContext singleton para compatibilidade de testes/DI
+            // (não é mais o caminho primário; multi-arquivo usa factory por arquivo).
+            services.AddSingleton<VaultDbContext>(sp =>
+            {
+                var factory = sp.GetRequiredService<IVaultDbContextFactory>();
+                var legacyPath = Path.Combine(appDataDir, "vault.db");
+                return factory.Create(legacyPath);
             });
 
             services.AddSingleton<IAppSettingsService>(_ =>
@@ -370,9 +382,32 @@ namespace PasswordManager.UI
             services.AddSingleton<ITimerFactory, DispatcherQueueTimerFactory>();
             services.AddSingleton<IIdiomaProvider, ApplicationLanguagesProvider>();
 
-            services.AddSingleton<IVaultRepository, VaultRepository>();
+            services.AddSingleton<IVaultRepositoryFactory, VaultRepositoryFactory>();
+
+            // Compatibilidade: IVaultRepository resolve para o ativo quando possível
+            services.AddSingleton<IVaultRepository>(sp =>
+            {
+                try
+                {
+                    var factory = sp.GetRequiredService<IVaultRepositoryFactory>();
+                    return factory.CreateForActive();
+                }
+                catch
+                {
+                    var f = sp.GetRequiredService<IVaultDbContextFactory>();
+                    var legacyPath = Path.Combine(appDataDir, "vault.db");
+                    return new VaultRepository(f, legacyPath, sp.GetRequiredService<ICryptoService>());
+                }
+            });
+
             services.AddSingleton<IExportImportService, ExportImportService>();
-            services.AddSingleton<IVaultSessionService, VaultSessionService>();
+            services.AddSingleton<IVaultSessionService>(sp =>
+                new VaultSessionService(
+                    sp.GetRequiredService<IVaultRepository>(),
+                    sp.GetRequiredService<IVaultRegistry>(),
+                    sp.GetRequiredService<IVaultRepositoryFactory>(),
+                    sp.GetRequiredService<ICryptoService>(),
+                    sp.GetRequiredService<IExportImportService>()));
 
             services.AddTransient<UnlockViewModel>();
             services.AddTransient<VaultViewModel>();
