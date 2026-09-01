@@ -59,10 +59,13 @@
   <data name="VaultPage_NavConfiguracoes.Content" xml:space="preserve"><value>Configurações</value></data>
   <data name="VaultPage_NavTrancar.Content" xml:space="preserve"><value>Trancar</value></data>
 
-  <!-- VaultPage - Ações do cofre -->
+   <!-- VaultPage - Ações do cofre -->
   <data name="VaultPage_BtnExportar.Content" xml:space="preserve"><value>Exportar</value></data>
   <data name="VaultPage_BtnImportar.Content" xml:space="preserve"><value>Importar</value></data>
   <data name="VaultPage_BtnTrocarSenhaMestra.Content" xml:space="preserve"><value>Trocar senha mestra</value></data>
+  <data name="VaultPage_BtnRenomearCofre.Content" xml:space="preserve"><value>Renomear cofre</value></data>
+  <data name="VaultPage_BtnExcluirCofre.Content" xml:space="preserve"><value>Excluir cofre</value></data>
+  <data name="VaultPage_CofreAtivoSufixo.Text" xml:space="preserve"><value>— cofre ativo</value></data>
 
   <!-- VaultPage - Filtros e tabela -->
   <data name="VaultPage_BuscaBox.PlaceholderText" xml:space="preserve"><value>Buscar por título, usuário, URL, notas ou categoria...</value></data>

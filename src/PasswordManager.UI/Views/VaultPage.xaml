@@ -93,12 +93,20 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />
                 <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
+            <!-- Cofre ativo -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="8" Margin="0,0,0,4">
+                <FontIcon Glyph="&#xE8B7;" FontSize="14" Foreground="{ThemeResource PMTextSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Bind ViewModel.NomeCofreAtivo, Mode=OneWay}" Style="{StaticResource PMCaptionStyle}" Foreground="{ThemeResource PMTextSecondaryBrush}" VerticalAlignment="Center" />
+                <TextBlock x:Uid="VaultPage_CofreAtivoSufixo" Style="{StaticResource PMCaptionStyle}" Foreground="{ThemeResource PMTextSecondaryBrush}" VerticalAlignment="Center" />
+            </StackPanel>
+
             <!-- Busca + filtro de pasta + novo item -->
-            <Grid x:Name="GridBusca" Grid.Row="0" ColumnSpacing="8" RowSpacing="8">
+            <Grid x:Name="GridBusca" Grid.Row="1" ColumnSpacing="8" RowSpacing="8">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="Auto" />
@@ -127,14 +135,16 @@
             </Grid>
 
             <!-- Ações do cofre (abaixo da busca, alinhadas à esquerda como no protótipo) -->
-            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+            <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
                 <Button x:Uid="VaultPage_BtnExportar" Style="{StaticResource PMButtonSecondary}" Click="OnExportarClick" />
                 <Button x:Uid="VaultPage_BtnImportar" Style="{StaticResource PMButtonSecondary}" Click="OnImportarClick" />
                 <Button x:Uid="VaultPage_BtnTrocarSenhaMestra" Style="{StaticResource PMButtonSecondary}" Click="OnTrocarSenhaMestraClick" />
+                <Button x:Uid="VaultPage_BtnRenomearCofre" Style="{StaticResource PMButtonSecondary}" Click="OnRenomearCofreClick" />
+                <Button x:Uid="VaultPage_BtnExcluirCofre" Style="{StaticResource PMButtonSecondary}" Click="OnExcluirCofreClick" />
             </StackPanel>
 
             <!-- Tabela de itens -->
-            <ListView Grid.Row="2"
+            <ListView Grid.Row="3"
                       ItemsSource="{x:Bind ViewModel.DisplayedItems}"
                       SelectionMode="None"
                       IsItemClickEnabled="False"
@@ -228,7 +238,7 @@
             </ListView>
 
             <!-- Banners (em fluxo, abaixo da tabela) -->
-            <StackPanel Grid.Row="3" Spacing="8">
+            <StackPanel Grid.Row="4" Spacing="8">
                 <Border x:Name="ToastSenhaCopiada"
                         Background="{ThemeResource PMSuccessBackgroundBrush}"
                         BorderBrush="{ThemeResource PMSuccessStrokeBrush}"

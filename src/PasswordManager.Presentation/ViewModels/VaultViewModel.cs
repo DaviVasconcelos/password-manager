@@ -94,10 +94,16 @@ public partial class VaultViewModel : ObservableObject
 
     partial void OnOpcaoPastaSelecionadaChanged(OpcoesPasta? value) => AddFilter();
 
+    /// <summary>
+    /// Nome do cofre ativo (arquivo selecionado na UnlockPage).
+    /// </summary>
+    public string NomeCofreAtivo => _sessionService.CofreAtivo?.Nome ?? string.Empty;
+
     public void Inicializar()
     {
         AplicarConfiguracoes();
         ReloadFolders();
+        OnPropertyChanged(nameof(NomeCofreAtivo));
     }
 
     /// <summary>
@@ -325,6 +331,26 @@ public partial class VaultViewModel : ObservableObject
     /// </summary>
     public Task TrocarSenhaMestraAsync(string senhaAtual, string novaSenhaMestra)
         => _sessionService.ChangeMasterPasswordAsync(senhaAtual, novaSenhaMestra);
+
+    /// <summary>
+    /// Renomeia o cofre ativo (sem exigir desbloqueio adicional além da sessão atual).
+    /// </summary>
+    public async Task RenomearCofreAsync(string novoNome)
+    {
+        var ativo = _sessionService.CofreAtivo ?? throw new InvalidOperationException("Nenhum cofre ativo.");
+        await _sessionService.RenomearCofreAsync(ativo.Id, novoNome);
+        OnPropertyChanged(nameof(NomeCofreAtivo));
+    }
+
+    /// <summary>
+    /// Exclui o cofre ativo e tranca a sessão (navega para UnlockPage).
+    /// </summary>
+    public async Task ExcluirCofreAtivoAsync()
+    {
+        var ativo = _sessionService.CofreAtivo ?? throw new InvalidOperationException("Nenhum cofre ativo.");
+        await _sessionService.ExcluirCofreAsync(ativo.Id);
+        Trancar();
+    }
 
     private void OnTimerCleanClipboardTick(object? sender, object args)
     {

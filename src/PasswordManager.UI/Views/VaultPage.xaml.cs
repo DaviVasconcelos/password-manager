@@ -646,6 +646,83 @@ public sealed partial class VaultPage : Page
         return grade;
     }
 
+    private async void OnRenomearCofreClick(object sender, RoutedEventArgs e)
+    {
+        var atual = ViewModel.NomeCofreAtivo;
+        var novoNome = await PedirNovoNomeCofreAsync(atual);
+        if (novoNome is null)
+            return;
+
+        try
+        {
+            await ViewModel.RenomearCofreAsync(novoNome);
+        }
+        catch (Exception ex)
+        {
+            await MostrarErroAsync(ex.Message);
+        }
+    }
+
+    private async void OnExcluirCofreClick(object sender, RoutedEventArgs e)
+    {
+        var nome = ViewModel.NomeCofreAtivo;
+        if (string.IsNullOrWhiteSpace(nome))
+            return;
+
+        var confirmar = await ConfirmarExclusaoCofreAsync(nome);
+        if (!confirmar)
+            return;
+
+        try
+        {
+            await ViewModel.ExcluirCofreAtivoAsync();
+        }
+        catch (Exception ex)
+        {
+            await MostrarErroAsync(ex.Message);
+        }
+    }
+
+    private async Task<string?> PedirNovoNomeCofreAsync(string atual)
+    {
+        var nomeBox = new TextBox { Text = atual, PlaceholderText = _localization.GetString("UnlockPage_NovoNomeBox.PlaceholderText") };
+        var painel = new StackPanel { Spacing = 8 };
+        painel.Children.Add(new TextBlock { Text = _localization.GetString("UnlockPage_DialogRenomear.Text"), TextWrapping = TextWrapping.Wrap });
+        painel.Children.Add(nomeBox);
+
+        var dialogo = new ContentDialog
+        {
+            Title = _localization.GetString("UnlockPage_DialogRenomear.Title"),
+            Content = painel,
+            PrimaryButtonText = _localization.GetString("UnlockPage_DialogRenomear.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("UnlockPage_DialogRenomear.CloseButtonText"),
+            DefaultButton = ContentDialogButton.Primary,
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
+        };
+
+        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+            return null;
+
+        return nomeBox.Text?.Trim();
+    }
+
+    private async Task<bool> ConfirmarExclusaoCofreAsync(string nome)
+    {
+        var dialogo = new ContentDialog
+        {
+            Title = _localization.GetString("UnlockPage_DialogExcluir.Title"),
+            Content = string.Format(_localization.GetString("UnlockPage_DialogExcluir.Mensagem"), nome),
+            PrimaryButtonText = _localization.GetString("UnlockPage_DialogExcluir.PrimaryButtonText"),
+            CloseButtonText = _localization.GetString("UnlockPage_DialogExcluir.CloseButtonText"),
+            DefaultButton = ContentDialogButton.Close,
+            XamlRoot = XamlRoot,
+            RequestedTheme = App.ObterTemaPendente()
+        };
+
+        return await dialogo.ShowAsync() == ContentDialogResult.Primary;
+    }
+
     private async void OnExportarClick(object sender, RoutedEventArgs e)
     {
         var arquivo = await EscolherDestinoExportacaoAsync();
