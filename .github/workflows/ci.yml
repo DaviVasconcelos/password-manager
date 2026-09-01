@@ -79,7 +79,7 @@ jobs:
         run: dotnet tool install --global wix --version 5.0.2
 
       - name: Instalar WiX UI extension
-        run: wix extension add -g WixToolset.UI.wixext --version 5.0.2
+        run: wix extension add -g WixToolset.UI.wixext/5.0.2
 
       - name: Gerar MSI com WiX
         shell: pwsh
