@@ -10,7 +10,8 @@
   <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet" />
   <img alt="WinUI 3" src="https://img.shields.io/badge/WinUI-3-0078D4?logo=windows" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?logo=windows" />
-  <img alt="Tests" src="https://img.shields.io/badge/tests-181%20passing-brightgreen" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-247%20passing-brightgreen" />
+  <img alt="Distribuição" src="https://img.shields.io/badge/distribui%C3%A7%C3%A3o-MSI%20(WiX%205)-blue" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
 </p>
 
@@ -28,6 +29,7 @@
 - [Estrutura do Projeto](#estrutura-do-projeto)
 - [Pré-requisitos](#pré-requisitos)
 - [Instalação e Execução](#instalação-e-execução)
+- [Distribuição (MSI)](#distribuição-msi)
 - [Como Usar](#como-usar)
 - [Configurações](#configurações)
 - [Internacionalização (i18n)](#internacionalização-i18n)
@@ -45,16 +47,16 @@
 
 ## Sobre
 
-O **PasswordManager** é um gerenciador de senhas **100% local** para Windows. O cofre inteiro é serializado e armazenado como **um único blob criptografado** em SQLite — nenhum título, URL ou nome de pasta fica legível sem a senha mestra. A aplicação roda offline, com auto-lock por inatividade, gerador de senhas sem viés, avaliação de força e backup criptografado no formato proprietário `.vault`.
+O **PasswordManager** é um gerenciador de senhas **100% local** para Windows. O cofre inteiro é serializado e armazenado como **um único blob criptografado** em SQLite — nenhum título, URL ou nome de pasta fica legível sem a senha mestra. A aplicação roda offline, com auto-lock por inatividade, gerador de senhas sem viés, avaliação de força, tema claro/escuro/sistema, i18n (pt-BR/en-US) e backup criptografado no formato proprietário `.vault`. Distribuição via **MSI (WiX Toolset 5)** — app **unpackaged** (`WindowsPackageType=None`).
 
 Objetivos de engenharia demonstrados no projeto:
 
-- **Clean Architecture** com separação estrita Domain / Application / Infrastructure / UI
+- **Clean Architecture** com separação estrita Domain / Application / Infrastructure / Presentation / UI
 - **DDD** — `Vault` como agregado raiz, invariantes centralizadas
 - **Criptografia aplicada** — Argon2id + AES-256-GCM com parâmetros auditáveis
 - **Persistência segura** — SQLite/EF Core com blob único (ADR 0003)
-- **Testes automatizados** — 189 testes (xUnit + FluentAssertions)
-- **CI/CD** — GitHub Actions em `windows-latest`
+- **Testes automatizados** — 247 testes (xUnit + FluentAssertions), incluindo 58 de ViewModels desacoplados
+- **CI/CD** — GitHub Actions em `windows-latest` com build, testes e geração de MSI
 
 ---
 
@@ -70,11 +72,12 @@ Objetivos de engenharia demonstrados no projeto:
 | **Gerador de senhas** | `RandomNumberGenerator` sem viés de módulo, tamanho e conjuntos configuráveis |
 | **Força da senha** | Avaliação em `ForcaSenha` (enum) exibida na UI |
 | **Copiar senha** | Cópia para área de transferência com limpeza automática configurável |
-| **Auto-lock** | Trancamento por inatividade via `DispatcherQueueTimer` (padrão 2 min, configurável) |
+| **Auto-lock** | Trancamento por inatividade via `ITimer`/`DispatcherQueueTimer` (padrão 2 min, configurável) |
 | **Troca de senha mestra** | Exige senha atual (verificação em tempo constante), rotaciona salt + blob |
 | **Backup .vault** | Exportar/importar arquivo autocontido criptografado, com opção substituir ou mesclar |
+| **Tema** | Claro / escuro / sistema (`AppSettings.Tema`, `App.AplicarTema` + `DesignTokens.xaml`) |
+| **Idioma** | pt-BR / en-US (PRI + `Resources.resw`), detecção automática do SO |
 | **Configurações** | Persistidas em `settings.json` fora do cofre (sem segredos) |
-| **i18n** | UI em `pt-BR` e `en-US` via PRI + `Resources.resw`, fallback dependente do SO |
 
 > Pastas por nome case-insensitive no merge; itens deduplicados por título+usuário; novos GUIDs no merge para preservar invariantes do agregado.
 
@@ -86,7 +89,10 @@ Objetivos de engenharia demonstrados no projeto:
 
 ```
 ┌─────────────────────────────────────────────────┐
-│  UI (WinUI 3 + CommunityToolkit.Mvvm + DI)      │  Views, ViewModels, Dialogs, Services
+│  UI (WinUI 3 + CommunityToolkit.Mvvm + DI)      │  Views, Dialogs, Services reais
+├─────────────────────────────────────────────────┤
+│  Presentation (net8.0)                           │  ViewModels + Abstrações (IClipboardService,
+│                                                  │  ITimer/ITimerFactory, IIdiomaProvider)
 ├─────────────────────────────────────────────────┤
 │  Infrastructure                                  │  CryptoService, VaultRepository (EF Core),
 │                                                  │  ExportImportService, AppSettingsService
@@ -105,6 +111,7 @@ Objetivos de engenharia demonstrados no projeto:
 - **Agregado raiz** — `Vault` é o único ponto de mutação (`AddItem`, `RemoveItem`, `UpdateItem`, `AddFolder`, `RemoveFolder`, `RenameFolder`, `AssignItemToFolder`, `MergeFrom`). Não existe `IVaultItemRepository`. Coleções internas `_items`/`_folders` são privadas e expostas como `IReadOnlyCollection`. Ver `docs/adr/0001-vault-como-agregado-raiz.md`.
 - **Blob único criptografado** — `VaultRepository` serializa o `Vault` inteiro para JSON, criptografa com AES-256-GCM e persiste em **uma única linha** no SQLite. Busca/filtro ocorrem em memória após descriptografar. Ver `docs/adr/0003-armazenamento-do-cofre-como-blob-unico-criptografado.md`.
 - **Sessão centralizada** — `VaultSessionService` retém **apenas a chave derivada** em memória (nunca a senha), deriva via `ICryptoService` com o salt persistido e zera com `CryptographicOperations.ZeroMemory` no `Lock()`. Todo CRUD faz auto-save.
+- **Desacoplamento Presentation/UI** — ViewModels em `PasswordManager.Presentation` (`net8.0`, sem WinUI) dependem de abstrações (`IClipboardService`, `ITimer`, `IIdiomaProvider`, `ILocalizationService`); `PasswordManager.UI` fornece as implementações reais (`ClipboardService`, `DispatcherQueueTimerAdapter`, `ApplicationLanguagesProvider`). Testes em `PasswordManager.UI.Tests` usam fakes.
 - **Desacoplamento de I/O** — `IExportImportService` opera sobre `byte[]`; file pickers ficam na UI, mantendo Application/Infrastructure testáveis.
 
 ### Fluxo de Persistência
@@ -120,8 +127,8 @@ Export .vault      →  Serialize → novo salt → Encrypt(senha re-digitada) �
 
 ```
 Domain ──< Application ──< Infrastructure
-              ^                |
-              └────── UI ──────┘
+              ^               |
+              └─ Presentation └─ UI
 ```
 
 ---
@@ -147,17 +154,18 @@ Domain ──< Application ──< Infrastructure
 
 ## Stack
 
-| Camada | Tecnologia | Versão |
-|--------|------------|--------|
-| Linguagem / Runtime | C# / .NET | 8.0 (`net8.0`, SDK 10.0.302 via `global.json`) |
+| Camada | Tecnologia | Versão / Obs |
+|--------|------------|--------------|
+| Linguagem / Runtime | C# / .NET | 8.0 (`net8.0`, SDK 10.0.302 via `global.json`, `rollForward: latestFeature`) |
 | UI | WinUI 3 + Windows App SDK | 2.3.1 |
 | MVVM | CommunityToolkit.Mvvm | 8.3.2 |
 | DI | Microsoft.Extensions.DependencyInjection | 8.0.1 |
-| Persistência | EF Core + SQLite | 8.0.30 |
+| Persistência | EF Core + SQLite | 8.0.30 (`dotnet-ef` 8.0.30 via `.config/dotnet-tools.json`) |
 | Criptografia | Konscious.Security.Cryptography.Argon2 | 1.3.1 |
-| Testes | xUnit + FluentAssertions | — |
+| Testes | xUnit + FluentAssertions | 247 testes |
 | Logs | Serilog | — |
-| CI | GitHub Actions (`windows-latest`) | — |
+| Distribuição | WiX Toolset | 5.0.2 (MSI) |
+| CI | GitHub Actions (`windows-latest`) | build + testes + MSI |
 
 ---
 
@@ -165,34 +173,41 @@ Domain ──< Application ──< Infrastructure
 
 ```
 password-manager/
-├── PasswordManager.slnx              # Solution principal (Domain + App + Infra + UI + testes)
-├── src/PasswordManager.UI.slnx       # Solution só-UI (deploy MSIX)
+├── PasswordManager.slnx              # Solution principal (Domain + App + Infra + Presentation + UI + 4 testes)
+├── src/PasswordManager.UI.slnx       # Solution só-UI (unpackaged, MSI — WindowsPackageType=None)
 ├── global.json                       # SDK 10.0.302, rollForward latestFeature (projetos em net8.0)
+├── installer/
+│   ├── Package.wxs                   # Definição MSI (WiX 5, UpgradeCode estável, MajorUpgrade)
+│   └── generate-AppFiles.ps1         # Gera AppFiles.wxs a partir do publish self-contained
 ├── docs/
 │   ├── adr/                          # 0001..0007 — decisões de arquitetura
-│   └── design/
-│       ├── design-plan.md            # Plano do redesign Figma → WinUI 3
-│       └── figma-snapshot.md         # Snapshot regenerável (fonte de verdade)
+│   ├── design/
+│   │   ├── design-plan.md            # Plano do redesign Figma → WinUI 3
+│   │   └── figma-snapshot.md         # Snapshot regenerável (fonte de verdade)
+│   └── plans/06-testes-viewmodels.md # Plano Fase B — concluído
 ├── scripts/
 │   └── fetch-figma-design.ps1        # Regenera o snapshot via Figma REST API
 ├── src/
 │   ├── PasswordManager.Domain/       # Entidades, invariantes, Rehydrate (InternalsVisibleTo)
 │   ├── PasswordManager.Application/  # Interfaces, VaultSessionService, PasswordGeneration, Settings
 │   ├── PasswordManager.Infrastructure/ # CryptoService, VaultRepository, ExportImportService, AppSettingsService
-│   └── PasswordManager.UI/           # WinUI 3: Views, ViewModels, Localization, Strings/
+│   ├── PasswordManager.Presentation/ # ViewModels + Abstrações (net8.0, sem WinUI — testável)
+│   └── PasswordManager.UI/           # WinUI 3: Views, Services reais, DI, Localization, Strings/
 │       ├── Views/                    # UnlockPage, VaultPage, ItemEditorContent, GerenciarPastasContent, SettingsContent
-│       ├── ViewModels/               # UnlockViewModel, VaultViewModel, ItemEditorViewModel, SettingsViewModel
+│       ├── ViewModels/               # (legado — ViewModels migrados para Presentation)
+│       ├── Services/                 # ClipboardService, DispatcherQueueTimerAdapter, ApplicationLanguagesProvider
 │       ├── Localization/             # ILocalizationService / LocalizationService
 │       └── Strings/{pt-BR,en-US}/Resources.resw
 └── tests/
     ├── PasswordManager.Domain.Tests/         # 57 testes
     ├── PasswordManager.Application.Tests/    # 66 testes (com fakes)
-    └── PasswordManager.Infrastructure.Tests/ # 66 testes
+    ├── PasswordManager.Infrastructure.Tests/ # 66 testes (inclui VaultDbContextMigrationTests)
+    └── PasswordManager.UI.Tests/             # 58 testes (Vault 23 + Settings 10 + ItemEditor 10 + Unlock 12 + 3 smoke)
 ```
 
 **Persistência em disco (Windows):**
 
-- Cofre: `%LocalAppData%\PasswordManager\vault.db` (via `VaultDatabaseMigrator.ApplyMigrations`: migration `InitialCreate` + baseline automático para bancos criados com `EnsureCreated`)
+- Cofre: `%LocalAppData%\PasswordManager\vault.db` (via `VaultDatabaseMigrator.ApplyMigrations`: migration `InitialCreate` + baseline automático para bancos legados criados com `EnsureCreated`)
 - Configurações: `%LocalAppData%\PasswordManager\settings.json`
 
 ---
@@ -203,28 +218,29 @@ password-manager/
 - **.NET SDK 10.0.302** (instalado automaticamente pelo `setup-dotnet` lendo `global.json`; o SDK 10 compila projetos `net8.0` sem alteração de TFM)
 - **Runtime .NET 8.0.x** (instalado no CI e necessário para executar os testes)
 - **Visual Studio 2022 17.8+** ou **VS Code** com workload de desenvolvimento Windows (para build da UI com `Microsoft.WindowsAppSDK` e `Microsoft.Windows.SDK.BuildTools`)
+- Para gerar MSI localmente: **WiX Toolset 5.0.2** (`dotnet tool install --global wix --version 5.0.2`)
 - Para regenerar o snapshot do Figma: variável de ambiente `FIGMA_PERSONAL_ACCESS_TOKEN` (nunca commitar)
 
 ---
 
 ## Instalação e Execução
 
+### Via código (desenvolvimento)
+
 ```powershell
 # 1. Clonar
 git clone https://github.com/DaviVasconcelos/password-manager.git
 Set-Location password-manager
 
-# 2. Compilar a solution principal (Domain + Application + Infrastructure + UI + testes)
-dotnet build PasswordManager.slnx
+# 2. Compilar a solution principal (Domain + Application + Infrastructure + Presentation + UI + testes)
+#    Requer -p:Platform=x64 por causa do PasswordManager.UI unpackaged
+dotnet build PasswordManager.slnx -p:Platform=x64
 
-# 3. Executar os testes (189 testes)
-dotnet test PasswordManager.slnx
+# 3. Executar os testes (247 testes)
+dotnet test PasswordManager.slnx -p:Platform=x64
 
-# 4. (Opcional) Compilar só a UI — exige tooling do Windows App SDK
-dotnet build src/PasswordManager.UI/PasswordManager.UI.csproj
-
-# 5. Executar a UI — abrir src/PasswordManager.UI.slnx no Visual Studio
-#    e pressionar F5 (x64 / x86 / ARM64). Não é executável headless via CLI.
+# 4. Executar a UI — abrir src/PasswordManager.UI.slnx no Visual Studio
+#    e pressionar F5 (x64). Não é executável headless via CLI.
 ```
 
 > A solution é `.slnx` (formato novo), não `.sln`. O `global.json` fixa o SDK em `10.0.302` (`rollForward: latestFeature`) — não "corrija" o TFM para `net10.0`.
@@ -235,7 +251,27 @@ dotnet build src/PasswordManager.UI/PasswordManager.UI.csproj
 dotnet test tests/PasswordManager.Domain.Tests/PasswordManager.Domain.Tests.csproj
 dotnet test tests/PasswordManager.Application.Tests/PasswordManager.Application.Tests.csproj
 dotnet test tests/PasswordManager.Infrastructure.Tests/PasswordManager.Infrastructure.Tests.csproj
+dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj -p:Platform=x64
 ```
+
+---
+
+## Distribuição (MSI)
+
+O app é **unpackaged** (`WindowsPackageType=None`, `EnableMsixTooling=false`, `PublishTrimmed=false` — EF Core não é trimming-safe). A distribuição é via **MSI next-next** com WiX Toolset 5.
+
+```powershell
+# Gerar MSI localmente (Release, self-contained win-x64)
+dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
+powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
+wix build -arch x64 -d PublishDir=publish -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs
+```
+
+- `installer/Package.wxs` — `Version="0.1.0"` (sincronize com git tag), `UpgradeCode` estável (não altere), `MajorUpgrade` para upgrades, atalhos no Menu Iniciar e Área de Trabalho.
+- `installer/AppFiles.wxs` — gerado dinamicamente, `gitignored`.
+- Saída no CI: `PasswordManager-0.1.0-x64.msi` publicado como artefato (30 dias, **unsigned**). Instalação silenciosa: `msiexec /i PasswordManager-0.1.0-x64.msi /qn`.
+
+> Histórico: o projeto cogitou MSIX, mas a decisão final é **MSI puro** para manter o app unpackaged e simplificar distribuição/CI. Nunca use `WindowsPackageType=MSIX`.
 
 ---
 
@@ -248,7 +284,8 @@ dotnet test tests/PasswordManager.Infrastructure.Tests/PasswordManager.Infrastru
 5. **Gerar senha** — no diálogo de item, ajuste tamanho e conjuntos (maiúsculas, minúsculas, números, símbolos) e veja a força em tempo real.
 6. **Trancar** — manual pelo botão ou automático por inatividade.
 7. **Trocar senha mestra** — exige senha atual + nova senha + confirmação; rotaciona salt e re-criptografa o blob.
-8. **Exportar/Importar** — gere um `.vault` com a senha re-digitada; na importação escolha **Substituir** ou **Mesclar**. Import com sessão trancada só é permitido quando ainda não existe cofre local.
+8. **Tema e idioma** — em **Configurações** (tema claro/escuro/sistema, idioma pt-BR/en-US/auto); tema aplica ao vivo, idioma requer reinício.
+9. **Exportar/Importar** — gere um `.vault` com a senha re-digitada; na importação escolha **Substituir** ou **Mesclar**. Import com sessão trancada só é permitido quando ainda não existe cofre local.
 
 ---
 
@@ -258,12 +295,14 @@ Acessíveis pelo diálogo **Configurações** na `VaultPage`:
 
 | Configuração | Padrão | Descrição |
 |--------------|--------|-----------|
-| Timeout de auto-lock | 2 minutos | Tranca por inatividade (não por perda de foco). `DispatcherQueueTimer` reiniciado a cada `Pointer`/`Key` |
+| Timeout de auto-lock | 2 minutos | Tranca por inatividade (não por perda de foco). `ITimer` reiniciado a cada `Pointer`/`Key` |
 | Tempo de limpeza do clipboard | 30 s | Zera a área de transferência após copiar senha |
-| Tamanho padrão do gerador | 16 | Comprimento da senha gerada |
+| Tamanho padrão do gerador | 20 | Comprimento da senha gerada (8–64) |
 | Conjuntos do gerador | todos ativos | Incluir maiúsculas / minúsculas / números / símbolos |
+| Tema | sistema | `sistema` / `claro` / `escuro` — aplica via `App.AplicarTema` / `RequestedTheme` |
+| Idioma | auto | `auto` (segue SO) / `pt-BR` / `en-US` — usa `ApplicationLanguages` + PRI |
 
-Persistência via `IAppSettingsService` + `AppSettingsService` em `%LocalAppData%\PasswordManager\settings.json` (JSON simples, sem segredos). Validação em `AppSettings`.
+Persistência via `IAppSettingsService` + `AppSettingsService` em `%LocalAppData%\PasswordManager\settings.json` (JSON simples, sem segredos). Validação em `AppSettings.Validar()`.
 
 ---
 
@@ -290,7 +329,7 @@ Implementada conforme **ADR 0007**:
 4. **Não altere** `AppSettings` nem `SettingsViewModel` — a validação aceita qualquer `CultureInfo` válido e o `ComboBox` de idioma em **Configurações** lista automaticamente todos os idiomas do PRI.
 5. **Teste** localmente:
    ```powershell
-   dotnet build PasswordManager.slnx
+   dotnet build PasswordManager.slnx -p:Platform=x64
    # Rode a UI, vá em Configurações → Idioma → selecione o novo idioma → Salvar → Reiniciar agora
    # A opção "Automático (sistema)" usa o idioma do SO com fallback para en-US.
    ```
@@ -325,43 +364,49 @@ Formato autocontido definido no **ADR 0005**:
 ## Testes
 
 ```powershell
-# Todos os testes (sem recompilar, com TRX)
-dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx
+# Todos os testes (247) — exige -p:Platform=x64 por causa da UI
+dotnet build PasswordManager.slnx -p:Platform=x64 --configuration Debug
+dotnet test PasswordManager.slnx -p:Platform=x64 --configuration Debug --no-build --logger trx --results-directory TestResults
 
 # Cobertura por projeto
 dotnet test tests/PasswordManager.Domain.Tests/PasswordManager.Domain.Tests.csproj
 dotnet test tests/PasswordManager.Application.Tests/PasswordManager.Application.Tests.csproj
 dotnet test tests/PasswordManager.Infrastructure.Tests/PasswordManager.Infrastructure.Tests.csproj
+dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj -p:Platform=x64
 ```
 
 | Projeto | Testes | Framework |
 |---------|--------|-----------|
 | `PasswordManager.Domain.Tests` | 57 | xUnit + FluentAssertions |
 | `PasswordManager.Application.Tests` | 66 | xUnit + FluentAssertions + fakes |
-| `PasswordManager.Infrastructure.Tests` | 58 | xUnit + FluentAssertions |
-| **Total** | **181** | Todos passando em `net8.0` |
+| `PasswordManager.Infrastructure.Tests` | 66 | xUnit + FluentAssertions |
+| `PasswordManager.UI.Tests` | 58 | xUnit + FluentAssertions + fakes (`FakeTimer`, `FakeClipboard`, etc.) |
+| **Total** | **247** | Todos passando em `net8.0` (`-p:Platform=x64` no Windows) |
 
-Convenção de nomes: `Metodo_Cenario_ResultadoEsperado` em pt-BR (ex.: `RemoveItem_ComIdInexistente_DeveLancarExcecao`).
-
-> Roadmap prevê **testes de ViewModels** desacoplados de tipos WinUI (Fase B).
+Convenção de nomes: `Metodo_Cenario_ResultadoEsperado` em pt-BR (ex.: `RemoveItem_ComIdInexistente_DeveLancarExcecao`). ViewModels testáveis via `PasswordManager.Presentation` (`net8.0` sem WinUI) — ver `docs/plans/06-testes-viewmodels.md`.
 
 ---
 
 ## CI/CD
 
-Workflow em `.github/workflows/ci.yml` (ADR 0006):
+Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 
 - **Runner:** `windows-latest` (exigido pela UI — WinUI 3 + `Microsoft.Windows.SDK.BuildTools` + mapeamento x86/x64/ARM64)
 - **Gatilhos:** `push` em qualquer branch e `pull_request`
-- **Passos:**
-  1. `actions/setup-dotnet` lendo `global.json` (SDK 10.0.302)
-  2. `actions/setup-dotnet` com `8.0.x` para garantir runtime dos testes
-  3. `dotnet tool restore` (instala o `dotnet-ef` do manifest `.config/dotnet-tools.json`)
-  4. `dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure` — falha se o modelo mudar sem nova migration
-  5. `dotnet build PasswordManager.slnx --configuration Debug`
-  6. `dotnet test PasswordManager.slnx --configuration Debug --no-build --logger trx`
-  7. `actions/upload-artifact` com `TestResults/**/*.trx` (retention 14 dias)
-- **Fora do escopo atual:** publish MSIX / assinatura / auto-update (previstos na Fase D)
+- **Jobs:**
+  - `build-and-test`:
+    1. `actions/setup-dotnet` lendo `global.json` (SDK 10.0.302)
+    2. `actions/setup-dotnet` com `8.0.x` para runtime dos testes
+    3. `dotnet tool restore` (instala `dotnet-ef` 8.0.30)
+    4. `dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure`
+    5. `dotnet build PasswordManager.slnx --configuration Debug -p:Platform=x64`
+    6. `dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --logger trx` (247 testes)
+    7. `actions/upload-artifact` com `TestResults/**/*.trx` (14 dias)
+  - `build-msi` (depende de `build-and-test`):
+    1. `dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish`
+    2. `wix build -arch x64 -d PublishDir=publish -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs` (WiX 5.0.2, `generate-AppFiles.ps1`)
+    3. `actions/upload-artifact` com `PasswordManager-*.msi` (30 dias, **unsigned / next-next**)
+- **Fora do escopo atual:** assinatura de código/certificado, versionamento via git tag, auto-update e publicação em store/winget (Fase D)
 
 ---
 
@@ -374,7 +419,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006):
 | [0003](docs/adr/0003-armazenamento-do-cofre-como-blob-unico-criptografado.md) | Armazenamento do cofre como blob único criptografado (SQLite) | Aceito |
 | [0004](docs/adr/0004-criptografia-argon2id-e-aes-256-gcm.md) | Criptografia — Argon2id + AES-256-GCM | Aceito |
 | [0005](docs/adr/0005-export-import-do-cofre-em-formato-vault.md) | Export/Import do cofre em formato `.vault` | Aceito |
-| [0006](docs/adr/0006-integracao-continua-com-github-actions.md) | Integração contínua com GitHub Actions | Aceito |
+| [0006](docs/adr/0006-integracao-continua-com-github-actions.md) | Integração contínua com GitHub Actions + MSI (WiX) | Aceito (MSI, não MSIX) |
 | [0007](docs/adr/0007-internacionalizacao-com-resources-resw.md) | Internacionalização da UI com `Resources.resw` | Aceito |
 
 > Leia `docs/adr/*` antes de tocar em Domain, persistência ou criptografia.
@@ -383,30 +428,28 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006):
 
 ## Roadmap
 
-Ordem sugerida **A → B → C → D** (itens concluídos marcados, decisões registradas em `AGENTS.md`).
+> **Verificado no código em 2026-09-01** — Fase A e B 100% entregues (247 testes). Distribuição MSI já implementada no CI (sem assinatura).
 
-### Fase A — Robustez/UX do núcleo
+### ✅ Concluído — Fase A (Robustez/UX) e Fase B (Engenharia)
 
-- [x] **Configurações** — `IAppSettingsService` + `AppSettingsService` (`settings.json`) + `SettingsViewModel`/`SettingsContent`
-- [x] **Auto-lock por inatividade** — `DispatcherQueueTimer` na `VaultPage` (padrão 2 min, só inatividade)
-- [x] **Trocar senha mestra na UI** — exige senha atual (derivação + comparação em tempo constante)
-- [x] **Tema claro/escuro/sistema**
+Arquivado como histórico — não faz mais parte do roadmap ativo. Todos os itens abaixo estão implementados e cobertos por testes:
 
-### Fase B — Engenharia
+- **Fase A — Robustez/UX:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (2 min padrão, `ITimer`/`DispatcherQueueTimerAdapter`), Troca de senha mestra (exige senha atual, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`, `DesignTokens.xaml`)
+- **Fase B — Engenharia:** Migrations EF Core (`dotnet-ef 8.0.30`, `VaultDatabaseMigrator.ApplyMigrations` + baseline legado, `has-pending-model-changes` no CI), Testes de ViewModels (58 UI tests desacoplados via `IClipboardService`/`ITimer`/`IIdiomaProvider`, `PasswordManager.Presentation` + `PasswordManager.UI.Tests`), i18n (ADR 0007 — PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`, fallback `pt-BR`/`en-US`)
 
-- [x] **Migrations EF Core** no lugar de `EnsureCreated` (`dotnet-ef` 8.0.30 via manifest local em `.config/`; checagem de modelo pendente no CI)
-- [x] **Testes de ViewModels** — desacoplar de tipos WinUI para cobertura com xUnit/FluentAssertions
-- [x] **Recursos/i18n** — ADR 0007, PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`
+Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.
 
-### Fase C — Features de produto
+### 🔜 Em aberto
 
-- [ ] **Import CSV** (Bitwarden/LastPass/1Password) — adiado, ADR 0005 segue sem CSV
+#### Fase C — Features de produto
+
+- [ ] **Import CSV** (Bitwarden/LastPass/1Password) — **ADIADO**, ADR 0005 segue sem CSV (texto plano expõe senhas)
 - [ ] **TOTP/2FA** — secret criptografado no item, geração de 6 dígitos na UI (QR futuro)
 - [ ] **Favoritos / tags / health check** — força, reuso, expiração
 
-### Fase D — Distribuição
+#### Fase D — Distribuição
 
-- [ ] **Empacotamento MSIX + assinatura + build da UI no CI**
+- [x] **Empacotamento MSI (WiX 5)** — `installer/Package.wxs` + `installer/generate-AppFiles.ps1`, publish self-contained `win-x64`, MSI `PasswordManager-0.1.0-x64.msi` gerado no CI (`build-msi`, `wix 5.0.2`) como artefato (30 dias, **sem assinatura**). App **unpackaged** (`WindowsPackageType=None`, `EnableMsixTooling=false`, `PublishTrimmed=false`). Próximos passos: assinatura/certificado e versionamento via git tag.
 - [ ] **Auto-update / backup automático / lembretes de backup**
 
 ---
@@ -433,7 +476,8 @@ FileKey do Figma: `IfOF27YvqWa67OoDvhcrWD`.
 - **Exceção de integridade:** `CryptographicIntegrityException` vive em `Application/Abstractions/CryptographicIntegrityException.cs` mas no namespace `PasswordManager.Application.Exceptions`.
 - **Entidades:** construtor privado sem parâmetros + factories estáticas, chaves `Guid`, `DateTime.UtcNow`, setters privados, `Rehydrate` interno para persistência (`InternalsVisibleTo`).
 - **Testes:** `xUnit` + `FluentAssertions`, padrão `Metodo_Cenario_ResultadoEsperado` em pt-BR.
-- **Commits/PRs:** mensagens objetivas, sem segredos; CI deve permanecer verde.
+- **Distribuição:** **MSI (WiX 5)** via `installer/Package.wxs` (nunca MSIX). `WindowsPackageType=None`, `EnableMsixTooling=false`, `PublishTrimmed=false`. `UpgradeCode` em `Package.wxs` é estável — não altere. Version em `Package/@Version` deve ser sincronizada com git tag.
+- **Commits/PRs:** mensagens objetivas, sem segredos; CI deve permanecer verde (`-p:Platform=x64` obrigatório para UI).
 
 ---
 
@@ -441,8 +485,8 @@ FileKey do Figma: `IfOF27YvqWa67OoDvhcrWD`.
 
 1. Abra uma issue descrevendo a mudança (inclua ADR se afetar Domain/persistência/criptografia).
 2. Crie um branch a partir de `main`.
-3. Garanta `dotnet build PasswordManager.slnx` e `dotnet test PasswordManager.slnx` passando.
-4. Abra um PR — o CI roda build + testes em `windows-latest` automaticamente.
+3. Garanta `dotnet build PasswordManager.slnx -p:Platform=x64` e `dotnet test PasswordManager.slnx -p:Platform=x64` passando (247 testes).
+4. Abra um PR — o CI roda build + testes + MSI em `windows-latest` automaticamente.
 
 ---
 
