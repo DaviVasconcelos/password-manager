@@ -1,7 +1,7 @@
 # 0008 - Múltiplos arquivos de cofre (multi-vault) com arquivos locais
 
 ## Status
-Aceito — 2026-09-01. Refinado para **Opção B (multi-arquivo SQLite)** conforme decisão do produto nesta data. Em implementação.
+Implementado — 2026-09-01. **Opção B (multi-arquivo SQLite)** entregue (Fase C 7.1–7.7). `vaults.json` + `Vaults/*.db` + `IVaultRegistry` + `IVaultDbContextFactory` + `VaultRepositoryFactory` + `VaultSessionService` multi-vault + `UnlockViewModel`/`UnlockPage` com lista de saves + `VaultPage` header + migração `vault.db` → `Vaults/vault-1.db`.
 
 ## Contexto
 Até a Fase B o app suporta **um único cofre** por instalação: um único registro `VaultStore` (`VaultRepository.cs:24 SingletonRecordId`) em um único arquivo `LocalAppData\PasswordManager\vault.db` (`App.xaml.cs:354`). `IVaultSessionService.ExistsAsync()` retorna `bool` e `UnlockViewModel` decide entre criar/desbloquear com base nisso. Não há lista de cofres, troca, criação de segundo cofre ou exclusão.

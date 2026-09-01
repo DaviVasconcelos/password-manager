@@ -421,7 +421,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 | [0005](docs/adr/0005-export-import-do-cofre-em-formato-vault.md) | Export/Import do cofre em formato `.vault` | Aceito |
 | [0006](docs/adr/0006-integracao-continua-com-github-actions.md) | Integração contínua com GitHub Actions + MSI (WiX) | Aceito (MSI, não MSIX) |
 | [0007](docs/adr/0007-internacionalizacao-com-resources-resw.md) | Internacionalização da UI com `Resources.resw` | Aceito |
-| [0008](docs/adr/0008-multi-arquivo-de-cofre.md) | Múltiplos arquivos de cofre (multi-vault, Opção B) | Aceito — em implementação |
+| [0008](docs/adr/0008-multi-arquivo-de-cofre.md) | Múltiplos arquivos de cofre (multi-vault, Opção B) | Implementado |
 
 > Leia `docs/adr/*` antes de tocar em Domain, persistência ou criptografia.
 
@@ -429,7 +429,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 
 ## Roadmap
 
-> **Verificado no código em 2026-09-01** — Fase A e B 100% entregues (247 testes). Distribuição MSI já implementada no CI (sem assinatura). Próximo: Fase C — Múltiplos arquivos de cofre (ADR 0008, Opção B) — ver `docs/plans/07-multi-arquivo-cofre.md`.
+> **Verificado no código em 2026-09-01** — Fase A, B e C (multi-arquivo cofre, ADR 0008 Opção B) 100% entregues (247 testes). Distribuição MSI já implementada no CI (sem assinatura).
 
 ### ✅ Concluído — Fase A (Robustez/UX) e Fase B (Engenharia)
 
@@ -444,7 +444,7 @@ Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.
 
 #### Fase C — Features de produto
 
-- [ ] **Múltiplos arquivos de cofre (Opção B, ADR 0008) — EM IMPLEMENTAÇÃO** — `vaults.json` + `Vaults/*.db` + `IVaultRegistry` + `IVaultDbContextFactory`. Nomes padrão `vault-1`, `vault-2`, ... com renomeação livre. Renomear/excluir sem desbloqueio. Migração automática de `vault.db` legado -> `Vaults/vault-1.db`. Configurações permanecem globais (`settings.json`). Ver `docs/plans/07-multi-arquivo-cofre.md`.
+- [x] **Múltiplos arquivos de cofre (Opção B, ADR 0008) — IMPLEMENTADO** — `vaults.json` + `Vaults/*.db` + `IVaultRegistry` (`FileSystemVaultRegistry`) + `IVaultDbContextFactory` + `VaultRepositoryFactory`. Nomes `vault-1`, `vault-2`, ... com renomeação livre, validação e exclusão sem desbloqueio, migração `vault.db` → `Vaults/vault-1.db`, `UnlockViewModel`/`UnlockPage` (2 colunas) + `VaultPage` header. `settings.json` global. Ver `docs/plans/07-multi-arquivo-cofre.md` e `docs/adr/0008-multi-arquivo-de-cofre.md`.
 - [ ] **Import CSV** (Bitwarden/LastPass/1Password) — **ADIADO**, ADR 0005 segue sem CSV (texto plano expõe senhas)
 - [ ] **TOTP/2FA** — secret criptografado no item, geração de 6 dígitos na UI (QR futuro)
 - [ ] **Favoritos / tags / health check** — força, reuso, expiração
