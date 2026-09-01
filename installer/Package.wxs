@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Instalador MSI next-next para PasswordManager (WinUI 3 unpackaged).
+
+  Build: dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 self-contained -o publish
+         wix heat dir publish -cg AppFiles -dr INSTALLFOLDER -var var.PublishDir -o installer/AppFiles.wxs
+         wix build -arch x64 -d PublishDir=publish -o PasswordManager.msi installer/Package.wxs installer/AppFiles.wxs
+
+  O CI (.github/workflows/ci.yml) faz exatamente isso e publica PasswordManager-*.msi como artefato.
+  Version vem de Package/@Version (sincronize com git tag). UpgradeCode é estável - não altere.
+-->
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package Name="PasswordManager"
+           Version="0.1.0"
+           Manufacturer="PasswordManager"
+           UpgradeCode="DA5FDCB9-00C2-4650-9224-0625EBD58AB1"
+           Language="1033"
+           Codepage="1252"
+           Scope="perMachine">
+
+    <SummaryInformation Keywords="PasswordManager" Description="Gerenciador de senhas local e offline" Manufacturer="PasswordManager" />
+
+    <!-- Permite upgrade major (remove versão antiga) -->
+    <MajorUpgrade DowngradeErrorMessage="Uma versão mais recente já está instalada." />
+
+    <!-- Media: MSI single cab -->
+    <Media Id="1" Cabinet="PasswordManager.cab" EmbedCab="yes" />
+
+    <!-- ESTRUTURA DE DIRETÓRIOS -->
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="PasswordManager" />
+    </StandardDirectory>
+    <StandardDirectory Id="ProgramMenuFolder">
+      <Directory Id="ProgramMenuDir" Name="PasswordManager" />
+    </StandardDirectory>
+    <StandardDirectory Id="DesktopFolder" />
+
+    <!-- FEATURE PRINCIPAL -->
+    <Feature Id="ProductFeature" Title="PasswordManager" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="DesktopShortcut" />
+    </Feature>
+
+    <!-- Atalho no Menu Iniciar -->
+    <Component Id="StartMenuShortcut" Directory="ProgramMenuDir" Guid="B43AD99D-12E0-4698-85B3-6B1C711B766C">
+      <Shortcut Id="StartMenuShortcut" Name="PasswordManager" Description="Gerenciador de senhas local e offline"
+                Target="[INSTALLFOLDER]PasswordManager.UI.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon.exe" />
+      <RegistryValue Root="HKCU" Key="Software\PasswordManager" Name="installed" Type="integer" Value="1" KeyPath="yes" />
+      <RemoveFolder Id="CleanUpShortCut" Directory="ProgramMenuDir" On="uninstall" />
+    </Component>
+
+    <!-- Atalho na Área de Trabalho -->
+    <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="C43AD99D-12E0-4698-85B3-6B1C711B766D">
+      <Shortcut Id="DesktopShortcut" Name="PasswordManager" Description="Gerenciador de senhas local e offline"
+                Target="[INSTALLFOLDER]PasswordManager.UI.exe" WorkingDirectory="INSTALLFOLDER" Icon="AppIcon.exe" />
+      <RegistryValue Root="HKCU" Key="Software\PasswordManager" Name="desktop" Type="integer" Value="1" KeyPath="yes" />
+    </Component>
+
+    <Icon Id="AppIcon.exe" SourceFile="src\PasswordManager.UI\Assets\logo-password-manager.ico" />
+    <Property Id="ARPPRODUCTICON" Value="AppIcon.exe" />
+    <Property Id="ARPHELPLINK" Value="https://github.com/DaviVasconcelos/password-manager" />
+
+
+
+  </Package>
+</Wix>

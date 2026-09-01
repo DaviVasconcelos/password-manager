@@ -50,15 +50,12 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-  # Fase D — Distribuição sideload (MSIX). Gera instalador assinado com cert
-  # autoassinado efêmero (CN=PasswordManager, 5 anos) — sem Store, sem segredo
-  # commitado. Artefato contém .msix + .cer + Install.ps1 para testadores.
-  build-msix:
-    name: Gerar MSIX sideload (Release)
+  # Fase D — Distribuição MSI (next-next, sem cert). Gera instalador .msi via WiX Toolset a partir do publish self-contained.
+  build-msi:
+    name: Gerar MSI (Release)
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: build-and-test
-    # Só em push na main e em PRs (evita rodar em pushes de feature branches desenecessários se quiser filtrar)
     if: github.event_name == 'push' || github.event_name == 'pull_request'
 
     steps:
@@ -70,79 +67,36 @@ jobs:
         with:
           global-json-file: global.json
 
-      - name: Garantir o runtime do .NET 8 (testes)
+      - name: Garantir o runtime do .NET 8
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Gerar certificado sideload efêmero
+      - name: Publicar app unpackaged (self-contained win-x64)
+        run: dotnet publish src/PasswordManager.UI/PasswordManager.UI.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
+
+      - name: Instalar WiX Toolset
+        run: dotnet tool install --global wix --version 5.0.2
+
+      - name: Gerar MSI com WiX
         shell: pwsh
         run: |
-          $publisher = "CN=PasswordManager"
-          $cert = New-SelfSignedCertificate -Type Custom -Subject $publisher -KeyUsage DigitalSignature -FriendlyName "PasswordManager Sideload CI" -CertStoreLocation "Cert:\CurrentUser\My" -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}") -NotAfter (Get-Date).AddYears(5) -KeyAlgorithm RSA -KeyLength 2048 -HashAlgorithm SHA256
-          $thumb = $cert.Thumbprint
-          Write-Host "Thumbprint: $thumb"
-          "SIDELOAD_THUMB=$thumb" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-          # Exportar .cer para incluir no artefato (testador instala em Pessoas Confiáveis)
-          $cerPath = "PasswordManager.cer"
-          Export-Certificate -Cert "Cert:\CurrentUser\My\$thumb" -FilePath $cerPath -Force
-          Write-Host "Cer exportado: $cerPath"
-          # Exportar .pfx temporário para assinar (senha vazia)
-          $pfxPath = "sideload.pfx"
-          $secPwd = New-Object System.Security.SecureString
-          Export-PfxCertificate -Cert "Cert:\CurrentUser\My\$thumb" -FilePath $pfxPath -Password $secPwd -Force
-          Write-Host "Pfx exportado: $pfxPath"
+          $publishDir = (Resolve-Path publish).Path
+          Write-Host "PublishDir: $publishDir"
+          Get-ChildItem $publishDir | Format-Table Name, Length | Out-String -Width 200 | Write-Host
+          # Gerar AppFiles.wxs via PowerShell (heat removido no WiX v5)
+          powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir "$publishDir" -Output "installer/AppFiles.wxs"
+          if (-not (Test-Path installer/AppFiles.wxs)) { throw "AppFiles.wxs não gerado" }
+          Write-Host "AppFiles.wxs gerado:"; Get-Content installer/AppFiles.wxs | Select-Object -First 20 | Out-String | Write-Host
+          # Build MSI (sem UI custom - next-next basico, sem cert)
+          wix build -arch x64 -d PublishDir="$publishDir" -o "PasswordManager-0.1.0-x64.msi" installer/Package.wxs installer/AppFiles.wxs
+          if (-not (Test-Path "PasswordManager-0.1.0-x64.msi")) { throw "MSI não gerado" }
+          Get-ChildItem "PasswordManager-0.1.0-x64.msi" | Format-List Name,Length | Out-String | Write-Host
 
-      - name: Compilar e empacotar MSIX (Release x64)
-        shell: pwsh
-        run: |
-          $thumb = $env:SIDELOAD_THUMB
-          if (-not $thumb) { throw "Thumbprint não encontrado em SIDELOAD_THUMB" }
-          Write-Host "Usando thumbprint: $thumb"
-          $root = (Get-Location).Path
-          $pfxPath = Join-Path $root "sideload.pfx"
-          $outDir = Join-Path $root "src\PasswordManager.UI\AppPackages\CI\"
-          dotnet build src/PasswordManager.UI/PasswordManager.UI.csproj --configuration Release -p:Platform=x64 -p:GenerateAppxPackageOnBuild=true -p:AppxPackageSigningEnabled=true -p:PackageCertificateThumbprint=$thumb -p:PackageCertificateKeyFile="$pfxPath" -p:AppxPackageDir="$outDir" -p:UapAppxPackageBuildMode=SideloadOnly -p:AppxBundle=Never
-          Get-ChildItem -Recurse src/PasswordManager.UI/AppPackages | Format-Table Name, Length
-
-      - name: Preparar artefato sideload
-        shell: pwsh
-        run: |
-          $dest = "dist-sideload"
-          New-Item -ItemType Directory -Force -Path $dest | Out-Null
-          # Procurar .msix gerado
-          $msix = Get-ChildItem -Recurse -Filter "*.msix" src/PasswordManager.UI/AppPackages | Select-Object -First 1
-          if (-not $msix) { throw "MSIX não encontrado em src/PasswordManager.UI/AppPackages" }
-          Write-Host "MSIX: $($msix.FullName)"
-          Copy-Item $msix.FullName -Destination $dest/
-          # Copiar .cer
-          if (Test-Path "PasswordManager.cer") { Copy-Item "PasswordManager.cer" -Destination $dest/ }
-          # Copiar Install.ps1 gerado pelo packaging (se existir) ou criar um genérico
-          $installPs1 = Get-ChildItem -Recurse -Filter "Install.ps1" src/PasswordManager.UI/AppPackages | Select-Object -First 1
-          if ($installPs1) { Copy-Item $installPs1.FullName -Destination $dest/ }
-          else {
-            @'
-          param([switch]$Force)
-          $cer = Join-Path $PSScriptRoot "PasswordManager.cer"
-          $msix = Get-ChildItem -Path $PSScriptRoot -Filter "*.msix" | Select-Object -First 1
-          if (-not $msix) { Write-Error "MSIX não encontrado em $PSScriptRoot"; exit 1 }
-          Write-Host "Instalando certificado sideload..."
-          try { Import-Certificate -FilePath $cer -CertStoreLocation Cert:\CurrentUser\TrustedPeople -ErrorAction Stop | Out-Null; Write-Host "Cert instalado em TrustedPeople." } catch { Write-Host "Tentando LocalMachine..." ; Import-Certificate -FilePath $cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null }
-          Write-Host "Instalando MSIX: $($msix.Name)"
-          Add-AppxPackage -Path $msix.FullName -ForceApplicationShutdown:$Force
-          Write-Host "Instalação concluída."
-          '@ | Set-Content -Path "$dest/Install.ps1" -Encoding UTF8
-          }
-          # Copiar dependências se houver pasta Dependencies
-          $dep = Get-ChildItem -Recurse -Directory -Filter "Dependencies" src/PasswordManager.UI/AppPackages | Select-Object -First 1
-          if ($dep) { Copy-Item $dep.FullName -Destination "$dest/Dependencies" -Recurse -Force }
-          Get-ChildItem $dest | Format-Table Name, Length
-          Write-Host "Conteúdo pronto em $dest"
-
-      - name: Enviar artefato MSIX sideload
+      - name: Enviar artefato MSI
         uses: actions/upload-artifact@v4
         with:
-          name: PasswordManager-MSIX-sideload
-          path: dist-sideload/*
+          name: PasswordManager-MSI
+          path: PasswordManager-*.msi
           if-no-files-found: error
           retention-days: 30
