@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.Exceptions;
+using PasswordManager.Application.VaultRegistry;
 using PasswordManager.Domain.Entities;
 
 namespace PasswordManager.Application.VaultSession;
@@ -10,11 +11,14 @@ namespace PasswordManager.Application.VaultSession;
 /// que conhece a senha mestra na Application, usando-a apenas para derivar a
 /// chave no desbloqueio/criação e descartando-a em seguida: a sessão retém
 /// somente a chave derivada (e o <see cref="Vault"/> carregado), zerando-a
-/// ao trancar.
+/// ao trancar. Suporta multi-arquivo (ADR 0008) via <see cref="IVaultRegistry"/>
+/// e <see cref="IVaultRepositoryFactory"/>; mantém fallback legado para testes.
 /// </summary>
 public sealed class VaultSessionService : IVaultSessionService
 {
     private readonly IVaultRepository _vaultRepository;
+    private readonly IVaultRegistry? _vaultRegistry;
+    private readonly IVaultRepositoryFactory? _repositoryFactory;
     private readonly ICryptoService _cryptoService;
     private readonly IExportImportService _exportImportService;
 
@@ -31,32 +35,90 @@ public sealed class VaultSessionService : IVaultSessionService
         _exportImportService = exportImportService;
     }
 
+    /// <summary>
+    /// Construtor multi-arquivo (produção, ADR 0008).
+    /// </summary>
+    public VaultSessionService(
+        IVaultRepository vaultRepository,
+        IVaultRegistry vaultRegistry,
+        IVaultRepositoryFactory repositoryFactory,
+        ICryptoService cryptoService,
+        IExportImportService exportImportService)
+    {
+        _vaultRepository = vaultRepository;
+        _vaultRegistry = vaultRegistry;
+        _repositoryFactory = repositoryFactory;
+        _cryptoService = cryptoService;
+        _exportImportService = exportImportService;
+    }
+
     public bool Unlocked => _vault is not null;
 
     public Vault CurrentVault =>
         _vault ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes de acessá-lo.");
 
-    public async Task<bool> VaultExistsAsync(CancellationToken ct = default)
-        => await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false);
+    public VaultDescriptor? CofreAtivo => _vaultRegistry?.Ativo;
 
-    public async Task<Vault> CreateAsync(string senhaMestra, CancellationToken ct = default)
+    private bool EhMultiArquivo => _vaultRegistry is not null && _repositoryFactory is not null;
+
+    private IVaultRepository RepositorioAtivo
+    {
+        get
+        {
+            if (EhMultiArquivo)
+                return _repositoryFactory!.CreateForActive();
+            return _vaultRepository;
+        }
+    }
+
+    public async Task<bool> VaultExistsAsync(CancellationToken ct = default)
+    {
+        if (EhMultiArquivo)
+        {
+            var lista = await _vaultRegistry!.ListarAsync(ct).ConfigureAwait(false);
+            return lista.Count > 0;
+        }
+        return await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false);
+    }
+
+    public Task<Vault> CreateAsync(string senhaMestra, CancellationToken ct = default)
+        => CreateAsync(null, senhaMestra, ct);
+
+    public async Task<Vault> CreateAsync(string? nome, string senhaMestra, CancellationToken ct = default)
     {
         ValidarSenhaMestra(senhaMestra);
 
         if (Unlocked)
             throw new InvalidOperationException("A sessão já está desbloqueada; tranque o cofre antes de criar outro.");
 
+        if (EhMultiArquivo)
+        {
+            // Garante que o registry está inicializado.
+            await _vaultRegistry!.InicializarAsync(ct).ConfigureAwait(false);
+
+            var descriptor = await _vaultRegistry.CriarAsync(nome, ct).ConfigureAwait(false);
+            var salt = _cryptoService.GenerateSalt();
+            var chave = _cryptoService.DeriveKey(senhaMestra, salt);
+            var vault = Vault.CreateNew();
+
+            var repo = _repositoryFactory!.Create(descriptor.Id);
+            await repo.CreateAsync(vault, chave, salt, ct).ConfigureAwait(false);
+
+            DefinirSessao(chave, vault);
+            return vault;
+        }
+
         if (await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false))
             throw new InvalidOperationException("Já existe um cofre persistido nesta instalação; use DesbloquearAsync.");
 
-        var salt = _cryptoService.GenerateSalt();
-        var chave = _cryptoService.DeriveKey(senhaMestra, salt);
-        var vault = Vault.CreateNew();
+        var saltLegado = _cryptoService.GenerateSalt();
+        var chaveLegada = _cryptoService.DeriveKey(senhaMestra, saltLegado);
+        var vaultLegado = Vault.CreateNew();
 
-        await _vaultRepository.CreateAsync(vault, chave, salt, ct).ConfigureAwait(false);
+        await _vaultRepository.CreateAsync(vaultLegado, chaveLegada, saltLegado, ct).ConfigureAwait(false);
 
-        DefinirSessao(chave, vault);
-        return vault;
+        DefinirSessao(chaveLegada, vaultLegado);
+        return vaultLegado;
     }
 
     public async Task<Vault> UnlockAsync(string senhaMestra, CancellationToken ct = default)
@@ -66,15 +128,34 @@ public sealed class VaultSessionService : IVaultSessionService
         if (Unlocked)
             throw new InvalidOperationException("A sessão já está desbloqueada; tranque o cofre antes de desbloquear novamente.");
 
-        var salt = await _vaultRepository.GetSaltAsync(ct).ConfigureAwait(false)
+        if (EhMultiArquivo)
+        {
+            await _vaultRegistry!.InicializarAsync(ct).ConfigureAwait(false);
+
+            var ativo = _vaultRegistry.Ativo
+                        ?? throw new InvalidOperationException("Não há cofre selecionado; selecione um cofre antes de desbloquear.");
+
+            var repo = _repositoryFactory!.Create(ativo.Id);
+            var salt = await repo.GetSaltAsync(ct).ConfigureAwait(false)
+                       ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
+
+            var chave = _cryptoService.DeriveKey(senhaMestra, salt);
+            var vault = await repo.LoadAsync(chave, ct).ConfigureAwait(false)
+                        ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
+
+            DefinirSessao(chave, vault);
+            return vault;
+        }
+
+        var saltLegado = await _vaultRepository.GetSaltAsync(ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
 
-        var chave = _cryptoService.DeriveKey(senhaMestra, salt);
-        var vault = await _vaultRepository.LoadAsync(chave, ct).ConfigureAwait(false)
+        var chaveLegada = _cryptoService.DeriveKey(senhaMestra, saltLegado);
+        var vaultLegado = await _vaultRepository.LoadAsync(chaveLegada, ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
 
-        DefinirSessao(chave, vault);
-        return vault;
+        DefinirSessao(chaveLegada, vaultLegado);
+        return vaultLegado;
     }
 
     public void Lock()
@@ -96,7 +177,8 @@ public sealed class VaultSessionService : IVaultSessionService
         var vault = CurrentVault;
         var chaveRetida = _chave ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes.");
 
-        var saltAtual = await _vaultRepository.GetSaltAsync(ct).ConfigureAwait(false)
+        var repo = RepositorioAtivo;
+        var saltAtual = await repo.GetSaltAsync(ct).ConfigureAwait(false)
             ?? throw new InvalidOperationException("Não há cofre persistido; use CriarAsync.");
 
         var chaveDerivadaDaSenhaAtual = _cryptoService.DeriveKey(senhaAtual, saltAtual);
@@ -112,7 +194,7 @@ public sealed class VaultSessionService : IVaultSessionService
         var novoSalt = _cryptoService.GenerateSalt();
         var novaChave = _cryptoService.DeriveKey(novaSenhaMestra, novoSalt);
 
-        await _vaultRepository.ChangeMasterPasswordAsync(vault, novaChave, novoSalt, ct).ConfigureAwait(false);
+        await repo.ChangeMasterPasswordAsync(vault, novaChave, novoSalt, ct).ConfigureAwait(false);
 
         SubstituirChave(novaChave);
     }
@@ -122,7 +204,7 @@ public sealed class VaultSessionService : IVaultSessionService
         var vault = CurrentVault;
         var chave = _chave ?? throw new InvalidOperationException("A sessão está trancada; desbloqueie o cofre antes.");
 
-        await _vaultRepository.SaveAsync(vault, chave, ct).ConfigureAwait(false);
+        await RepositorioAtivo.SaveAsync(vault, chave, ct).ConfigureAwait(false);
     }
 
     public async Task<VaultItem> AddItemAsync(string title, string password, string category,
@@ -223,18 +305,77 @@ public sealed class VaultSessionService : IVaultSessionService
             return;
         }
 
+        if (EhMultiArquivo)
+        {
+            await _vaultRegistry!.InicializarAsync(ct).ConfigureAwait(false);
+            var existentes = await _vaultRegistry.ListarAsync(ct).ConfigureAwait(false);
+            if (existentes.Count > 0)
+            {
+                throw new InvalidOperationException(
+                    "Desbloqueie o cofre antes de importar, ou importe na primeira execução para criar o cofre.");
+            }
+
+            var descriptor = await _vaultRegistry.CriarAsync(null, ct).ConfigureAwait(false);
+            var salt = _cryptoService.GenerateSalt();
+            var chave = _cryptoService.DeriveKey(masterPassword, salt);
+            var repo = _repositoryFactory!.Create(descriptor.Id);
+            await repo.CreateAsync(importado, chave, salt, ct).ConfigureAwait(false);
+            DefinirSessao(chave, importado);
+            return;
+        }
+
         if (await _vaultRepository.ExistsAsync(ct).ConfigureAwait(false))
         {
             throw new InvalidOperationException(
                 "Desbloqueie o cofre antes de importar, ou importe na primeira execução para criar o cofre.");
         }
 
-        var salt = _cryptoService.GenerateSalt();
-        var chave = _cryptoService.DeriveKey(masterPassword, salt);
+        var saltLegado = _cryptoService.GenerateSalt();
+        var chaveLegada = _cryptoService.DeriveKey(masterPassword, saltLegado);
 
-        await _vaultRepository.CreateAsync(importado, chave, salt, ct).ConfigureAwait(false);
+        await _vaultRepository.CreateAsync(importado, chaveLegada, saltLegado, ct).ConfigureAwait(false);
 
-        DefinirSessao(chave, importado);
+        DefinirSessao(chaveLegada, importado);
+    }
+
+    public async Task<IReadOnlyList<VaultDescriptor>> ListarCofresAsync(CancellationToken ct = default)
+    {
+        if (!EhMultiArquivo)
+            return Array.Empty<VaultDescriptor>();
+
+        await _vaultRegistry!.InicializarAsync(ct).ConfigureAwait(false);
+        return await _vaultRegistry.ListarAsync(ct).ConfigureAwait(false);
+    }
+
+    public async Task RenomearCofreAsync(Guid id, string novoNome, CancellationToken ct = default)
+    {
+        if (!EhMultiArquivo)
+            throw new InvalidOperationException("Operação de múltiplos cofres não está disponível nesta configuração.");
+
+        await _vaultRegistry!.RenomearAsync(id, novoNome, ct).ConfigureAwait(false);
+    }
+
+    public async Task ExcluirCofreAsync(Guid id, CancellationToken ct = default)
+    {
+        if (!EhMultiArquivo)
+            throw new InvalidOperationException("Operação de múltiplos cofres não está disponível nesta configuração.");
+
+        var eraAtivo = _vaultRegistry!.AtivoId == id;
+        if (eraAtivo && Unlocked)
+            Lock();
+
+        await _vaultRegistry.ExcluirAsync(id, ct).ConfigureAwait(false);
+    }
+
+    public async Task SelecionarCofreAsync(Guid id, CancellationToken ct = default)
+    {
+        if (!EhMultiArquivo)
+            throw new InvalidOperationException("Operação de múltiplos cofres não está disponível nesta configuração.");
+
+        if (Unlocked)
+            Lock();
+
+        await _vaultRegistry!.DefinirAtivoAsync(id, ct).ConfigureAwait(false);
     }
 
     private void DefinirSessao(byte[] chave, Vault vault)

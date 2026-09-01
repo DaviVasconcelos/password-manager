@@ -1,3 +1,4 @@
+using PasswordManager.Application.VaultRegistry;
 using PasswordManager.Domain.Entities;
 
 namespace PasswordManager.Application.VaultSession;
@@ -31,6 +32,12 @@ public interface IVaultSessionService
     /// persistido ou se a sessão já estiver desbloqueada.
     /// </summary>
     Task<Vault> CreateAsync(string masterPassword, CancellationToken ct = default);
+
+    /// <summary>
+    /// Cria um novo arquivo de cofre com nome específico (ADR 0008).
+    /// Se <paramref name="nome"/> for nulo/vazio, gera "vault-1", "vault-2", ...
+    /// </summary>
+    Task<Vault> CreateAsync(string? nome, string masterPassword, CancellationToken ct = default);
 
     /// <summary>
     /// Desbloqueia o cofre existente: deriva a chave a partir do salt
@@ -132,4 +139,35 @@ public interface IVaultSessionService
     /// se a senha estiver errada ou o arquivo estiver corrompido.
     /// </summary>
     Task ImportAsync(byte[] fileData, string masterPassword, bool replace, CancellationToken ct = default);
+
+    // --- Multi-arquivo (ADR 0008, Opção B) ---
+
+    /// <summary>
+    /// Cofre ativo (selecionado na UnlockPage). Nulo quando não há cofres.
+    /// </summary>
+    VaultDescriptor? CofreAtivo { get; }
+
+    /// <summary>
+    /// Lista todos os arquivos de cofre cadastrados (vaults.json).
+    /// Não exige sessão desbloqueada.
+    /// </summary>
+    Task<IReadOnlyList<VaultDescriptor>> ListarCofresAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Renomeia um arquivo de cofre (metadado + arquivo físico).
+    /// Não exige sessão desbloqueada. Valida nome e unicidade.
+    /// </summary>
+    Task RenomearCofreAsync(Guid id, string novoNome, CancellationToken ct = default);
+
+    /// <summary>
+    /// Exclui um arquivo de cofre. Não exige desbloqueio. Se o cofre
+    /// excluído era o ativo e a sessão estava desbloqueada, tranca a sessão.
+    /// </summary>
+    Task ExcluirCofreAsync(Guid id, CancellationToken ct = default);
+
+    /// <summary>
+    /// Define o cofre ativo (seleção na UnlockPage). Tranca a sessão atual
+    /// (zerando a chave) antes de trocar.
+    /// </summary>
+    Task SelecionarCofreAsync(Guid id, CancellationToken ct = default);
 }
