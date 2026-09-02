@@ -4,6 +4,10 @@ on:
   push:
   pull_request:
 
+# Necessário para criar GitHub Releases no job publish-release
+permissions:
+  contents: write
+
 jobs:
   build-and-test:
     name: Compilar e testar (Windows)
@@ -72,8 +76,37 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Resolver versão (git tag)
+        id: version
+        shell: pwsh
+        run: |
+          $ref = "${{ github.ref }}"
+          $fullVersion = ""
+          $msiVersion = ""
+          if ($ref -like "refs/tags/v*") {
+            $fullVersion = $ref -replace "refs/tags/v", ""
+            # MSI exige x.y.z numérico — remove sufixo pré-release (-alpha, -beta etc) se existir
+            $msiVersion = $fullVersion -replace "-.*$", ""
+            Write-Host "Tag detectada: v$fullVersion -> MSI $msiVersion"
+          } else {
+            # Build de branch/PR: usa versão fallback (sem Release). MSI fica 0.1.0 para teste.
+            $fullVersion = "0.1.0"
+            $msiVersion = "0.1.0"
+            Write-Host "Sem tag, usando fallback: $fullVersion"
+          }
+          if ($msiVersion -notmatch "^\d+\.\d+\.\d+$") {
+            throw "Versão MSI inválida: '$msiVersion' (esperado x.y.z). Tag original: '$fullVersion'"
+          }
+          if ($fullVersion -notmatch "^\d+\.\d+\.\d+(-[0-9A-Za-z\.-]+)?$") {
+            throw "Versão completa inválida: '$fullVersion' (esperado SemVer x.y.z[-sufixo])"
+          }
+          "full=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "msi=$msiVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "msiFile=PasswordManager-$fullVersion-x64.msi" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "full=$fullVersion msi=$msiVersion file=PasswordManager-$fullVersion-x64.msi"
+
       - name: Publicar app unpackaged (self-contained win-x64)
-        run: dotnet publish src/PasswordManager.UI/PasswordManager.UI.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
+        run: dotnet publish src/PasswordManager.UI/PasswordManager.UI.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish -p:Version=${{ steps.version.outputs.full }} -p:AssemblyVersion=${{ steps.version.outputs.msi }} -p:FileVersion=${{ steps.version.outputs.msi }} -p:InformationalVersion=${{ steps.version.outputs.full }}
 
       - name: Instalar WiX Toolset
         run: dotnet tool install --global wix --version 5.0.2
@@ -85,7 +118,10 @@ jobs:
         shell: pwsh
         run: |
           $publishDir = (Resolve-Path publish).Path
+          $msiVersion = "${{ steps.version.outputs.msi }}"
+          $msiFile = "${{ steps.version.outputs.msiFile }}"
           Write-Host "PublishDir: $publishDir"
+          Write-Host "MsiVersion: $msiVersion -> $msiFile"
           Get-ChildItem $publishDir | Format-Table Name, Length | Out-String -Width 200 | Write-Host
           # Verificar Assets do ícone (correção de ícone ausente)
           if (Test-Path "$publishDir/Assets/logo-password-manager.ico") { Write-Host "Ícone encontrado em publish/Assets/logo-password-manager.ico" } else { Write-Warning "Ícone NÃO encontrado em publish/Assets/" }
@@ -96,14 +132,54 @@ jobs:
           # Build MSI com UI traduzida (pt-BR + en-US), seleção de idioma, pasta e atalho desktop opcional
           # WixUI_Custom + LanguageSelectionDlg + VerifyReadyDlg_Custom implementam: 1) seleção de idioma, 2) escolha de pasta, 3) checkbox desktop
           # Bilingual (pt-BR/en-US) para dialogs padrão localizados via WixToolset.UI.wixext; custom dialogs via Strings_pt-BR (neutro)
-          wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir="$publishDir" -o "PasswordManager-0.1.0-x64.msi" installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
-          if (-not (Test-Path "PasswordManager-0.1.0-x64.msi")) { throw "MSI não gerado" }
-          Get-ChildItem "PasswordManager-0.1.0-x64.msi" | Format-List Name,Length | Out-String | Write-Host
+          wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir="$publishDir" -d MsiVersion="$msiVersion" -o "$msiFile" installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
+          if (-not (Test-Path "$msiFile")) { throw "MSI não gerado: $msiFile" }
+          Get-ChildItem "$msiFile" | Format-List Name,Length | Out-String | Write-Host
+          # Checksum para conferência do Release (sem cert, usuário pode verificar)
+          $hash = (Get-FileHash "$msiFile" -Algorithm SHA256).Hash.ToLower()
+          "$hash  $msiFile" | Set-Content "$msiFile.sha256"
+          Get-Content "$msiFile.sha256" | Write-Host
 
       - name: Enviar artefato MSI
         uses: actions/upload-artifact@v6
         with:
           name: PasswordManager-MSI
-          path: PasswordManager-*.msi
+          path: |
+            PasswordManager-*.msi
+            PasswordManager-*.msi.sha256
           if-no-files-found: error
           retention-days: 30
+
+  # Publicação automática: cria GitHub Release quando houver push de tag v*.*.* (ex: v0.1.0, v0.2.0)
+  # Uso diário continua só commit+push; para publicar: git tag v0.2.0 && git push --tags
+  publish-release:
+    name: Publicar Release
+    runs-on: windows-latest
+    timeout-minutes: 10
+    needs: build-msi
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+      - name: Obter o código
+        uses: actions/checkout@v5
+
+      - name: Baixar MSI do job anterior
+        uses: actions/download-artifact@v5
+        with:
+          name: PasswordManager-MSI
+
+      - name: Exibir artefatos baixados
+        shell: pwsh
+        run: Get-ChildItem | Format-List Name,Length | Out-String | Write-Host
+
+      - name: Criar GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            PasswordManager-*.msi
+            PasswordManager-*.msi.sha256
+          generate_release_notes: true
+          # Sem -alpha: prerelease false. Se algum dia criar v0.3.0-beta, marque como prerelease.
+          prerelease: ${{ contains(github.ref_name, '-') }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

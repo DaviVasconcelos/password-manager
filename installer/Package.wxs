@@ -11,18 +11,22 @@
     6) Progress / Exit
 
   Build (local):
-    dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 -self-contained -o publish
+    dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
     powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
-    wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir=publish -o PasswordManager.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl -loc installer/Loc/Strings_en-US.wxl
+    wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir=publish -d MsiVersion=0.1.0 -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl -loc installer/Loc/Strings_en-US.wxl
+    # CI injeta -d MsiVersion a partir da git tag (v0.1.0, v0.2.0...); sem -d usa fallback 0.1.0 abaixo.
 
   UpgradeCode é estável - não altere.
   Correções: ícone via AppWindow.SetIcon com Assets copiado; MSI com UI completa.
 -->
+<?ifndef MsiVersion?>
+<?define MsiVersion = "0.1.0"?>
+<?endif?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
   <Package Name="!(loc.ProductName)"
-           Version="0.1.0"
+           Version="$(var.MsiVersion)"
            Manufacturer="!(loc.Manufacturer)"
            UpgradeCode="DA5FDCB9-00C2-4650-9224-0625EBD58AB1"
            Language="1033"
