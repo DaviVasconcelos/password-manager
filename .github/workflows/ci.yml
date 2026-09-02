@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Instalar o SDK do .NET 10 (global.json)
         uses: actions/setup-dotnet@v5
@@ -64,7 +64,7 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Instalar o SDK do .NET 10 (global.json)
         uses: actions/setup-dotnet@v5
@@ -161,10 +161,10 @@ jobs:
 
     steps:
       - name: Obter o código
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Baixar MSI do job anterior
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: PasswordManager-MSI
 
@@ -173,13 +173,18 @@ jobs:
         run: Get-ChildItem | Format-List Name,Length | Out-String | Write-Host
 
       - name: Criar GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: |
-            PasswordManager-*.msi
-            PasswordManager-*.msi.sha256
-          generate_release_notes: true
-          # Sem -alpha: prerelease false. Se algum dia criar v0.3.0-beta, marque como prerelease.
-          prerelease: ${{ contains(github.ref_name, '-') }}
+        shell: pwsh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $isPrerelease = $tag.Contains("-")
+          $prereleaseFlag = if ($isPrerelease) { "--prerelease" } else { "" }
+          Write-Host "Criando release $tag (prerelease=$isPrerelease)"
+          Get-ChildItem PasswordManager-* | Format-Table Name,Length | Out-String -Width 200 | Write-Host
+          # --generate-notes cria notas automáticas; --title usa a tag
+          if ($prereleaseFlag) {
+            gh release create "$tag" --title "$tag" --generate-notes --prerelease PasswordManager-*.msi PasswordManager-*.msi.sha256
+          } else {
+            gh release create "$tag" --title "$tag" --generate-notes PasswordManager-*.msi PasswordManager-*.msi.sha256
+          }
