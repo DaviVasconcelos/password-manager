@@ -43,7 +43,7 @@ jobs:
 
       - name: Enviar os resultados dos testes
         if: always()
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: resultados-dos-testes
           path: TestResults/**/*.trx
@@ -101,7 +101,7 @@ jobs:
           Get-ChildItem "PasswordManager-0.1.0-x64.msi" | Format-List Name,Length | Out-String | Write-Host
 
       - name: Enviar artefato MSI
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: PasswordManager-MSI
           path: PasswordManager-*.msi
