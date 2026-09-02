@@ -5,7 +5,11 @@ param(
 $ErrorActionPreference = "Stop"
 $publishDir = (Resolve-Path $PublishDir).Path
 Write-Host "Gerando $Output a partir de $publishDir"
-$files = Get-ChildItem -Path $publishDir -File -Recurse | Sort-Object FullName
+# Filtro de baixo risco: exclui símbolos e DLLs de diagnóstico que não devem ir para o MSI (~6 MB)
+$excluir = @('*.pdb', 'mscordaccore*', 'mscordbi.dll', 'Microsoft.DiaSymReader.Native*')
+$files = Get-ChildItem -Path $publishDir -File -Recurse | Where-Object {
+  $n = $_.Name; -not ($excluir | Where-Object { $n -like $_ })
+} | Sort-Object FullName
 # Mapa de diretórios relativos
 $dirs = @{}
 foreach ($f in $files) {
