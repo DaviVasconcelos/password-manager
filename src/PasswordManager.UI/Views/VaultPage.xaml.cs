@@ -43,6 +43,10 @@ public sealed partial class VaultPage : Page
         ViewModel.Trancado += OnTrancado;
         NavCofre.ItemInvoked += OnNavItemInvocado;
 
+        AddHandler(PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        AddHandler(PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        AddHandler(KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        // Fallback para compatibilidade com handlers diretos
         PointerMoved += OnPointerMoved;
         PointerPressed += OnPointerPressed;
         KeyDown += OnKeyDown;
@@ -674,14 +678,31 @@ public sealed partial class VaultPage : Page
     /// </summary>
     private void RastrearAtividadeNoDialog(ContentDialog dialog)
     {
-        dialog.PointerMoved += OnDialogAtividade;
-        dialog.PointerPressed += OnDialogAtividade;
-        dialog.KeyDown += OnDialogAtividade;
+        dialog.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        dialog.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        dialog.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         if (dialog.Content is FrameworkElement fe)
         {
-            fe.PointerMoved += OnDialogAtividade;
-            fe.PointerPressed += OnDialogAtividade;
-            fe.KeyDown += OnDialogAtividade;
+            fe.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+            fe.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+            fe.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+            // Captura digitação em TextBox/PasswordBox que marca KeyDown como Handled
+            fe.Loaded += (_, _) => HookDialogInputs(fe);
+        }
+    }
+
+    private void HookDialogInputs(DependencyObject root)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is TextBox tb) tb.TextChanged += (_, _) => ViewModel.NotificarAtividade();
+            if (child is PasswordBox pb) pb.PasswordChanged += (_, _) => ViewModel.NotificarAtividade();
+            if (child is ComboBox cb) cb.SelectionChanged += (_, _) => ViewModel.NotificarAtividade();
+            if (child is Slider sl) sl.ValueChanged += (_, _) => ViewModel.NotificarAtividade();
+            if (child is ToggleSwitch ts) ts.Toggled += (_, _) => ViewModel.NotificarAtividade();
+            HookDialogInputs(child);
         }
     }
 

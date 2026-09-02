@@ -48,11 +48,12 @@ public sealed partial class ItemEditorContent : UserControl
         {
             var alturaDialogo = XamlRoot?.Size.Height ?? 0;
             ScrollEditor.MaxHeight = Math.Max(320, alturaDialogo - 180);
+            HookInputs(this);
         };
 
-        PointerMoved += (_, _) => Atividade?.Invoke();
-        PointerPressed += (_, _) => Atividade?.Invoke();
-        KeyDown += (_, _) => Atividade?.Invoke();
+        AddHandler(PointerMovedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
+        AddHandler(PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
+        AddHandler(KeyDownEvent, new Microsoft.UI.Xaml.Input.KeyEventHandler((s, e) => Atividade?.Invoke()), true);
         ViewModel.PropertyChanged += (_, _) => Atividade?.Invoke();
     }
 
@@ -121,5 +122,20 @@ public sealed partial class ItemEditorContent : UserControl
         SenhaBox.PasswordRevealMode = SenhaBox.PasswordRevealMode == PasswordRevealMode.Hidden
             ? PasswordRevealMode.Visible
             : PasswordRevealMode.Hidden;
+    }
+
+    private void HookInputs(Microsoft.UI.Xaml.DependencyObject root)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is TextBox tb) tb.TextChanged += (_, _) => Atividade?.Invoke();
+            if (child is PasswordBox pb) pb.PasswordChanged += (_, _) => Atividade?.Invoke();
+            if (child is ComboBox cb) cb.SelectionChanged += (_, _) => Atividade?.Invoke();
+            if (child is Slider sl) sl.ValueChanged += (_, _) => Atividade?.Invoke();
+            if (child is ToggleSwitch ts) ts.Toggled += (_, _) => Atividade?.Invoke();
+            HookInputs(child);
+        }
     }
 }

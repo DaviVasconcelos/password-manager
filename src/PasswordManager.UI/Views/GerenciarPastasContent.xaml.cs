@@ -30,9 +30,21 @@ public sealed partial class GerenciarPastasContent : UserControl
         _sessionService = App.Services.GetRequiredService<IVaultSessionService>();
         _localization = App.Services.GetRequiredService<ILocalizationService>();
         ReloadFolders();
-        PointerMoved += (_, _) => Atividade?.Invoke();
-        PointerPressed += (_, _) => Atividade?.Invoke();
-        KeyDown += (_, _) => Atividade?.Invoke();
+        AddHandler(PointerMovedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
+        AddHandler(PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
+        AddHandler(KeyDownEvent, new Microsoft.UI.Xaml.Input.KeyEventHandler((s, e) => Atividade?.Invoke()), true);
+        Loaded += (_, _) => HookInputs(this);
+    }
+
+    private void HookInputs(Microsoft.UI.Xaml.DependencyObject root)
+    {
+        var count = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChildrenCount(root);
+        for (int i = 0; i < count; i++)
+        {
+            var child = Microsoft.UI.Xaml.Media.VisualTreeHelper.GetChild(root, i);
+            if (child is TextBox tb) tb.TextChanged += (_, _) => Atividade?.Invoke();
+            HookInputs(child);
+        }
     }
 
     private void ReloadFolders()
