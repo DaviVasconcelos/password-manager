@@ -11,7 +11,7 @@
     6) Progress / Exit
 
   Build (local):
-    dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
+    dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 &#45;&#45;self-contained -o publish
     powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
     wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir=publish -d MsiVersion=0.1.0 -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl -loc installer/Loc/Strings_en-US.wxl
     # CI injeta -d MsiVersion a partir da git tag (v0.1.0, v0.2.0...); sem -d usa fallback 0.1.0 abaixo.
