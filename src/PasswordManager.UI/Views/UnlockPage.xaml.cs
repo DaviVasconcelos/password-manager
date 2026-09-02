@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Navigation;
 using PasswordManager.Application.VaultRegistry;
@@ -45,6 +46,20 @@ public sealed partial class UnlockPage : Page
                 NovoNomeBox.Text = string.Empty;
         };
         SenhaMestraBox.Focus(FocusState.Keyboard);
+        if (BtnVaultPicker.Flyout is FlyoutBase vaultFlyout)
+            ConfigurarTemaFlyout(vaultFlyout);
+    }
+
+    private void ConfigurarTemaFlyout(FlyoutBase flyout)
+    {
+        flyout.Opened += (_, _) =>
+        {
+            foreach (var popup in Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot))
+            {
+                if (popup.Child is FrameworkElement fe)
+                    fe.RequestedTheme = App.ObterTemaPendente();
+            }
+        };
     }
 
     private void OnNovoNomeTextChanged(object sender, TextChangedEventArgs e)

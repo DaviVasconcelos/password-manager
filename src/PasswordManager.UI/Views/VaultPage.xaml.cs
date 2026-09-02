@@ -186,6 +186,7 @@ public sealed partial class VaultPage : Page
         };
         itemSenha.Click += (_, _) => ViewModel.CopiarSenhaCommand.Execute(item);
         flyout.Items.Add(itemSenha);
+        ConfigurarTemaFlyout(flyout);
 
         flyout.ShowAt(elemento);
     }
@@ -282,6 +283,7 @@ public sealed partial class VaultPage : Page
             escuroMenu ? Windows.UI.Color.FromArgb(255, 0xFF, 0x67, 0x67) : Windows.UI.Color.FromArgb(255, 0xD1, 0x34, 0x38));
         excluir.Click += async (_, _) => await ConfirmarExclusaoAsync(item);
         flyout.Items.Add(excluir);
+        ConfigurarTemaFlyout(flyout);
 
         flyout.ShowAt((FrameworkElement)sender, e.GetPosition((FrameworkElement)sender));
     }
@@ -684,6 +686,18 @@ public sealed partial class VaultPage : Page
     }
 
     private void OnDialogAtividade(object sender, object args) => ViewModel.NotificarAtividade();
+
+    private void ConfigurarTemaFlyout(FlyoutBase flyout)
+    {
+        flyout.Opened += (_, _) =>
+        {
+            foreach (var popup in Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot))
+            {
+                if (popup.Child is FrameworkElement fe)
+                    fe.RequestedTheme = App.ObterTemaPendente();
+            }
+        };
+    }
 
     /// <summary>
     /// Cria uma PasswordBox com o botão de olho para alternar a visibilidade

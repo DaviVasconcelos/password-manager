@@ -2,7 +2,8 @@
 <!--
     Tokens do design system (fonte: Figma PasswordManager, canvas "Design System").
     Cores por tema: "Light", "Dark" e "Default" (= escuro, fallback). Tipografia Segoe UI Variable.
-    HighContrast herda do sistema; não há tokens dedicados — usa fallback Default/Dark.
+    Overrides de System* fixam a paleta planejada e desacoplam da personalização
+    do Windows (Cor de destaque / Alto contraste) — ver ADR tema.
 -->
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -30,6 +31,26 @@
             <!-- Banner "senha copiada" (tema claro) -->
             <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#D4EDDA" />
             <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#A9D8A2" />
+            <!-- Overrides System* — fixam accent e neutral para não seguir personalização do Windows -->
+            <Color x:Key="SystemAccentColor">#0078D4</Color>
+            <Color x:Key="SystemAccentColorLight1">#1E88DC</Color>
+            <Color x:Key="SystemAccentColorLight2">#4CA0E6</Color>
+            <Color x:Key="SystemAccentColorLight3">#60CDFF</Color>
+            <Color x:Key="SystemAccentColorDark1">#006CBE</Color>
+            <Color x:Key="SystemAccentColorDark2">#005A9E</Color>
+            <Color x:Key="SystemAccentColorDark3">#004578</Color>
+            <SolidColorBrush x:Key="SystemAccentBrush" Color="#0078D4" />
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#0078D4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#0078D4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#0078D4" Opacity="0.4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#0078D4" Opacity="0.6" />
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#0078D4" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#0078D4" />
+            <SolidColorBrush x:Key="SystemControlPageBackgroundMediumAltMediumBrush" Color="#F3F3F3" />
+            <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#F3F3F3" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#1A1A1A" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#616161" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Default">
             <SolidColorBrush x:Key="PMAccentBrush" Color="#60CDFF" />
@@ -51,6 +72,26 @@
             <!-- Banner "senha copiada" (tema escuro, cores do Figma) -->
             <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
             <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
+            <!-- Overrides System* - escuro -->
+            <Color x:Key="SystemAccentColor">#60CDFF</Color>
+            <Color x:Key="SystemAccentColorLight1">#79D3FF</Color>
+            <Color x:Key="SystemAccentColorLight2">#8EDBFF</Color>
+            <Color x:Key="SystemAccentColorLight3">#A6E4FF</Color>
+            <Color x:Key="SystemAccentColorDark1">#45BFF5</Color>
+            <Color x:Key="SystemAccentColorDark2">#2BAEEB</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E88DC</Color>
+            <SolidColorBrush x:Key="SystemAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#60CDFF" Opacity="0.4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#60CDFF" Opacity="0.6" />
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#60CDFF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlPageBackgroundMediumAltMediumBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#202020" />
+            <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#9E9E9E" />
         </ResourceDictionary>
         <ResourceDictionary x:Key="Dark">
             <SolidColorBrush x:Key="PMAccentBrush" Color="#60CDFF" />
@@ -71,6 +112,70 @@
             <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#45BFF5" />
             <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
             <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
+            <!-- Overrides System* - escuro (idêntico a Default) -->
+            <Color x:Key="SystemAccentColor">#60CDFF</Color>
+            <Color x:Key="SystemAccentColorLight1">#79D3FF</Color>
+            <Color x:Key="SystemAccentColorLight2">#8EDBFF</Color>
+            <Color x:Key="SystemAccentColorLight3">#A6E4FF</Color>
+            <Color x:Key="SystemAccentColorDark1">#45BFF5</Color>
+            <Color x:Key="SystemAccentColorDark2">#2BAEEB</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E88DC</Color>
+            <SolidColorBrush x:Key="SystemAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#60CDFF" Opacity="0.4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#60CDFF" Opacity="0.6" />
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#60CDFF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlPageBackgroundMediumAltMediumBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#202020" />
+            <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#9E9E9E" />
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="HighContrast">
+            <!-- Alto contraste forçado para paleta planejada (ignora personalização do SO) -->
+            <SolidColorBrush x:Key="PMAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="PMSurfaceBrush" Color="#202020" />
+            <SolidColorBrush x:Key="PMSurfaceAltBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="PMTextPrimaryBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="PMTextSecondaryBrush" Color="#9E9E9E" />
+            <SolidColorBrush x:Key="PMTextOnAccentBrush" Color="#000000" />
+            <SolidColorBrush x:Key="PMBorderSubtleBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMDangerBrush" Color="#FF6767" />
+            <SolidColorBrush x:Key="PMSuccessBrush" Color="#6CCB5F" />
+            <SolidColorBrush x:Key="PMWarningBrush" Color="#FFB900" />
+            <SolidColorBrush x:Key="PMBackgroundBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="PMBadgeBrush" Color="#3D3D3D" />
+            <SolidColorBrush x:Key="PMButtonHoverBrush" Color="#383838" />
+            <SolidColorBrush x:Key="PMButtonPressedBrush" Color="#414141" />
+            <SolidColorBrush x:Key="PMAccentHoverBrush" Color="#79D3FF" />
+            <SolidColorBrush x:Key="PMAccentPressedBrush" Color="#45BFF5" />
+            <SolidColorBrush x:Key="PMSuccessBackgroundBrush" Color="#1E4620" />
+            <SolidColorBrush x:Key="PMSuccessStrokeBrush" Color="#2E6930" />
+            <Color x:Key="SystemAccentColor">#60CDFF</Color>
+            <Color x:Key="SystemAccentColorLight1">#79D3FF</Color>
+            <Color x:Key="SystemAccentColorLight2">#8EDBFF</Color>
+            <Color x:Key="SystemAccentColorLight3">#A6E4FF</Color>
+            <Color x:Key="SystemAccentColorDark1">#45BFF5</Color>
+            <Color x:Key="SystemAccentColorDark2">#2BAEEB</Color>
+            <Color x:Key="SystemAccentColorDark3">#1E88DC</Color>
+            <SolidColorBrush x:Key="SystemAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightAccentBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentHighBrush" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentLowBrush" Color="#60CDFF" Opacity="0.4" />
+            <SolidColorBrush x:Key="SystemControlHighlightListAccentMediumBrush" Color="#60CDFF" Opacity="0.6" />
+            <SolidColorBrush x:Key="NavigationViewSelectionIndicatorForeground" Color="#60CDFF" />
+            <SolidColorBrush x:Key="NavigationViewItemForegroundSelected" Color="#60CDFF" />
+            <SolidColorBrush x:Key="SystemControlPageBackgroundMediumAltMediumBrush" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="SystemControlBackgroundAltHighBrush" Color="#202020" />
+            <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="#2D2D2D" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseHighBrush" Color="#FFFFFF" />
+            <SolidColorBrush x:Key="SystemControlForegroundBaseMediumBrush" Color="#9E9E9E" />
+            <!-- Neutraliza alto contraste do sistema -->
+            <SolidColorBrush x:Key="SystemColorButtonFaceColor" Color="#202020" />
+            <SolidColorBrush x:Key="SystemColorWindowColor" Color="#1C1C1C" />
+            <SolidColorBrush x:Key="SystemColorWindowTextColor" Color="#FFFFFF" />
         </ResourceDictionary>
     </ResourceDictionary.ThemeDictionaries>
 

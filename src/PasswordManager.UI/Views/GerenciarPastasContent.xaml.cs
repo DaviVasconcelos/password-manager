@@ -76,6 +76,7 @@ public sealed partial class GerenciarPastasContent : UserControl
         conteudo.Children.Add(salvar);
 
         var flyout = new Flyout { Content = conteudo, Placement = FlyoutPlacementMode.Bottom };
+        ConfigurarTemaFlyout(flyout);
 
         async void Confirmar()
         {
@@ -101,6 +102,18 @@ public sealed partial class GerenciarPastasContent : UserControl
         flyout.ShowAt(botao);
         nomeBox.Focus(FocusState.Keyboard);
         nomeBox.SelectAll();
+    }
+
+    private void ConfigurarTemaFlyout(FlyoutBase flyout)
+    {
+        flyout.Opened += (_, _) =>
+        {
+            foreach (var popup in Microsoft.UI.Xaml.Media.VisualTreeHelper.GetOpenPopupsForXamlRoot(XamlRoot))
+            {
+                if (popup.Child is FrameworkElement fe)
+                    fe.RequestedTheme = App.ObterTemaPendente();
+            }
+        };
     }
 
     private void OnDeleteFolderClick(object sender, RoutedEventArgs e)
@@ -140,6 +153,7 @@ public sealed partial class GerenciarPastasContent : UserControl
         conteudo.Children.Add(botoes);
 
         var flyout = new Flyout { Content = conteudo, Placement = FlyoutPlacementMode.Bottom };
+        ConfigurarTemaFlyout(flyout);
 
         excluir.Click += async (_, _) =>
         {
