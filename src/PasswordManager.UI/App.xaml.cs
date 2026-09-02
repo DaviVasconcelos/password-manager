@@ -1,6 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.UI;
+using Microsoft.UI.Windowing;
 using Microsoft.UI.Xaml;
+using Microsoft.Windows.AppLifecycle;
 using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.PasswordGeneration;
 using PasswordManager.Application.Settings;
@@ -29,6 +32,8 @@ namespace PasswordManager.UI
     {
         private static IServiceProvider? _serviceProvider;
         private Window? _window;
+        private AppInstance? _singleInstance;
+        private bool _windowClosedHandled;
 
         /// <summary>
         /// Container de DI da aplicação (inicializado em OnLaunched).
@@ -309,6 +314,38 @@ namespace PasswordManager.UI
         /// </summary>
         protected override void OnLaunched(Microsoft.UI.Xaml.LaunchActivatedEventArgs args)
         {
+            // Single-instance: registra chave única. Se já existe, redireciona e encerra esta instância.
+            try
+            {
+                var inst = AppInstance.FindOrRegisterForKey("PasswordManagerMain");
+                if (!inst.IsCurrent)
+                {
+                    // Redireciona a ativação para a instância principal e sai.
+                    var cur = AppInstance.GetCurrent();
+                    var activationArgs = cur.GetActivatedEventArgs();
+                    // Fire-and-forget assíncrono com bloqueio síncrono para garantir redirecionamento antes do Exit.
+                    try
+                    {
+                        if (activationArgs is not null)
+                            inst.RedirectActivationToAsync(activationArgs).AsTask().GetAwaiter().GetResult();
+                        else
+                            inst.RedirectActivationToAsync(cur.GetActivatedEventArgs()).AsTask().GetAwaiter().GetResult();
+                    }
+                    catch
+                    {
+                        // Fallback: só encerra, a instância principal já existe.
+                    }
+                    Exit();
+                    return;
+                }
+                _singleInstance = inst;
+                _singleInstance.Activated += OnSingleInstanceActivated;
+            }
+            catch
+            {
+                // Se AppLifecycle falhar (ex.: teste), segue sem single-instance.
+            }
+
             _serviceProvider = ConfigureServices();
 
             // Reaplicar após a DI estar pronta: garante que o valor do IAppSettingsService
@@ -334,8 +371,82 @@ namespace PasswordManager.UI
             {
             }
 
+            // Garantir encerramento do processo ao fechar a janela (WinUI 3 unpackaged não encerra sozinho).
+            _window.Closed += OnWindowClosed;
+
             MainWindowHandle = WinRT.Interop.WindowNative.GetWindowHandle(_window);
             _window.Activate();
+        }
+
+        private void OnSingleInstanceActivated(object? sender, AppActivationArguments args)
+        {
+            // Traz a janela existente para frente quando uma segunda instância tenta abrir.
+            try
+            {
+                if (_window is null)
+                    return;
+
+                _window.DispatcherQueue.TryEnqueue(() =>
+                {
+                    try
+                    {
+                        var hwnd = WinRT.Interop.WindowNative.GetWindowHandle(_window);
+                        var winId = Win32Interop.GetWindowIdFromWindow(hwnd);
+                        var appWindow = AppWindow.GetFromWindowId(winId);
+                        if (appWindow is not null && appWindow.Presenter is OverlappedPresenter presenter)
+                        {
+                            if (presenter.State == OverlappedPresenterState.Minimized)
+                                presenter.Restore();
+                        }
+                        _window.Activate();
+                        // Forçar foreground no Win32 (caso esteja em segundo plano).
+                        try { NativeMethods.SetForegroundWindow(hwnd); } catch { }
+                    }
+                    catch { _window.Activate(); }
+                });
+            }
+            catch { }
+        }
+
+        private void OnWindowClosed(object sender, WindowEventArgs args)
+        {
+            if (_windowClosedHandled)
+                return;
+            _windowClosedHandled = true;
+
+            try
+            {
+                if (_singleInstance is not null)
+                    _singleInstance.Activated -= OnSingleInstanceActivated;
+            }
+            catch { }
+
+            // Parar timers e trancar cofre para zerar chave em memória.
+            try
+            {
+                if (_serviceProvider?.GetService<VaultViewModel>() is VaultViewModel vm)
+                    vm.PararTimers();
+            }
+            catch { }
+            try
+            {
+                if (_serviceProvider?.GetService<IVaultSessionService>() is IVaultSessionService session)
+                    session.Lock();
+            }
+            catch { }
+
+            // Encerra o message loop do WinUI 3 (unpackaged não encerra sozinho).
+            try { Exit(); }
+            catch
+            {
+                try { Environment.Exit(0); } catch { }
+            }
+        }
+
+        private static class NativeMethods
+        {
+            [System.Runtime.InteropServices.DllImport("User32.dll")]
+            public static extern bool SetForegroundWindow(nint hWnd);
         }
 
         private static IServiceProvider ConfigureServices()
