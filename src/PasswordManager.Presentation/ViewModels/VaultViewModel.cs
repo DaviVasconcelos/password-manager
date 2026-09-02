@@ -147,6 +147,9 @@ public partial class VaultViewModel : ObservableObject
     /// </summary>
     public void ReloadFolders()
     {
+        if (!_sessionService.Unlocked)
+            return;
+
         var selected = OpcaoPastaSelecionada?.Pasta?.Id;
 
         FolderOptions.Clear();
@@ -164,6 +167,12 @@ public partial class VaultViewModel : ObservableObject
 
     private void AddFilter(bool forcarAtualizacao = false)
     {
+        if (!_sessionService.Unlocked)
+        {
+            DisplayedItems.Clear();
+            return;
+        }
+
         var folderId = OpcaoPastaSelecionada?.Pasta?.Id;
         var items = _sessionService.SearchItems(TermoBusca, folderId);
 

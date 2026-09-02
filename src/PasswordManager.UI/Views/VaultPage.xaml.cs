@@ -29,6 +29,12 @@ public sealed partial class VaultPage : Page
 
     private readonly ILocalizationService _localization;
 
+    /// <summary>
+    /// Referência ao ContentDialog atualmente exibido (se houver), para
+    /// fechá-lo automaticamente ao trancar por inatividade.
+    /// </summary>
+    private ContentDialog? _dialogoAberto;
+
     public VaultPage()
     {
         ViewModel = App.Services.GetRequiredService<VaultViewModel>();
@@ -62,7 +68,33 @@ public sealed partial class VaultPage : Page
 
     private void OnTrancado()
     {
+        // Fecha qualquer ContentDialog aberto antes de navegar
+        try
+        {
+            _dialogoAberto?.Hide();
+        }
+        catch
+        {
+        }
         Frame.Navigate(typeof(UnlockPage));
+    }
+
+    /// <summary>
+    /// Exibe o diálogo rastreando-o em <see cref="_dialogoAberto"/> para
+    /// permitir fechamento automático em <see cref="OnTrancado"/>.
+    /// </summary>
+    private async Task<ContentDialogResult> MostrarDialogoAsync(ContentDialog dialog)
+    {
+        _dialogoAberto = dialog;
+        try
+        {
+            return await dialog.ShowAsync();
+        }
+        finally
+        {
+            if (_dialogoAberto == dialog)
+                _dialogoAberto = null;
+        }
     }
 
     /// <summary>
@@ -109,7 +141,7 @@ public sealed partial class VaultPage : Page
         var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogNovoItem.Title"), editor);
         HookValidacaoObrigatoria(dialogo, editor);
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return;
 
         await ViewModel.AddItemAsync(
@@ -183,8 +215,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        if (await dialogo.ShowAsync() == ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) == ContentDialogResult.Primary)
             ViewModel.RemoverItemCommand.Execute(item);
     }
 
@@ -318,7 +351,7 @@ public sealed partial class VaultPage : Page
         var dialogo = CriarDialogo(_localization.GetString("VaultPage_DialogEditarItem.Title"), editor);
         HookValidacaoObrigatoria(dialogo, editor);
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return;
 
         await ViewModel.ReloadItemAsync(
@@ -347,16 +380,19 @@ public sealed partial class VaultPage : Page
 
     private async Task AbrirGerenciarPastasAsync()
     {
+        var pastasContent = new GerenciarPastasContent();
+        pastasContent.Atividade += () => ViewModel.NotificarAtividade();
         var dialogo = new ContentDialog
         {
             Title = _localization.GetString("VaultPage_DialogGerenciarPastas.Title"),
-            Content = new GerenciarPastasContent(),
+            Content = pastasContent,
             CloseButtonText = _localization.GetString("VaultPage_DialogGerenciarPastas.CloseButtonText"),
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        await dialogo.ShowAsync();
+        await MostrarDialogoAsync(dialogo);
         ViewModel.ReloadFolders();
     }
 
@@ -389,8 +425,11 @@ public sealed partial class VaultPage : Page
                 deferral.Complete();
             }
         };
+        RastrearAtividadeNoDialog(dialogo);
+        // Popup do ComboBox/Slider não borbulha PointerMoved até o ContentDialog
+        content.Atividade += () => ViewModel.NotificarAtividade();
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return;
 
         ViewModel.AplicarConfiguracoes();
@@ -415,8 +454,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(confirmacao);
 
-        if (await confirmacao.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(confirmacao) != ContentDialogResult.Primary)
             return;
 
         try
@@ -492,6 +532,7 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
         var textoBotaoAlterar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.PrimaryButtonText");
         var textoBotaoCancelar = _localization.GetString("VaultPage_DialogTrocarSenhaMestra.CloseButtonText");
@@ -591,7 +632,7 @@ public sealed partial class VaultPage : Page
             VoltarParaSenhas();
         };
 
-        await dialogo.ShowAsync();
+        await MostrarDialogoAsync(dialogo);
 
         // Exibida só após o fechamento completo do diálogo: abrir outro
         // ContentDialog imediatamente após Hide() viola a regra de um diálogo
@@ -602,7 +643,7 @@ public sealed partial class VaultPage : Page
 
     private ContentDialog CriarDialogo(string titulo, object conteudo)
     {
-        return new ContentDialog
+        var dialog = new ContentDialog
         {
             Title = titulo,
             Content = conteudo,
@@ -612,7 +653,37 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialog);
+        if (conteudo is ItemEditorContent editor)
+            editor.Atividade += () => ViewModel.NotificarAtividade();
+        if (conteudo is SettingsContent cfg)
+            cfg.Atividade += () => ViewModel.NotificarAtividade();
+        if (conteudo is GerenciarPastasContent pastas)
+            pastas.Atividade += () => ViewModel.NotificarAtividade();
+        return dialog;
     }
+
+    /// <summary>
+    /// Anexa handlers de atividade (pointer/key) ao <see cref="ContentDialog"/>
+    /// e ao seu conteúdo para que interações dentro do modal reiniciem o timer
+    /// de inatividade. Sem isso, o timer de <see cref="VaultViewModel"/>
+    /// continua contando enquanto um diálogo está aberto, trancando o cofre
+    /// mesmo com o usuário ativo nas Configurações.
+    /// </summary>
+    private void RastrearAtividadeNoDialog(ContentDialog dialog)
+    {
+        dialog.PointerMoved += OnDialogAtividade;
+        dialog.PointerPressed += OnDialogAtividade;
+        dialog.KeyDown += OnDialogAtividade;
+        if (dialog.Content is FrameworkElement fe)
+        {
+            fe.PointerMoved += OnDialogAtividade;
+            fe.PointerPressed += OnDialogAtividade;
+            fe.KeyDown += OnDialogAtividade;
+        }
+    }
+
+    private void OnDialogAtividade(object sender, object args) => ViewModel.NotificarAtividade();
 
     /// <summary>
     /// Cria uma PasswordBox com o botão de olho para alternar a visibilidade
@@ -700,8 +771,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return null;
 
         return nomeBox.Text?.Trim();
@@ -719,8 +791,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        return await dialogo.ShowAsync() == ContentDialogResult.Primary;
+        return await MostrarDialogoAsync(dialogo) == ContentDialogResult.Primary;
     }
 
     private async void OnExportarClick(object sender, RoutedEventArgs e)
@@ -816,8 +889,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return null;
 
         return senhaBox.Password;
@@ -852,8 +926,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        if (await dialogo.ShowAsync() != ContentDialogResult.Primary)
+        if (await MostrarDialogoAsync(dialogo) != ContentDialogResult.Primary)
             return (null, false);
 
         return (senhaBox.Password, radioSubstituir.IsChecked == true);
@@ -869,8 +944,9 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        await dialogo.ShowAsync();
+        await MostrarDialogoAsync(dialogo);
     }
 
     private async Task MostrarInfoAsync(string mensagem)
@@ -883,7 +959,8 @@ public sealed partial class VaultPage : Page
             XamlRoot = XamlRoot,
             RequestedTheme = App.ObterTemaPendente()
         };
+        RastrearAtividadeNoDialog(dialogo);
 
-        await dialogo.ShowAsync();
+        await MostrarDialogoAsync(dialogo);
     }
 }

@@ -22,12 +22,17 @@ public sealed partial class GerenciarPastasContent : UserControl
     private readonly IVaultSessionService _sessionService;
     private readonly ILocalizationService _localization;
 
+    public event Action? Atividade;
+
     public GerenciarPastasContent()
     {
         InitializeComponent();
         _sessionService = App.Services.GetRequiredService<IVaultSessionService>();
         _localization = App.Services.GetRequiredService<ILocalizationService>();
         ReloadFolders();
+        PointerMoved += (_, _) => Atividade?.Invoke();
+        PointerPressed += (_, _) => Atividade?.Invoke();
+        KeyDown += (_, _) => Atividade?.Invoke();
     }
 
     private void ReloadFolders()

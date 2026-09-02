@@ -21,6 +21,12 @@ public sealed partial class ItemEditorContent : UserControl
 
     public ItemEditorViewModel ViewModel { get; }
 
+    /// <summary>
+    /// Disparado em qualquer interação (pointer/key ou PropertyChanged via
+    /// Popup do ComboBox/Slider) para reiniciar o timer de inatividade.
+    /// </summary>
+    public event Action? Atividade;
+
     public ItemEditorContent()
     {
         ViewModel = App.Services.GetRequiredService<ItemEditorViewModel>();
@@ -43,6 +49,11 @@ public sealed partial class ItemEditorContent : UserControl
             var alturaDialogo = XamlRoot?.Size.Height ?? 0;
             ScrollEditor.MaxHeight = Math.Max(320, alturaDialogo - 180);
         };
+
+        PointerMoved += (_, _) => Atividade?.Invoke();
+        PointerPressed += (_, _) => Atividade?.Invoke();
+        KeyDown += (_, _) => Atividade?.Invoke();
+        ViewModel.PropertyChanged += (_, _) => Atividade?.Invoke();
     }
 
     /// <summary>
