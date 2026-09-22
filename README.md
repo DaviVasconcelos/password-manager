@@ -10,7 +10,7 @@
   <img alt=".NET" src="https://img.shields.io/badge/.NET-8.0-512BD4?logo=dotnet" />
   <img alt="WinUI 3" src="https://img.shields.io/badge/WinUI-3-0078D4?logo=windows" />
   <img alt="Platform" src="https://img.shields.io/badge/platform-Windows%2010%2F11-0078D4?logo=windows" />
-  <img alt="Tests" src="https://img.shields.io/badge/tests-247%20passing-brightgreen" />
+  <img alt="Tests" src="https://img.shields.io/badge/tests-314%20passing-brightgreen" />
   <img alt="Distribuição" src="https://img.shields.io/badge/distribui%C3%A7%C3%A3o-MSI%20(WiX%205)-blue" />
   <img alt="License" src="https://img.shields.io/badge/license-MIT-green" />
 </p>
@@ -55,7 +55,7 @@ Objetivos de engenharia demonstrados no projeto:
 - **DDD** — `Vault` como agregado raiz, invariantes centralizadas
 - **Criptografia aplicada** — Argon2id + AES-256-GCM com parâmetros auditáveis
 - **Persistência segura** — SQLite/EF Core com blob único (ADR 0003)
-- **Testes automatizados** — 247 testes (xUnit + FluentAssertions), incluindo 58 de ViewModels desacoplados
+- **Testes automatizados** — 314 testes (xUnit + FluentAssertions), incluindo 72 de ViewModels desacoplados
 - **CI/CD** — GitHub Actions em `windows-latest` com build, testes e geração de MSI
 
 ---
@@ -72,6 +72,7 @@ Objetivos de engenharia demonstrados no projeto:
 | **Gerador de senhas** | `RandomNumberGenerator` sem viés de módulo, tamanho e conjuntos configuráveis |
 | **Força da senha** | Avaliação em `ForcaSenha` (enum) exibida na UI |
 | **Copiar senha** | Cópia para área de transferência com limpeza automática configurável |
+| **TOTP/2FA** | Secret Base32 opcional por item (criptografado no blob), código de 6 dígitos (SHA-1/30 s) com countdown e cópia na `VaultPage` (ADR 0009) |
 | **Auto-lock** | Trancamento por inatividade via `ITimer`/`DispatcherQueueTimer` (padrão 2 min, configurável) |
 | **Troca de senha mestra** | Exige senha atual (verificação em tempo constante), rotaciona salt + blob |
 | **Backup .vault** | Exportar/importar arquivo autocontido criptografado, com opção substituir ou mesclar |
@@ -162,7 +163,7 @@ Domain ──< Application ──< Infrastructure
 | DI | Microsoft.Extensions.DependencyInjection | 8.0.1 |
 | Persistência | EF Core + SQLite | 8.0.30 (`dotnet-ef` 8.0.30 via `.config/dotnet-tools.json`) |
 | Criptografia | Konscious.Security.Cryptography.Argon2 | 1.3.1 |
-| Testes | xUnit + FluentAssertions | 247 testes |
+| Testes | xUnit + FluentAssertions | 314 testes |
 | Logs | Serilog | — |
 | Distribuição | WiX Toolset | 5.0.2 (MSI) |
 | CI | GitHub Actions (`windows-latest`) | build + testes + MSI |
@@ -236,7 +237,7 @@ Set-Location password-manager
 #    Requer -p:Platform=x64 por causa do PasswordManager.UI unpackaged
 dotnet build PasswordManager.slnx -p:Platform=x64
 
-# 3. Executar os testes (247 testes)
+# 3. Executar os testes (314 testes)
 dotnet test PasswordManager.slnx -p:Platform=x64
 
 # 4. Executar a UI — abrir src/PasswordManager.UI.slnx no Visual Studio
@@ -282,10 +283,11 @@ wix build -arch x64 -d PublishDir=publish -o PasswordManager-0.1.0-x64.msi insta
 3. **Vault** — crie pastas, adicione itens (título/usuário/senha/URL/notas/categoria/pasta), use a busca e o filtro por pasta.
 4. **Copiar senha** — copia para a área de transferência e agenda limpeza automática (tempo configurável).
 5. **Gerar senha** — no diálogo de item, ajuste tamanho e conjuntos (maiúsculas, minúsculas, números, símbolos) e veja a força em tempo real.
-6. **Trancar** — manual pelo botão ou automático por inatividade.
-7. **Trocar senha mestra** — exige senha atual + nova senha + confirmação; rotaciona salt e re-criptografa o blob.
-8. **Tema e idioma** — em **Configurações** (tema claro/escuro/sistema, idioma pt-BR/en-US/auto); tema aplica ao vivo, idioma requer reinício.
-9. **Exportar/Importar** — gere um `.vault` com a senha re-digitada; na importação escolha **Substituir** ou **Mesclar**. Import com sessão trancada só é permitido quando ainda não existe cofre local.
+6. **2FA/TOTP** — no diálogo de item, informe o secret Base32 do app autenticador (opcional); selecione o item para ver o código de 6 dígitos com contagem regressiva e copiá-lo.
+7. **Trancar** — manual pelo botão ou automático por inatividade.
+8. **Trocar senha mestra** — exige senha atual + nova senha + confirmação; rotaciona salt e re-criptografa o blob.
+9. **Tema e idioma** — em **Configurações** (tema claro/escuro/sistema, idioma pt-BR/en-US/auto); tema aplica ao vivo, idioma requer reinício.
+10. **Exportar/Importar** — gere um `.vault` com a senha re-digitada; na importação escolha **Substituir** ou **Mesclar**. Import com sessão trancada só é permitido quando ainda não existe cofre local.
 
 ---
 
@@ -364,7 +366,7 @@ Formato autocontido definido no **ADR 0005**:
 ## Testes
 
 ```powershell
-# Todos os testes (247) — exige -p:Platform=x64 por causa da UI
+# Todos os testes (314) — exige -p:Platform=x64 por causa da UI
 dotnet build PasswordManager.slnx -p:Platform=x64 --configuration Debug
 dotnet test PasswordManager.slnx -p:Platform=x64 --configuration Debug --no-build --logger trx --results-directory TestResults
 
@@ -377,11 +379,11 @@ dotnet test tests/PasswordManager.UI.Tests/PasswordManager.UI.Tests.csproj -p:Pl
 
 | Projeto | Testes | Framework |
 |---------|--------|-----------|
-| `PasswordManager.Domain.Tests` | 57 | xUnit + FluentAssertions |
-| `PasswordManager.Application.Tests` | 66 | xUnit + FluentAssertions + fakes |
-| `PasswordManager.Infrastructure.Tests` | 66 | xUnit + FluentAssertions |
-| `PasswordManager.UI.Tests` | 58 | xUnit + FluentAssertions + fakes (`FakeTimer`, `FakeClipboard`, etc.) |
-| **Total** | **247** | Todos passando em `net8.0` (`-p:Platform=x64` no Windows) |
+| `PasswordManager.Domain.Tests` | 74 | xUnit + FluentAssertions |
+| `PasswordManager.Application.Tests` | 98 | xUnit + FluentAssertions + fakes |
+| `PasswordManager.Infrastructure.Tests` | 70 | xUnit + FluentAssertions |
+| `PasswordManager.UI.Tests` | 72 | xUnit + FluentAssertions + fakes (`FakeTimer`, `FakeClipboard`, etc.) |
+| **Total** | **314** | Todos passando em `net8.0` (`-p:Platform=x64` no Windows) |
 
 Convenção de nomes: `Metodo_Cenario_ResultadoEsperado` em pt-BR (ex.: `RemoveItem_ComIdInexistente_DeveLancarExcecao`). ViewModels testáveis via `PasswordManager.Presentation` (`net8.0` sem WinUI) — ver `docs/plans/06-testes-viewmodels.md`.
 
@@ -400,7 +402,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
     3. `dotnet tool restore` (instala `dotnet-ef` 8.0.30)
     4. `dotnet ef migrations has-pending-model-changes --project src/PasswordManager.Infrastructure`
     5. `dotnet build PasswordManager.slnx --configuration Debug -p:Platform=x64`
-    6. `dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --logger trx` (247 testes)
+    6. `dotnet test PasswordManager.slnx --configuration Debug --no-build -p:Platform=x64 --logger trx` (314 testes)
     7. `actions/upload-artifact` com `TestResults/**/*.trx` (14 dias)
   - `build-msi` (depende de `build-and-test`):
     1. `dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish`
@@ -422,6 +424,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 | [0006](docs/adr/0006-integracao-continua-com-github-actions.md) | Integração contínua com GitHub Actions + MSI (WiX) | Aceito (MSI, não MSIX) |
 | [0007](docs/adr/0007-internacionalizacao-com-resources-resw.md) | Internacionalização da UI com `Resources.resw` | Aceito |
 | [0008](docs/adr/0008-multi-arquivo-de-cofre.md) | Múltiplos arquivos de cofre (multi-vault, Opção B) | Implementado |
+| [0009](docs/adr/0009-totp-em-itens-do-cofre.md) | TOTP/2FA em itens do cofre (SHA-1/30 s/6 dígitos, entrada manual) | Implementado |
 
 > Leia `docs/adr/*` antes de tocar em Domain, persistência ou criptografia.
 
@@ -429,14 +432,14 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 
 ## Roadmap
 
-> **Verificado no código em 2026-09-01** — Fase A, B e C (multi-arquivo cofre, ADR 0008 Opção B) 100% entregues (247 testes). Distribuição MSI já implementada no CI (sem assinatura).
+> **Verificado no código em 2026-09-22** — Fase A, B e C (multi-arquivo cofre, ADR 0008 Opção B) 100% entregues + TOTP/2FA (ADR 0009) implementado (314 testes). Distribuição MSI já implementada no CI (sem assinatura).
 
 ### ✅ Concluído — Fase A (Robustez/UX) e Fase B (Engenharia)
 
 Arquivado como histórico — não faz mais parte do roadmap ativo. Todos os itens abaixo estão implementados e cobertos por testes:
 
 - **Fase A — Robustez/UX:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (2 min padrão, `ITimer`/`DispatcherQueueTimerAdapter`), Troca de senha mestra (exige senha atual, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`, `DesignTokens.xaml`)
-- **Fase B — Engenharia:** Migrations EF Core (`dotnet-ef 8.0.30`, `VaultDatabaseMigrator.ApplyMigrations` + baseline legado, `has-pending-model-changes` no CI), Testes de ViewModels (58 UI tests desacoplados via `IClipboardService`/`ITimer`/`IIdiomaProvider`, `PasswordManager.Presentation` + `PasswordManager.UI.Tests`), i18n (ADR 0007 — PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`, fallback `pt-BR`/`en-US`)
+- **Fase B — Engenharia:** Migrations EF Core (`dotnet-ef 8.0.30`, `VaultDatabaseMigrator.ApplyMigrations` + baseline legado, `has-pending-model-changes` no CI), Testes de ViewModels (72 UI tests desacoplados via `IClipboardService`/`ITimer`/`IIdiomaProvider`, `PasswordManager.Presentation` + `PasswordManager.UI.Tests`), i18n (ADR 0007 — PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`, fallback `pt-BR`/`en-US`)
 
 Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.
 
@@ -446,7 +449,7 @@ Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.
 
 - [x] **Múltiplos arquivos de cofre (Opção B, ADR 0008) — IMPLEMENTADO** — `vaults.json` + `Vaults/*.db` + `IVaultRegistry` (`FileSystemVaultRegistry`) + `IVaultDbContextFactory` + `VaultRepositoryFactory`. Nomes `vault-1`, `vault-2`, ... com renomeação livre, validação e exclusão sem desbloqueio, migração `vault.db` → `Vaults/vault-1.db`, `UnlockViewModel`/`UnlockPage` (2 colunas) + `VaultPage` header. `settings.json` global. Ver `docs/plans/07-multi-arquivo-cofre.md` e `docs/adr/0008-multi-arquivo-de-cofre.md`.
 - [ ] **Import CSV** (Bitwarden/LastPass/1Password) — **ADIADO**, ADR 0005 segue sem CSV (texto plano expõe senhas)
-- [ ] **TOTP/2FA** — secret criptografado no item, geração de 6 dígitos na UI (QR futuro)
+- [x] **TOTP/2FA — IMPLEMENTADO** (ADR 0009) — `VaultItem.TotpSecret` opcional (Base32) criptografado no blob, `ITotpService` (RFC 6238 SHA-1/30 s/6 dígitos, BCL pura, tolerância ±1 passo), campo com validação no editor, barra de código + countdown + copiar na `VaultPage`, sem migration EF (campo aditivo). QR/`otpauth://`/SHA-256 como evolução futura
 - [ ] **Favoritos / tags / health check** — força, reuso, expiração
 
 #### Fase D — Distribuição
@@ -487,7 +490,7 @@ FileKey do Figma: `IfOF27YvqWa67OoDvhcrWD`.
 
 1. Abra uma issue descrevendo a mudança (inclua ADR se afetar Domain/persistência/criptografia).
 2. Crie um branch a partir de `main`.
-3. Garanta `dotnet build PasswordManager.slnx -p:Platform=x64` e `dotnet test PasswordManager.slnx -p:Platform=x64` passando (247 testes).
+3. Garanta `dotnet build PasswordManager.slnx -p:Platform=x64` e `dotnet test PasswordManager.slnx -p:Platform=x64` passando (314 testes).
 4. Abra um PR — o CI roda build + testes + MSI em `windows-latest` automaticamente.
 
 ---

@@ -1,7 +1,7 @@
 # 0009 - TOTP/2FA em itens do cofre (entrada manual, SHA-1/30s/6 dígitos)
 
 ## Status
-Proposto — escopo travado na v1 (entrada manual do secret, sem QR). Implementação fatiada em T2–T8.
+Implementado — 2026-09-22. **V1 entregue (T2–T8)**: `VaultItem.TotpSecret` + `VaultDataMapper` com campo aditivo + `ITotpService`/`TotpService` (BCL pura) + `ITimeProvider` + plumbing na sessão + `ItemEditorViewModel`/`VaultViewModel` (código, countdown 1 s, copiar) + `ItemEditorContent`/`VaultPage` (barra 2FA, menus copiar) + `Strings` pt-BR/en-US. Entrada manual + SHA-1/30s/6 dígitos; sem migration EF (`has-pending-model-changes` verde). 314 testes (Domain 74 + Application 98 + Infrastructure 70 + UI 72).
 
 ## Contexto
 O roadmap prevê TOTP/2FA com o secret criptografado dentro do item do cofre
