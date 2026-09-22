@@ -208,17 +208,19 @@ public sealed class VaultSessionService : IVaultSessionService
     }
 
     public async Task<VaultItem> AddItemAsync(string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null, CancellationToken ct = default)
     {
-        var item = CurrentVault.AddItem(title, password, category, username, url, notes);
+        var item = CurrentVault.AddItem(title, password, category, username, url, notes, totpSecret);
         await SaveAsync(ct).ConfigureAwait(false);
         return item;
     }
 
     public async Task ReloadItemAsync(Guid itemId, string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default)
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null, CancellationToken ct = default)
     {
-        CurrentVault.UpdateItem(itemId, title, password, category, username, url, notes);
+        CurrentVault.UpdateItem(itemId, title, password, category, username, url, notes, totpSecret);
         await SaveAsync(ct).ConfigureAwait(false);
     }
 

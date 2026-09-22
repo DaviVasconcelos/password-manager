@@ -71,17 +71,21 @@ public interface IVaultSessionService
 
     /// <summary>
     /// Adiciona um item ao cofre e persiste imediatamente.
-    /// Exige sessão desbloqueada.
+    /// <paramref name="totpSecret"/> é o secret TOTP em Base32 (ADR 0009);
+    /// nulo/vazio significa item sem 2FA. Exige sessão desbloqueada.
     /// </summary>
     Task<VaultItem> AddItemAsync(string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default);
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null, CancellationToken ct = default);
 
     /// <summary>
     /// Atualiza um item existente e persiste imediatamente.
-    /// Exige sessão desbloqueada.
+    /// <paramref name="totpSecret"/> substitui o secret atual; nulo/vazio
+    /// remove o 2FA do item. Exige sessão desbloqueada.
     /// </summary>
     Task ReloadItemAsync(Guid itemId, string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, CancellationToken ct = default);
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null, CancellationToken ct = default);
 
     /// <summary>
     /// Remove um item do cofre e persiste imediatamente.

@@ -304,6 +304,54 @@ public class VaultSessionServiceTests
     }
 
     [Fact]
+    public async Task AddItemAsync_ComTotp_DevePersistirSecret()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev", totpSecret: "jbswy3dpehpk3pxp");
+
+        item.TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+        servico.CurrentVault.Items.Single(i => i.Id == item.Id).TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+    }
+
+    [Fact]
+    public async Task ReloadItemAsync_ComTotp_DeveAtualizarSecret()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev");
+
+        await servico.ReloadItemAsync(item.Id, "GitHub", "senha123", "Dev", totpSecret: "JBSWY3DPEHPK3PXP");
+
+        servico.CurrentVault.Items.Single(i => i.Id == item.Id).TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+    }
+
+    [Fact]
+    public async Task ReloadItemAsync_SemTotp_DeveRemoverSecretExistente()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+        var item = await servico.AddItemAsync("GitHub", "senha123", "Dev", totpSecret: "JBSWY3DPEHPK3PXP");
+
+        await servico.ReloadItemAsync(item.Id, "GitHub", "senha123", "Dev");
+
+        servico.CurrentVault.Items.Single(i => i.Id == item.Id).TotpSecret.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task AddItemAsync_ComTotpInvalido_DeveLancarArgumentExceptionESemPersistir()
+    {
+        var servico = CriarServico();
+        await servico.CreateAsync(SenhaMestra);
+
+        var act = () => servico.AddItemAsync("GitHub", "senha123", "Dev", totpSecret: "!!!!");
+
+        await act.Should().ThrowAsync<ArgumentException>();
+        servico.CurrentVault.Items.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task RemoveItemAsync_QuandoUnlocked_DeveRemoverEPersistir()
     {
         var servico = CriarServico();
