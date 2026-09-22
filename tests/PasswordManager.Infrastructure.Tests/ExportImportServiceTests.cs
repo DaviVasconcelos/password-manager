@@ -47,6 +47,19 @@ public class ExportImportServiceTests
     }
 
     [Fact]
+    public void Export_EImport_RoundTripComTotp_DevePreservarSecret()
+    {
+        var vault = Vault.CreateNew();
+        vault.AddItem("GitHub", "senha123", "Dev", username: "davi", totpSecret: "JBSWY3DPEHPK3PXP");
+        vault.AddItem("Gmail", "senha456", "Email");
+
+        var importado = _servico.Import(_servico.Export(vault, SenhaMestra), SenhaMestra);
+
+        importado.Items.Single(i => i.Title == "GitHub").TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+        importado.Items.Single(i => i.Title == "Gmail").TotpSecret.Should().BeNull();
+    }
+
+    [Fact]
     public void Export_EImport_RoundTripComVaultVazio_DeveRetornarVaultSemItens()
     {
         var arquivo = _servico.Export(Vault.CreateNew(), SenhaMestra);

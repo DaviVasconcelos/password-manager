@@ -21,6 +21,7 @@ internal sealed record VaultItemData(
     string? Url,
     string? Notes,
     string Category,
+    string? TotpSecret,
     DateTime CreatedAt,
     DateTime UpdatedAt);
 
@@ -38,7 +39,7 @@ internal static class VaultDataMapper
             vault.Items
                 .Select(i => new VaultItemData(
                     i.Id, i.FolderId, i.Title, i.Username, i.Password,
-                    i.Url, i.Notes, i.Category, i.CreatedAt, i.UpdatedAt))
+                    i.Url, i.Notes, i.Category, i.TotpSecret, i.CreatedAt, i.UpdatedAt))
                 .ToList(),
             vault.Folders
                 .Select(f => new VaultFolderData(f.Id, f.Name, f.CreatedAt))
@@ -52,7 +53,7 @@ internal static class VaultDataMapper
             (data.Items ?? new List<VaultItemData>())
                 .Select(i => VaultItem.Rehydrate(
                     i.Id, i.Title, i.Password, i.Category, i.Username,
-                    i.Url, i.Notes, i.FolderId, i.CreatedAt, i.UpdatedAt))
+                    i.Url, i.Notes, i.FolderId, i.TotpSecret, i.CreatedAt, i.UpdatedAt))
                 .ToList(),
             (data.Folders ?? new List<VaultFolderData>())
                 .Select(f => VaultFolder.Rehydrate(f.Id, f.Name, f.CreatedAt))

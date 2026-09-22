@@ -181,6 +181,22 @@ public class VaultRepositoryTests : IDisposable
     }
 
     [Fact]
+    public async Task SaveAsync_ELoadAsync_RoundTripComTotp_DevePreservarSecret()
+    {
+        var repository = CriarRepositorio();
+        var vault = Vault.CreateNew();
+        var github = vault.AddItem("GitHub", "senha123", "Dev", totpSecret: "JBSWY3DPEHPK3PXP");
+        vault.AddItem("Gmail", "senha456", "Email");
+        await CriarCofreAsync(repository, vault, SenhaMestra);
+
+        var carregado = await CarregarAsync(repository, SenhaMestra);
+
+        carregado.Should().NotBeNull();
+        carregado!.Items.Single(i => i.Id == github.Id).TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+        carregado.Items.Single(i => i.Title == "Gmail").TotpSecret.Should().BeNull();
+    }
+
+    [Fact]
     public async Task SaveAsync_ELoadAsync_RoundTripComVaultVazio_DeveRetornarVaultSemItens()
     {
         var repository = CriarRepositorio();
