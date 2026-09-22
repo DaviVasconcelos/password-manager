@@ -78,7 +78,13 @@ public partial class VaultViewModel : ObservableObject
     /// Segundos restantes até a virada do código TOTP.
     /// </summary>
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TextoTotpExpiraEm))]
     private int segundosTotpRestantes;
+
+    /// <summary>
+    /// Contagem regressiva formatada para exibição ("12s").
+    /// </summary>
+    public string TextoTotpExpiraEm => $"{SegundosTotpRestantes}s";
 
     /// <summary>
     /// Indica se há um código TOTP a exibir/copiar.
@@ -223,9 +229,10 @@ public partial class VaultViewModel : ObservableObject
     }
 
     public async Task AddItemAsync(string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, Guid? pastaId = null)
+        string? username = null, string? url = null, string? notes = null, Guid? pastaId = null,
+        string? totpSecret = null)
     {
-        var item = await _sessionService.AddItemAsync(title, password, category, username, url, notes);
+        var item = await _sessionService.AddItemAsync(title, password, category, username, url, notes, totpSecret);
 
         if (pastaId is not null)
             await _sessionService.AssignItemToFolderAsync(item.Id, pastaId);
@@ -234,9 +241,10 @@ public partial class VaultViewModel : ObservableObject
     }
 
     public async Task ReloadItemAsync(Guid itemId, string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null, Guid? pastaId = null)
+        string? username = null, string? url = null, string? notes = null, Guid? pastaId = null,
+        string? totpSecret = null)
     {
-        await _sessionService.ReloadItemAsync(itemId, title, password, category, username, url, notes);
+        await _sessionService.ReloadItemAsync(itemId, title, password, category, username, url, notes, totpSecret);
         await _sessionService.AssignItemToFolderAsync(itemId, pastaId);
         AddFilter(forcarAtualizacao: true);
     }

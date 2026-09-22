@@ -155,7 +155,8 @@ public sealed partial class VaultPage : Page
             editor.ViewModel.Usuario,
             editor.ViewModel.Url,
             editor.ViewModel.Notas,
-            editor.ViewModel.PastaSelecionada?.Pasta?.Id);
+            editor.ViewModel.PastaSelecionada?.Pasta?.Id,
+            editor.ViewModel.TotpSecret);
     }
 
     private void OnEditarItemClick(object sender, RoutedEventArgs e)
@@ -190,6 +191,18 @@ public sealed partial class VaultPage : Page
         };
         itemSenha.Click += (_, _) => ViewModel.CopiarSenhaCommand.Execute(item);
         flyout.Items.Add(itemSenha);
+
+        var itemTotp = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuCopiar.CodigoTotp"),
+            IsEnabled = !string.IsNullOrEmpty(item.TotpSecret)
+        };
+        itemTotp.Click += (_, _) =>
+        {
+            ViewModel.ItemSelecionado = item;
+            ViewModel.CopiarCodigoTotpCommand.Execute(null);
+        };
+        flyout.Items.Add(itemTotp);
         ConfigurarTemaFlyout(flyout);
 
         flyout.ShowAt(elemento);
@@ -275,6 +288,18 @@ public sealed partial class VaultPage : Page
         copiarSenha.Click += (_, _) => ViewModel.CopiarSenhaCommand.Execute(item);
         flyout.Items.Add(copiarSenha);
 
+        var copiarTotp = new MenuFlyoutItem
+        {
+            Text = _localization.GetString("VaultPage_MenuContexto.CopiarCodigoTotp"),
+            IsEnabled = !string.IsNullOrEmpty(item.TotpSecret)
+        };
+        copiarTotp.Click += (_, _) =>
+        {
+            ViewModel.ItemSelecionado = item;
+            ViewModel.CopiarCodigoTotpCommand.Execute(null);
+        };
+        flyout.Items.Add(copiarTotp);
+
         flyout.Items.Add(new MenuFlyoutSeparator());
 
         var excluir = new MenuFlyoutItem
@@ -290,6 +315,16 @@ public sealed partial class VaultPage : Page
         ConfigurarTemaFlyout(flyout);
 
         flyout.ShowAt((FrameworkElement)sender, e.GetPosition((FrameworkElement)sender));
+    }
+
+    /// <summary>
+    /// Toque simples seleciona o item (ex.: exibe a barra TOTP quando o
+    /// item tem 2FA); duplo toque abre a edição.
+    /// </summary>
+    private void OnItemTapped(object sender, TappedRoutedEventArgs e)
+    {
+        if (EncontrarVaultItem(e.OriginalSource as DependencyObject) is VaultItem item)
+            ViewModel.ItemSelecionado = item;
     }
 
     private async void OnItemDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
@@ -368,18 +403,20 @@ public sealed partial class VaultPage : Page
             editor.ViewModel.Usuario,
             editor.ViewModel.Url,
             editor.ViewModel.Notas,
-            editor.ViewModel.PastaSelecionada?.Pasta?.Id);
+            editor.ViewModel.PastaSelecionada?.Pasta?.Id,
+            editor.ViewModel.TotpSecret);
     }
 
     /// <summary>
     /// Segura o diálogo aberto quando os campos obrigatórios estão em
-    /// branco (a mensagem de erro é exibida dentro do editor).
+    /// branco ou o secret TOTP está inválido (as mensagens de erro são
+    /// exibidas dentro do editor).
     /// </summary>
     private static void HookValidacaoObrigatoria(ContentDialog dialogo, ItemEditorContent editor)
     {
         dialogo.PrimaryButtonClick += (_, args) =>
         {
-            if (!editor.ValidarCamposObrigatorios())
+            if (!editor.ValidarCamposObrigatorios() || !editor.ValidarTotp())
                 args.Cancel = true;
         };
     }

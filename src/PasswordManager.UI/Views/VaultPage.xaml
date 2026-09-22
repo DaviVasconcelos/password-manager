@@ -167,7 +167,7 @@
                 </ListView.Header>
                 <ListView.ItemTemplate>
                     <DataTemplate x:DataType="domain:VaultItem">
-                        <Grid RightTapped="OnItemRightTapped" IsRightTapEnabled="True" Background="Transparent" HorizontalAlignment="Stretch" PointerEntered="OnItemPointerEntered" PointerExited="OnItemPointerExited">
+                        <Grid Tapped="OnItemTapped" RightTapped="OnItemRightTapped" IsRightTapEnabled="True" Background="Transparent" HorizontalAlignment="Stretch" PointerEntered="OnItemPointerEntered" PointerExited="OnItemPointerExited">
                             <VisualStateManager.VisualStateGroups>
                                 <VisualStateGroup>
                                     <VisualState x:Name="WideItem">
@@ -239,6 +239,37 @@
 
             <!-- Banners (em fluxo, abaixo da tabela) -->
             <StackPanel Grid.Row="4" Spacing="8">
+                <Border x:Name="BarraTotp"
+                        Background="{ThemeResource PMSurfaceAltBrush}"
+                        BorderBrush="{ThemeResource PMBorderSubtleBrush}"
+                        BorderThickness="1"
+                        CornerRadius="4"
+                        Padding="12,8"
+                        Visibility="{x:Bind ViewModel.TemTotp, Mode=OneWay, Converter={StaticResource BoolParaVisibilidade}}">
+                    <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                        <FontIcon Glyph="&#xE72E;"
+                                  FontSize="14"
+                                  Foreground="{ThemeResource PMAccentBrush}"
+                                  VerticalAlignment="Center" />
+                        <TextBlock x:Uid="VaultPage_TotpRotulo"
+                                   Style="{StaticResource PMCaptionStyle}"
+                                   Foreground="{ThemeResource PMTextSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind ViewModel.CodigoTotp, Mode=OneWay}"
+                                   FontWeight="SemiBold"
+                                   Foreground="{ThemeResource PMTextPrimaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <TextBlock Text="{x:Bind ViewModel.TextoTotpExpiraEm, Mode=OneWay}"
+                                   Style="{StaticResource PMCaptionStyle}"
+                                   Foreground="{ThemeResource PMTextSecondaryBrush}"
+                                   VerticalAlignment="Center" />
+                        <Button x:Uid="VaultPage_BtnCopiarTotp"
+                                Style="{StaticResource PMButtonSecondary}"
+                                Command="{x:Bind ViewModel.CopiarCodigoTotpCommand}"
+                                VerticalAlignment="Center" />
+                    </StackPanel>
+                </Border>
+
                 <Border x:Name="ToastSenhaCopiada"
                         Background="{ThemeResource PMSuccessBackgroundBrush}"
                         BorderBrush="{ThemeResource PMSuccessStrokeBrush}"

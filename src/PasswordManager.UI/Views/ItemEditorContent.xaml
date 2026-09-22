@@ -71,6 +71,22 @@
                  Height="80"
                  TextWrapping="Wrap" />
 
+        <StackPanel Spacing="4">
+            <TextBox x:Name="CampoTotp"
+                     x:Uid="ItemEditor_TotpSecret"
+                     Style="{StaticResource PMTextBoxStyle}"
+                     Text="{x:Bind ViewModel.TotpSecret, Mode=TwoWay}" />
+            <TextBlock x:Uid="ItemEditor_TotpDica"
+                       Style="{StaticResource PMCaptionStyle}"
+                       Foreground="{ThemeResource PMTextSecondaryBrush}"
+                       TextWrapping="Wrap" />
+            <TextBlock x:Name="ErroTotp"
+                       Style="{StaticResource PMCaptionStyle}"
+                       Foreground="{ThemeResource PMDangerBrush}"
+                       TextWrapping="Wrap"
+                       Visibility="Collapsed" />
+        </StackPanel>
+
         <Grid ColumnSpacing="8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />

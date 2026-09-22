@@ -91,9 +91,13 @@
   <data name="VaultPage_DialogExcluirItem.CloseButtonText" xml:space="preserve"><value>Cancel</value></data>
   <data name="VaultPage_MenuCopiar.Usuario" xml:space="preserve"><value>Copy username</value></data>
   <data name="VaultPage_MenuCopiar.Senha" xml:space="preserve"><value>Copy password</value></data>
+  <data name="VaultPage_MenuCopiar.CodigoTotp" xml:space="preserve"><value>Copy 2FA code</value></data>
   <data name="VaultPage_MenuContexto.Editar" xml:space="preserve"><value>Edit</value></data>
   <data name="VaultPage_MenuContexto.CopiarUsuario" xml:space="preserve"><value>Copy username</value></data>
   <data name="VaultPage_MenuContexto.CopiarSenha" xml:space="preserve"><value>Copy password</value></data>
+  <data name="VaultPage_MenuContexto.CopiarCodigoTotp" xml:space="preserve"><value>Copy 2FA code</value></data>
+  <data name="VaultPage_TotpRotulo.Text" xml:space="preserve"><value>2FA code:</value></data>
+  <data name="VaultPage_BtnCopiarTotp.Content" xml:space="preserve"><value>Copy code</value></data>
   <data name="VaultPage_MenuContexto.Excluir" xml:space="preserve"><value>Delete</value></data>
   <data name="VaultPage_DialogConfiguracoes.Title" xml:space="preserve"><value>Settings</value></data>
   <data name="VaultPage_DialogConfiguracoes.PrimaryButtonText" xml:space="preserve"><value>Save</value></data>
@@ -156,6 +160,9 @@
   <data name="ItemEditor_Tamanho_Sufixo" xml:space="preserve"><value>characters</value></data>
   <data name="ItemEditor_SemPasta" xml:space="preserve"><value>No folder</value></data>
   <data name="ItemEditor_Erro_Obrigatorio" xml:space="preserve"><value>{0} cannot be blank.</value></data>
+  <data name="ItemEditor_TotpSecret.Header" xml:space="preserve"><value>TOTP / 2FA secret (optional)</value></data>
+  <data name="ItemEditor_TotpSecret.PlaceholderText" xml:space="preserve"><value>E.g.: JBSWY3DPEHPK3PXP</value></data>
+  <data name="ItemEditor_TotpDica.Text" xml:space="preserve"><value>Base32 from your authenticator app (manual entry; QR in a future version).</value></data>
 
   <!-- VaultViewModel -->
   <data name="VaultViewModel_TodasPastas" xml:space="preserve"><value>All folders</value></data>

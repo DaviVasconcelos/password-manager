@@ -41,6 +41,7 @@ public sealed partial class ItemEditorContent : UserControl
         CampoTitulo.TextChanged += (_, _) => ErroTitulo.Visibility = Visibility.Collapsed;
         SenhaBox.PasswordChanged += (_, _) => ErroSenha.Visibility = Visibility.Collapsed;
         CampoCategoria.TextChanged += (_, _) => ErroCategoria.Visibility = Visibility.Collapsed;
+        CampoTotp.TextChanged += (_, _) => ErroTotp.Visibility = Visibility.Collapsed;
 
         // Limita a altura do conteúdo à janela, habilitando o scroll
         // (o ContentDialog corta o conteúdo que excede a tela).
@@ -75,6 +76,25 @@ public sealed partial class ItemEditorContent : UserControl
             ErroCategoria, _localizacao.GetString("ItemEditor_Categoria.Header"), formato);
 
         return valido;
+    }
+
+    /// <summary>
+    /// Valida o secret TOTP (regra canônica já calculada no ViewModel).
+    /// Exibe a mensagem em vermelho abaixo do campo e retorna <c>false</c>
+    /// se o secret estiver inválido.
+    /// </summary>
+    public bool ValidarTotp()
+    {
+        var erro = ViewModel.TotpErro;
+        if (erro is null)
+        {
+            ErroTotp.Visibility = Visibility.Collapsed;
+            return true;
+        }
+
+        ErroTotp.Text = erro;
+        ErroTotp.Visibility = Visibility.Visible;
+        return false;
     }
 
     private static bool MarcarErroSeEmBranco(bool emBranco, TextBlock erro, string campo, string formato)
