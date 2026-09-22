@@ -1,5 +1,6 @@
 using FluentAssertions;
 using PasswordManager.Application.Settings;
+using PasswordManager.Application.Totp;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.UI.Tests.Fakes;
 using PasswordManager.UI.ViewModels;
@@ -18,9 +19,10 @@ public class VaultViewModelTests
         FakeTimerFactory Timers,
         FakeAppSettingsService Settings,
         FakeLocalizationService Loc,
-        IVaultSessionService Session);
+        IVaultSessionService Session,
+        FakeTimeProvider Relogio);
 
-    private static async Task<Sut> CriarSutAsync(AppSettings? settings = null, Dictionary<string, string>? locMapa = null)
+    private static async Task<Sut> CriarSutAsync(AppSettings? settings = null, Dictionary<string, string>? locMapa = null, DateTimeOffset? agoraTotp = null)
     {
         var repo = new FakeVaultRepository();
         var crypto = new FakeCryptoService();
@@ -48,8 +50,10 @@ public class VaultViewModelTests
         });
         var clipboard = new FakeClipboardService();
         var timers = new FakeTimerFactory();
-        var vm = new VaultViewModel(session, settingsService, loc, timers, clipboard);
-        return new Sut(vm, clipboard, timers, settingsService, loc, session);
+        var relogio = new FakeTimeProvider(agoraTotp ?? DateTimeOffset.FromUnixTimeSeconds(59));
+        var totp = new TotpService(relogio);
+        var vm = new VaultViewModel(session, settingsService, loc, timers, clipboard, totp);
+        return new Sut(vm, clipboard, timers, settingsService, loc, session, relogio);
     }
 
     [Fact]
@@ -259,6 +263,114 @@ public class VaultViewModelTests
 
         sut.Clipboard.ChamadasSetText.Should().Be(0);
         sut.Vm.SenhaCopiada.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task Inicializar_DeveIniciarTimerTotpDe1Segundo()
+    {
+        var sut = await CriarSutAsync();
+
+        sut.Vm.Inicializar();
+
+        sut.Timers.TimerTotp.IsRunning.Should().BeTrue();
+        sut.Timers.TimerTotp.Interval.Should().Be(TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
+    public async Task SelecionarItem_ComTotp_DeveExibirCodigoEContagem()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var item = await sut.Session.AddItemAsync("GitHub", "senha123", "Dev",
+            totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+
+        sut.Vm.ItemSelecionado = item;
+
+        // Relógio fixo em T=59: vetor RFC 6238 94287082 -> "287082", resta 1 s.
+        sut.Vm.CodigoTotp.Should().Be("287082");
+        sut.Vm.SegundosTotpRestantes.Should().Be(1);
+        sut.Vm.TemTotp.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task SelecionarItem_SemTotp_DeveLimparCodigo()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var comTotp = await sut.Session.AddItemAsync("GitHub", "senha123", "Dev",
+            totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        var semTotp = await sut.Session.AddItemAsync("Gmail", "senha456", "Email");
+        sut.Vm.ItemSelecionado = comTotp;
+
+        sut.Vm.ItemSelecionado = semTotp;
+
+        sut.Vm.CodigoTotp.Should().BeNull();
+        sut.Vm.SegundosTotpRestantes.Should().Be(0);
+        sut.Vm.TemTotp.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task TickTotp_AoVirarPasso_DeveAtualizarCodigoEContagem()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var item = await sut.Session.AddItemAsync("GitHub", "senha123", "Dev",
+            totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        sut.Vm.ItemSelecionado = item;
+
+        sut.Relogio.Instante = DateTimeOffset.FromUnixTimeSeconds(60);
+        sut.Timers.TimerTotp.DispararTick();
+
+        var esperado = new TotpService().Gerar("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ",
+            DateTimeOffset.FromUnixTimeSeconds(60));
+        sut.Vm.CodigoTotp.Should().Be(esperado);
+        sut.Vm.SegundosTotpRestantes.Should().Be(30);
+    }
+
+    [Fact]
+    public async Task CopiarCodigoTotp_DeveCopiarCodigoENaoSecret()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var item = await sut.Session.AddItemAsync("GitHub", "senha123", "Dev",
+            totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        sut.Vm.ItemSelecionado = item;
+
+        sut.Vm.CopiarCodigoTotpCommand.Execute(null);
+
+        sut.Clipboard.UltimoTexto.Should().Be("287082");
+        sut.Clipboard.UltimoTexto.Should().NotBe("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        sut.Clipboard.ChamadasSetText.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task CopiarCodigoTotp_SemTotp_NaoDeveCopiar()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var item = await sut.Session.AddItemAsync("Gmail", "senha456", "Email");
+        sut.Vm.ItemSelecionado = item;
+
+        sut.Vm.CopiarCodigoTotpCommand.Execute(null);
+
+        sut.Clipboard.ChamadasSetText.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task Trancar_DeveLimparCodigoTotpEPararTimer()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        var item = await sut.Session.AddItemAsync("GitHub", "senha123", "Dev",
+            totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+        sut.Vm.ItemSelecionado = item;
+
+        sut.Vm.LockCommand.Execute(null);
+
+        sut.Vm.CodigoTotp.Should().BeNull();
+        sut.Vm.SegundosTotpRestantes.Should().Be(0);
+        sut.Vm.TemTotp.Should().BeFalse();
+        sut.Timers.TimerTotp.IsRunning.Should().BeFalse();
     }
 
     [Fact]

@@ -75,6 +75,25 @@ public partial class ItemEditorViewModel : ObservableObject
     [ObservableProperty]
     private OpcoesPasta? pastaSelecionada;
 
+    /// <summary>
+    /// Secret TOTP em Base32 (opcional). Vazio = item sem 2FA (ADR 0009).
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotpValido))]
+    private string totpSecret = string.Empty;
+
+    /// <summary>
+    /// Erro de validação do secret (regra canônica do Domain); nulo = válido.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TotpValido))]
+    private string? totpErro;
+
+    /// <summary>
+    /// Indica se o secret digitado é válido (ou vazio = sem 2FA).
+    /// </summary>
+    public bool TotpValido => TotpErro is null;
+
     public Guid? ItemId { get; private set; }
 
     public bool PodeGerar => IncluirMinusculas || IncluirMaiusculas || IncluirNumeros || IncluirSimbolos;
@@ -107,6 +126,29 @@ public partial class ItemEditorViewModel : ObservableObject
 
     partial void OnSenhaChanged(string value) => ForcaSenha = _strengthEvaluator.Avaliar(value);
 
+    partial void OnTotpSecretChanged(string value) => TotpErro = ValidarTotpSecret(value);
+
+    /// <summary>
+    /// Valida o secret contra a regra canônica do Domain (ADR 0009),
+    /// sondando <c>VaultItem.Create</c> para não duplicar a regra Base32.
+    /// Retorna a mensagem de erro ou nulo se válido/vazio.
+    /// </summary>
+    private static string? ValidarTotpSecret(string secret)
+    {
+        if (string.IsNullOrWhiteSpace(secret))
+            return null;
+
+        try
+        {
+            VaultItem.Create("sonda", "sonda", "sonda", totpSecret: secret);
+            return null;
+        }
+        catch (ArgumentException ex)
+        {
+            return ex.Message;
+        }
+    }
+
     public void CarregarParaEdicao(VaultItem item, IEnumerable<OpcoesPasta> opcoesPasta)
     {
         ItemId = item.Id;
@@ -116,6 +158,7 @@ public partial class ItemEditorViewModel : ObservableObject
         Senha = item.Password;
         Url = item.Url ?? string.Empty;
         Notas = item.Notes ?? string.Empty;
+        TotpSecret = item.TotpSecret ?? string.Empty;
         CarregarDefaults();
         CarregarOpcoes(opcoesPasta, item.FolderId);
     }
@@ -125,6 +168,7 @@ public partial class ItemEditorViewModel : ObservableObject
         ItemId = null;
         CarregarDefaults();
         Senha = GerarSenhaComDefaults();
+        TotpSecret = string.Empty;
         CarregarOpcoes(opcoesPasta, pastaSugerida);
     }
 

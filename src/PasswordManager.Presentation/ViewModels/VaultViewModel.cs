@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using PasswordManager.Application.Settings;
+using PasswordManager.Application.Totp;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Domain.Entities;
 using PasswordManager.UI.Localization;
@@ -29,11 +30,14 @@ public partial class VaultViewModel : ObservableObject
     private readonly IAppSettingsService _settingsService;
     private readonly ILocalizationService _localization;
     private readonly IClipboardService _clipboardService;
+    private readonly ITotpService _totpService;
     private readonly ITimer _timerLimparClipboard;
     private readonly ITimer _timerInatividade;
     private readonly ITimer _timerInfoBanner;
+    private readonly ITimer _timerTotp;
 
     private static readonly TimeSpan DuracaoInfoBanner = TimeSpan.FromSeconds(4);
+    private static readonly TimeSpan IntervaloTotp = TimeSpan.FromSeconds(1);
 
     private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(2);
     private TimeSpan _tempoLimparClipboard = TimeSpan.FromSeconds(30);
@@ -63,6 +67,25 @@ public partial class VaultViewModel : ObservableObject
     private string? textoInfoBanner;
 
     /// <summary>
+    /// Código TOTP atual do item selecionado (ADR 0009); nulo = sem 2FA.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(TemTotp))]
+    [NotifyCanExecuteChangedFor(nameof(CopiarCodigoTotpCommand))]
+    private string? codigoTotp;
+
+    /// <summary>
+    /// Segundos restantes até a virada do código TOTP.
+    /// </summary>
+    [ObservableProperty]
+    private int segundosTotpRestantes;
+
+    /// <summary>
+    /// Indica se há um código TOTP a exibir/copiar.
+    /// </summary>
+    public bool TemTotp => CodigoTotp is not null;
+
+    /// <summary>
     /// Disparado na thread da UI quando o cofre é trancado.
     /// </summary>
     public event Action? Trancado;
@@ -74,12 +97,14 @@ public partial class VaultViewModel : ObservableObject
         IAppSettingsService settingsService,
         ILocalizationService localization,
         ITimerFactory timerFactory,
-        IClipboardService clipboardService)
+        IClipboardService clipboardService,
+        ITotpService? totpService = null)
     {
         _sessionService = sessionService;
         _settingsService = settingsService;
         _localization = localization;
         _clipboardService = clipboardService ?? throw new ArgumentNullException(nameof(clipboardService));
+        _totpService = totpService ?? new TotpService();
         if (timerFactory is null) throw new ArgumentNullException(nameof(timerFactory));
 
         _timerLimparClipboard = timerFactory.Create();
@@ -88,11 +113,15 @@ public partial class VaultViewModel : ObservableObject
         _timerInatividade.Tick += OnTimerInatividadeTick;
         _timerInfoBanner = timerFactory.Create();
         _timerInfoBanner.Tick += OnTimerInfoBannerTick;
+        _timerTotp = timerFactory.Create();
+        _timerTotp.Tick += OnTimerTotpTick;
     }
 
     partial void OnTermoBuscaChanged(string? value) => AddFilter();
 
     partial void OnOpcaoPastaSelecionadaChanged(OpcoesPasta? value) => AddFilter();
+
+    partial void OnItemSelecionadoChanged(VaultItem? value) => AtualizarTotp();
 
     /// <summary>
     /// Nome do cofre ativo (arquivo selecionado na UnlockPage).
@@ -104,6 +133,10 @@ public partial class VaultViewModel : ObservableObject
         AplicarConfiguracoes();
         ReloadFolders();
         OnPropertyChanged(nameof(NomeCofreAtivo));
+        _timerTotp.Stop();
+        _timerTotp.Interval = IntervaloTotp;
+        _timerTotp.Start();
+        AtualizarTotp();
     }
 
     /// <summary>
@@ -139,6 +172,7 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
         _timerInfoBanner.Stop();
+        _timerTotp.Stop();
     }
 
     /// <summary>
@@ -282,6 +316,20 @@ public partial class VaultViewModel : ObservableObject
         _clipboardService.SetText(item.Username);
     }
 
+    /// <summary>
+    /// Copia o código TOTP atual para a área de transferência. Copia o
+    /// código (que expira em ≤ 30 s), nunca o secret — por isso não há
+    /// timer de limpeza dedicado.
+    /// </summary>
+    [RelayCommand(CanExecute = nameof(TemTotp))]
+    private void CopiarCodigoTotp()
+    {
+        if (CodigoTotp is null)
+            return;
+
+        _clipboardService.SetText(CodigoTotp);
+    }
+
     [RelayCommand]
     private void Lock() => Trancar();
 
@@ -293,11 +341,43 @@ public partial class VaultViewModel : ObservableObject
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
         _timerInfoBanner.Stop();
+        _timerTotp.Stop();
         _sessionService.Lock();
         SenhaCopiada = false;
         InfoBannerVisivel = false;
+        CodigoTotp = null;
+        SegundosTotpRestantes = 0;
         Trancado?.Invoke();
     }
+
+    /// <summary>
+    /// Recalcula o código TOTP e a contagem regressiva para o item
+    /// selecionado. Nunca quebra a UI: secret ausente/inválido apenas
+    /// limpa a exibição.
+    /// </summary>
+    private void AtualizarTotp()
+    {
+        var secret = ItemSelecionado?.TotpSecret;
+        if (string.IsNullOrEmpty(secret) || !_sessionService.Unlocked)
+        {
+            CodigoTotp = null;
+            SegundosTotpRestantes = 0;
+            return;
+        }
+
+        try
+        {
+            CodigoTotp = _totpService.GerarAgora(secret);
+            SegundosTotpRestantes = _totpService.SegundosRestantesAgora();
+        }
+        catch (ArgumentException)
+        {
+            CodigoTotp = null;
+            SegundosTotpRestantes = 0;
+        }
+    }
+
+    private void OnTimerTotpTick(object? sender, object args) => AtualizarTotp();
 
     /// <summary>
     /// Exibe um banner informativo temporário (export/import) no mesmo estilo

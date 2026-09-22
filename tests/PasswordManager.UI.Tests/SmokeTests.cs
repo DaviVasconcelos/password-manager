@@ -37,14 +37,15 @@ public class SmokeTests
     }
 
     [Fact]
-    public async Task VaultViewModel_Construtor_ComFakes_DeveCriarTresTimers()
+    public async Task VaultViewModel_Construtor_ComFakes_DeveCriarQuatroTimers()
     {
         var (_, _, timers, _) = await CriarVaultViewModelAsync();
 
-        timers.Timers.Should().HaveCount(3);
+        timers.Timers.Should().HaveCount(4);
         timers.TimerClipboard.IsRunning.Should().BeFalse();
         timers.TimerInatividade.IsRunning.Should().BeFalse();
         timers.TimerInfoBanner.IsRunning.Should().BeFalse();
+        timers.TimerTotp.IsRunning.Should().BeFalse();
     }
 
     [Fact]

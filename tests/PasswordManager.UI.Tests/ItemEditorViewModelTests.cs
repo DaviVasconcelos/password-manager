@@ -150,6 +150,79 @@ public class ItemEditorViewModelTests
     }
 
     [Fact]
+    public void CarregarParaEdicao_ComTotp_DevePreencherCampoESemErro()
+    {
+        var vm = CriarVm();
+        var item = Vault.CreateNew().AddItem("GitHub", "s3nh@", "Dev", totpSecret: "jbswy3dpehpk3pxp");
+
+        vm.CarregarParaEdicao(item, Array.Empty<OpcoesPasta>());
+
+        vm.TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+        vm.TotpErro.Should().BeNull();
+        vm.TotpValido.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CarregarParaEdicao_SemTotp_DeveLimparCampo()
+    {
+        var vm = CriarVm();
+        vm.TotpSecret = "JBSWY3DPEHPK3PXP";
+        var item = Vault.CreateNew().AddItem("GitHub", "s3nh@", "Dev");
+
+        vm.CarregarParaEdicao(item, Array.Empty<OpcoesPasta>());
+
+        vm.TotpSecret.Should().BeEmpty();
+        vm.TotpValido.Should().BeTrue();
+    }
+
+    [Fact]
+    public void CarregarParaCriacao_DeveLimparTotp()
+    {
+        var vm = CriarVm();
+        vm.TotpSecret = "JBSWY3DPEHPK3PXP";
+
+        vm.CarregarParaCriacao(Array.Empty<OpcoesPasta>());
+
+        vm.TotpSecret.Should().BeEmpty();
+        vm.TotpValido.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TotpSecret_Vazio_DeveSerValido()
+    {
+        var vm = CriarVm();
+
+        vm.TotpSecret = string.Empty;
+
+        vm.TotpErro.Should().BeNull();
+        vm.TotpValido.Should().BeTrue();
+    }
+
+    [Fact]
+    public void TotpSecret_ComValorValido_DeveSerValido()
+    {
+        var vm = CriarVm();
+
+        vm.TotpSecret = "jbswy3dpehpk3pxp";
+
+        vm.TotpErro.Should().BeNull();
+        vm.TotpValido.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("!!!!")]
+    [InlineData("AAAA")]
+    public void TotpSecret_ComValorInvalido_DeveExporErro(string secret)
+    {
+        var vm = CriarVm();
+
+        vm.TotpSecret = secret;
+
+        vm.TotpErro.Should().NotBeNullOrWhiteSpace();
+        vm.TotpValido.Should().BeFalse();
+    }
+
+    [Fact]
     public void TamanhoSenhaTexto_DeveFormatarComSufixo()
     {
         var vm = CriarVm();

@@ -7,6 +7,7 @@ using Microsoft.Windows.AppLifecycle;
 using PasswordManager.Application.Abstractions;
 using PasswordManager.Application.PasswordGeneration;
 using PasswordManager.Application.Settings;
+using PasswordManager.Application.Totp;
 using PasswordManager.Application.VaultSession;
 using PasswordManager.Application.VaultRegistry;
 using PasswordManager.Infrastructure.Cryptography;
@@ -465,6 +466,8 @@ namespace PasswordManager.UI
             services.AddSingleton<ICryptoService, CryptoService>();
             services.AddSingleton<IPasswordGenerator, PasswordGenerator>();
             services.AddSingleton<IPasswordStrengthEvaluator, PasswordStrengthEvaluator>();
+            services.AddSingleton<ITimeProvider, SystemTimeProvider>();
+            services.AddSingleton<ITotpService, TotpService>();
 
             services.AddSingleton<IVaultDbContextFactory, VaultDbContextFactory>();
 
