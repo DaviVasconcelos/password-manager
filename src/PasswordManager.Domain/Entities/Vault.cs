@@ -21,9 +21,10 @@ public class Vault
     }
 
     public VaultItem AddItem(string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null)
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null)
     {
-        var item = VaultItem.Create(title, password, category, username, url, notes);
+        var item = VaultItem.Create(title, password, category, username, url, notes, totpSecret);
         _items.Add(item);
         return item;
     }
@@ -48,12 +49,13 @@ public class Vault
     }
 
     public void UpdateItem(Guid itemId, string title, string password, string category,
-        string? username = null, string? url = null, string? notes = null)
+        string? username = null, string? url = null, string? notes = null,
+        string? totpSecret = null)
     {
         var item = _items.FirstOrDefault(i => i.Id == itemId)
             ?? throw new InvalidOperationException($"Item {itemId} não encontrado no cofre.");
 
-        item.UpdateDetails(title, password, category, username, url, notes);
+        item.UpdateDetails(title, password, category, username, url, notes, totpSecret);
     }
 
     public VaultFolder AddFolder(string name)
@@ -107,6 +109,7 @@ public class Vault
     /// neste cofre, mantendo os invariantes do agregado. Pastas com o mesmo
     /// nome (ignorando caixa) são reutilizadas; itens com mesmo título e
     /// usuário (ignorando caixa) são ignorados para evitar duplicatas. O
+    /// secret TOTP (ADR 0009) é preservado ao clonar itens novos. O
     /// cofre importado não é alterado.
     /// </summary>
     public void MergeFrom(Vault imported)
@@ -136,7 +139,7 @@ public class Vault
                 continue;
 
             var novo = AddItem(item.Title, item.Password, item.Category,
-                item.Username, item.Url, item.Notes);
+                item.Username, item.Url, item.Notes, item.TotpSecret);
 
             if (item.FolderId is not null
                 && mapeamentoDePastas.TryGetValue(item.FolderId.Value, out var pastaMapeada))

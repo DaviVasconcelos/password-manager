@@ -160,4 +160,112 @@ public class VaultItemTests
             act.Should().NotThrow();
         }
     }
+
+    public class VaultItemTotpTests
+    {
+        private const string SecretValido = "JBSWY3DPEHPK3PXP"; // 10 bytes decodificados
+        private const string SecretRfc6238 = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ"; // 20 bytes
+
+        [Fact]
+        public void Create_ComTotpValido_DeveNormalizarESalvar()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev", totpSecret: "jbsw y3dp-ehpk 3pxp");
+
+            item.TotpSecret.Should().Be(SecretValido);
+        }
+
+        [Fact]
+        public void Create_SemTotp_TotpSecretDeveSerNulo()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+            item.TotpSecret.Should().BeNull();
+        }
+
+        [Theory]
+        [InlineData("ABC!123")]
+        [InlineData("AAAA")] // curto demais: decodifica menos de 10 bytes
+        [InlineData("JBSWY3DP EH PK 3PXP!!!!")]
+        public void Create_ComTotpInvalido_DeveLancarArgumentException(string secret)
+        {
+            var act = () => VaultItem.Create("GitHub", "senha123", "Dev", totpSecret: secret);
+
+            act.Should().Throw<ArgumentException>().WithParameterName("totpSecret");
+        }
+
+        [Fact]
+        public void DefinirTotpSecret_ComValorValido_DeveAtualizarSecret()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+            item.DefinirTotpSecret(SecretRfc6238.ToLowerInvariant());
+
+            item.TotpSecret.Should().Be(SecretRfc6238);
+            item.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        [InlineData("   ")]
+        public void DefinirTotpSecret_ComNuloOuVazio_DeveRemoverSecret(string? secret)
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev", totpSecret: SecretValido);
+
+            item.DefinirTotpSecret(secret);
+
+            item.TotpSecret.Should().BeNull();
+        }
+
+        [Fact]
+        public void RemoverTotpSecret_ComSecretDefinido_DeveLimparSecret()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev", totpSecret: SecretValido);
+
+            item.RemoverTotpSecret();
+
+            item.TotpSecret.Should().BeNull();
+        }
+
+        [Fact]
+        public void UpdateDetails_ComTotp_DeveAtualizarSecret()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev");
+
+            item.UpdateDetails("GitHub", "senha123", "Dev", totpSecret: SecretValido);
+
+            item.TotpSecret.Should().Be(SecretValido);
+        }
+
+        [Fact]
+        public void UpdateDetails_SemTotp_DeveLimparSecret()
+        {
+            var item = VaultItem.Create("GitHub", "senha123", "Dev", totpSecret: SecretValido);
+
+            item.UpdateDetails("GitHub", "senha123", "Dev");
+
+            item.TotpSecret.Should().BeNull();
+        }
+
+        [Fact]
+        public void Rehydrate_ComTotp_DevePreservarSecret()
+        {
+            var item = VaultItem.Rehydrate(
+                Guid.NewGuid(), "GitHub", "senha123", "Dev",
+                null, null, null, null, SecretValido, DateTime.UtcNow, DateTime.UtcNow);
+
+            item.TotpSecret.Should().Be(SecretValido);
+        }
+
+        [Fact]
+        public void Rehydrate_LegadoSemTotp_TotpSecretDeveSerNulo()
+        {
+            // Overload antigo (cofres gravados antes da ADR 0009): sem 2FA.
+            var item = VaultItem.Rehydrate(
+                Guid.NewGuid(), "GitHub", "senha123", "Dev",
+                null, null, null, null, DateTime.UtcNow, DateTime.UtcNow);
+
+            item.TotpSecret.Should().BeNull();
+        }
+    }
 }

@@ -248,6 +248,41 @@ public class VaultTests
         vault.Items.Should().BeAssignableTo<IReadOnlyCollection<VaultItem>>();
     }
 
+    [Fact]
+    public void AddItem_ComTotp_DeveSalvarSecretNormalizado()
+    {
+        var vault = Vault.CreateNew();
+
+        var item = vault.AddItem("GitHub", "senha123", "Dev", totpSecret: "jbswy3dpehpk3pxp");
+
+        item.TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+    }
+
+    [Fact]
+    public void UpdateItem_ComTotp_DeveAtualizarSecret()
+    {
+        var vault = Vault.CreateNew();
+        var item = vault.AddItem("GitHub", "senha123", "Dev");
+
+        vault.UpdateItem(item.Id, "GitHub", "senha123", "Dev", totpSecret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+
+        vault.Items.Single().TotpSecret.Should().Be("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ");
+    }
+
+    [Fact]
+    public void MergeFrom_ComItemComTotp_DevePreservarSecret()
+    {
+        var origem = Vault.CreateNew();
+        origem.AddItem("GitHub", "senha123", "Dev", username: "davi", totpSecret: "JBSWY3DPEHPK3PXP");
+        var destino = Vault.CreateNew();
+
+        destino.MergeFrom(origem);
+
+        destino.Items.Should().ContainSingle()
+            .Which.TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+        origem.Items.Single().TotpSecret.Should().Be("JBSWY3DPEHPK3PXP");
+    }
+
     public class VaultRehydrateTests
     {
         [Fact]
