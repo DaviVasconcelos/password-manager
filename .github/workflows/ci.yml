@@ -102,8 +102,7 @@ jobs:
           }
           "full=$fullVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
           "msi=$msiVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          "msiFile=PasswordManager-$fullVersion-x64.msi" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          Write-Host "full=$fullVersion msi=$msiVersion file=PasswordManager-$fullVersion-x64.msi"
+          Write-Host "full=$fullVersion msi=$msiVersion (artefatos: PasswordManager-$fullVersion-x64-ptBR.msi + -enUS.msi)"
 
       - name: Publicar app unpackaged (self-contained win-x64)
         run: dotnet publish src/PasswordManager.UI/PasswordManager.UI.csproj -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish -p:Version=${{ steps.version.outputs.full }} -p:AssemblyVersion=${{ steps.version.outputs.msi }} -p:FileVersion=${{ steps.version.outputs.msi }} -p:InformationalVersion=${{ steps.version.outputs.full }}
@@ -114,14 +113,16 @@ jobs:
       - name: Instalar WiX UI extension
         run: wix extension add -g WixToolset.UI.wixext/5.0.2
 
-      - name: Gerar MSI com WiX
+      - name: Gerar MSIs com WiX (pt-BR + en-US)
         shell: pwsh
         run: |
           $publishDir = (Resolve-Path publish).Path
           $msiVersion = "${{ steps.version.outputs.msi }}"
-          $msiFile = "${{ steps.version.outputs.msiFile }}"
+          $fullVersion = "${{ steps.version.outputs.full }}"
+          $msiPtBR = "PasswordManager-$fullVersion-x64-ptBR.msi"
+          $msiEnUS = "PasswordManager-$fullVersion-x64-enUS.msi"
           Write-Host "PublishDir: $publishDir"
-          Write-Host "MsiVersion: $msiVersion -> $msiFile"
+          Write-Host "MsiVersion: $msiVersion (full $fullVersion)"
           Get-ChildItem $publishDir | Format-Table Name, Length | Out-String -Width 200 | Write-Host
           # Verificar Assets do ícone (correção de ícone ausente)
           if (Test-Path "$publishDir/Assets/logo-password-manager.ico") { Write-Host "Ícone encontrado em publish/Assets/logo-password-manager.ico" } else { Write-Warning "Ícone NÃO encontrado em publish/Assets/" }
@@ -129,16 +130,21 @@ jobs:
           powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir "$publishDir" -Output "installer/AppFiles.wxs"
           if (-not (Test-Path installer/AppFiles.wxs)) { throw "AppFiles.wxs não gerado" }
           Write-Host "AppFiles.wxs gerado:"; Get-Content installer/AppFiles.wxs | Select-Object -First 20 | Out-String | Write-Host
-          # Build MSI com UI traduzida (pt-BR + en-US), seleção de idioma, pasta e atalho desktop opcional
-          # WixUI_Custom + LanguageSelectionDlg + VerifyReadyDlg_Custom implementam: 1) seleção de idioma, 2) escolha de pasta, 3) checkbox desktop
-          # Bilingual (pt-BR/en-US) para dialogs padrão localizados via WixToolset.UI.wixext; custom dialogs via Strings_pt-BR (neutro)
-          wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir="$publishDir" -d MsiVersion="$msiVersion" -o "$msiFile" installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
-          if (-not (Test-Path "$msiFile")) { throw "MSI não gerado: $msiFile" }
-          Get-ChildItem "$msiFile" | Format-List Name,Length | Out-String | Write-Host
-          # Checksum para conferência do Release (sem cert, usuário pode verificar)
-          $hash = (Get-FileHash "$msiFile" -Algorithm SHA256).Hash.ToLower()
-          "$hash  $msiFile" | Set-Content "$msiFile.sha256"
-          Get-Content "$msiFile.sha256" | Write-Host
+          # Um MSI por idioma (WiX 5 não aceita dois -loc com os mesmos IDs num único build — erro WIX0100).
+          # Cada MSI nasce no seu idioma (cultura + .wxl + contrato RTF próprios); a seleção de idioma
+          # do instalador (LanguageSelectionDlg) alimenta HKCU\...\installerLanguage para o app ler na 1ª execução.
+          $wxsFiles = @("installer/Package.wxs", "installer/AppFiles.wxs", "installer/WixUI_Custom.wxs", "installer/LanguageSelectionDlg.wxs", "installer/VerifyReadyDlg_Custom.wxs")
+          wix build -arch x64 -culture pt-BR -d PublishDir="$publishDir" -d MsiVersion="$msiVersion" -d LangId="1046" -d LicenseRtf="installer/License_pt-BR.rtf" -d InstallerLanguage="pt-BR" -o "$msiPtBR" @wxsFiles -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
+          if (-not (Test-Path "$msiPtBR")) { throw "MSI não gerado: $msiPtBR" }
+          wix build -arch x64 -culture en-US -d PublishDir="$publishDir" -d MsiVersion="$msiVersion" -d LangId="1033" -d LicenseRtf="installer/License_en-US.rtf" -d InstallerLanguage="en-US" -o "$msiEnUS" @wxsFiles -ext WixToolset.UI.wixext -loc installer/Loc/Strings_en-US.wxl
+          if (-not (Test-Path "$msiEnUS")) { throw "MSI não gerado: $msiEnUS" }
+          Get-ChildItem PasswordManager-*.msi | Format-List Name,Length | Out-String | Write-Host
+          # Checksums para conferência do Release (sem cert, usuário pode verificar)
+          foreach ($f in Get-ChildItem PasswordManager-*.msi) {
+            $hash = (Get-FileHash $f.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($f.Name)" | Set-Content "$($f.Name).sha256"
+            Get-Content "$($f.Name).sha256" | Write-Host
+          }
 
       - name: Enviar artefato MSI
         uses: actions/upload-artifact@v6
@@ -150,8 +156,8 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-  # Publicação automática: cria GitHub Release quando houver push de tag v*.*.* (ex: v0.1.0, v0.2.0)
-  # Uso diário continua só commit+push; para publicar: git tag v0.2.0 && git push --tags
+  # Publicação automática: cria GitHub Release quando houver push de tag v*.*.* (ex: v1.0.0)
+  # Uso diário continua só commit+push; para publicar: git tag v1.0.0 && git push --tags
   publish-release:
     name: Publicar Release
     runs-on: windows-latest

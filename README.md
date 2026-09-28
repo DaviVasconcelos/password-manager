@@ -265,12 +265,14 @@ O app é **unpackaged** (`WindowsPackageType=None`, `EnableMsixTooling=false`, `
 # Gerar MSI localmente (Release, self-contained win-x64)
 dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish
 powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
-wix build -arch x64 -d PublishDir=publish -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs
+wix build -arch x64 -d PublishDir=publish -o PasswordManager-1.0.0-x64.msi installer/Package.wxs installer/AppFiles.wxs
 ```
 
-- `installer/Package.wxs` — `Version="0.1.0"` (sincronize com git tag), `UpgradeCode` estável (não altere), `MajorUpgrade` para upgrades, atalhos no Menu Iniciar e Área de Trabalho.
+- `installer/Package.wxs` — `Version` injetada via `-d MsiVersion` a partir da git tag (`v1.0.0`, ...), `UpgradeCode` estável (não altere), `MajorUpgrade` para upgrades, instalação **per-User** (sem admin, em `%LocalAppData%\Programs\PasswordManager`), atalhos no Menu Iniciar e Área de Trabalho (opcional), contrato em `installer/License_pt-BR.rtf` / `installer/License_en-US.rtf`.
 - `installer/AppFiles.wxs` — gerado dinamicamente, `gitignored`.
-- Saída no CI: `PasswordManager-0.1.0-x64.msi` publicado como artefato (30 dias, **unsigned**). Instalação silenciosa: `msiexec /i PasswordManager-0.1.0-x64.msi /qn`.
+- Saída no CI: `PasswordManager-<versão>-x64-ptBR.msi` + `PasswordManager-<versão>-x64-enUS.msi` (um por idioma, cada um com cultura, `.wxl` e contrato próprios) publicados como artefatos (30 dias, **unsigned** — confira o `.sha256` e espere o aviso do SmartScreen no Windows). Instalação silenciosa: `msiexec /i PasswordManager-1.0.0-x64-ptBR.msi /qn`.
+- Atualizar ou desinstalar **nunca apaga** seus cofres (`%LocalAppData%\PasswordManager\Vaults`) nem o `settings.json`.
+- **Migração 0.x → 1.0:** as versões 0.x instalavam **per-machine** (Program Files, com admin) e a 1.0 instala **per-user** — o MSI 1.0 não remove o 0.x automaticamente. Desinstale o 0.x pelo Painel de Controle antes de instalar a 1.0 (seus cofres são preservados).
 
 > Histórico: o projeto cogitou MSIX, mas a decisão final é **MSI puro** para manter o app unpackaged e simplificar distribuição/CI. Nunca use `WindowsPackageType=MSIX`.
 
@@ -406,8 +408,8 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
     7. `actions/upload-artifact` com `TestResults/**/*.trx` (14 dias)
   - `build-msi` (depende de `build-and-test`):
     1. `dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 --self-contained -o publish`
-    2. `wix build -arch x64 -d PublishDir=publish -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs` (WiX 5.0.2, `generate-AppFiles.ps1`)
-    3. `actions/upload-artifact` com `PasswordManager-*.msi` (30 dias, **unsigned / next-next**)
+    2. dois `wix build` (WiX 5.0.2, `generate-AppFiles.ps1`, versão da git tag) — `PasswordManager-<versão>-x64-ptBR.msi` (`-culture pt-BR`, `LangId=1046`) e `PasswordManager-<versão>-x64-enUS.msi` (`-culture en-US`, `LangId=1033`), cada um com seu `.wxl` e contrato RTF
+    3. `actions/upload-artifact` com `PasswordManager-*.msi` + `.sha256` (30 dias, **unsigned / next-next, per-User**)
 - **Fora do escopo atual:** assinatura de código/certificado, versionamento via git tag, auto-update e publicação em store/winget (Fase D)
 
 ---
@@ -454,7 +456,7 @@ Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.
 
 #### Fase D — Distribuição
 
-- [x] **Empacotamento MSI (WiX 5)** — `installer/Package.wxs` + `installer/generate-AppFiles.ps1`, publish self-contained `win-x64`, MSI `PasswordManager-0.1.0-x64.msi` gerado no CI (`build-msi`, `wix 5.0.2`) como artefato (30 dias, **sem assinatura**). App **unpackaged** (`WindowsPackageType=None`, `EnableMsixTooling=false`, `PublishTrimmed=false`). Próximos passos: assinatura/certificado e versionamento via git tag.
+- [x] **Empacotamento MSI (WiX 5)** — `installer/Package.wxs` + `installer/generate-AppFiles.ps1`, publish self-contained `win-x64`, dois MSIs gerados no CI (`build-msi`, `wix 5.0.2`, versão da git tag): `PasswordManager-<versão>-x64-ptBR.msi` e `-enUS.msi` (30 dias, **sem assinatura** — verificar `.sha256`). App **unpackaged** (`WindowsPackageType=None`, `EnableMsixTooling=false`, `PublishTrimmed=false`) com instalação **per-User** (sem admin) e contrato real (`installer/License_pt-BR.rtf` / `License_en-US.rtf`). Migração 0.x (per-machine) → 1.0 (per-user) é manual com cofres preservados. Próximos passos: assinatura/certificado e versionamento via git tag.
 - [ ] **Auto-update / backup automático / lembretes de backup**
 
 ---

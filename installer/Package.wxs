@@ -1,26 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Instalador MSI para PasswordManager (WinUI 3 unpackaged).
+  Instalador MSI para PasswordManager (WinUI 3 unpackaged, per-User: sem UAC/admin).
 
   Fluxo UI (WixUI_InstallDir_Custom):
-    1) LanguageSelectionDlg - seleção de idioma (pt-BR / en-US)
+    1) LanguageSelectionDlg - confirma o idioma do app (gravado em
+       HKCU\Software\PasswordManager\installerLanguage para o app ler na 1ª execução;
+       cada MSI já nasce no seu idioma: pt-BR = 1046, en-US = 1033)
     2) WelcomeDlg
-    3) LicenseAgreementDlg
-    4) InstallDirDlg - escolha da pasta (WIXUI_INSTALLDIR = INSTALLFOLDER)
+    3) LicenseAgreementDlg - contrato real via -d LicenseRtf
+       (installer/License_pt-BR.rtf ou installer/License_en-US.rtf, MIT + avisos).
+       Sem isto o diálogo exibe o lorem ipsum padrão do WiX.
+    4) InstallDirDlg - escolha da pasta (WIXUI_INSTALLDIR = INSTALLFOLDER, padrão
+       %LocalAppData%\Programs\PasswordManager — fora de %LocalAppData%\PasswordManager,
+       onde ficam os cofres e o settings.json, que nunca são apagados)
     5) VerifyReadyDlg_Custom - checkbox opcional "Criar atalho na área de trabalho"
     6) Progress / Exit
 
-  Build (local):
+  Build (local, um MSI por idioma — o WiX 5 não aceita dois -loc com os mesmos IDs num único build):
     dotnet publish src/PasswordManager.UI -c Release -p:Platform=x64 -r win-x64 &#45;&#45;self-contained -o publish
     powershell -ExecutionPolicy Bypass -File installer/generate-AppFiles.ps1 -PublishDir publish -Output installer/AppFiles.wxs
-    wix build -arch x64 -culture pt-BR -culture en-US -d PublishDir=publish -d MsiVersion=0.1.0 -o PasswordManager-0.1.0-x64.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl -loc installer/Loc/Strings_en-US.wxl
-    # CI injeta -d MsiVersion a partir da git tag (v0.1.0, v0.2.0...); sem -d usa fallback 0.1.0 abaixo.
+    wix build -arch x64 -culture pt-BR -d PublishDir=publish -d MsiVersion=0.1.0 -d LangId=1046 -d LicenseRtf=installer/License_pt-BR.rtf -d InstallerLanguage=pt-BR -o PasswordManager-0.1.0-x64-ptBR.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_pt-BR.wxl
+    wix build -arch x64 -culture en-US -d PublishDir=publish -d MsiVersion=0.1.0 -d LangId=1033 -d LicenseRtf=installer/License_en-US.rtf -d InstallerLanguage=en-US -o PasswordManager-0.1.0-x64-enUS.msi installer/Package.wxs installer/AppFiles.wxs installer/WixUI_Custom.wxs installer/LanguageSelectionDlg.wxs installer/VerifyReadyDlg_Custom.wxs -ext WixToolset.UI.wixext -loc installer/Loc/Strings_en-US.wxl
+    # CI injeta -d MsiVersion a partir da git tag (v1.0.0, v1.1.0...); sem -d usa fallback 0.1.0 abaixo.
 
   UpgradeCode é estável - não altere.
+  MSI sem assinatura: conferir SHA256 publicado no GitHub Release.
   Correções: ícone via AppWindow.SetIcon com Assets copiado; MSI com UI completa.
 -->
 <?ifndef MsiVersion?>
 <?define MsiVersion = "0.1.0"?>
+<?endif?>
+<?ifndef LangId?>
+<?define LangId = "1046"?>
+<?endif?>
+<?ifndef LicenseRtf?>
+<?define LicenseRtf = "installer/License_pt-BR.rtf"?>
+<?endif?>
+<?ifndef InstallerLanguage?>
+<?define InstallerLanguage = "pt-BR"?>
 <?endif?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
@@ -29,26 +46,31 @@
            Version="$(var.MsiVersion)"
            Manufacturer="!(loc.Manufacturer)"
            UpgradeCode="DA5FDCB9-00C2-4650-9224-0625EBD58AB1"
-           Language="1033"
+           Language="$(var.LangId)"
            Codepage="1252"
-           Scope="perMachine">
+           Scope="perUser">
 
     <SummaryInformation Keywords="PasswordManager" Description="!(loc.PackageDescription)" Manufacturer="!(loc.Manufacturer)" />
 
     <MajorUpgrade DowngradeErrorMessage="!(loc.MajorUpgradeDowngradeError)" />
 
+    <!-- Contrato real no idioma do MSI. Sem isto o LicenseAgreementDlg exibe o lorem ipsum padrão do WiX. -->
+    <WixVariable Id="WixUILicenseRtf" Value="$(var.LicenseRtf)" />
+
     <Media Id="1" Cabinet="PasswordManager.cab" EmbedCab="yes" />
 
     <!-- Propriedades de UI -->
     <Property Id="CREATE_DESKTOP_SHORTCUT" Value="1" />
-    <Property Id="INSTALLER_LANGUAGE" Value="pt-BR" Secure="yes" />
+    <Property Id="INSTALLER_LANGUAGE" Value="$(var.InstallerLanguage)" Secure="yes" />
 
     <!-- UI custom: LanguageSelectionDlg + VerifyReady com checkbox desktop -->
     <ui:WixUI Id="WixUI_InstallDir_Custom" InstallDirectory="INSTALLFOLDER" />
 
-    <!-- ESTRUTURA DE DIRETÓRIOS -->
-    <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="PasswordManager" />
+    <!-- ESTRUTURA DE DIRETÓRIOS (per-User, sem admin; fora da pasta de dados %LocalAppData%\PasswordManager) -->
+    <StandardDirectory Id="LocalAppDataFolder">
+      <Directory Id="ProgramsFolder" Name="Programs">
+        <Directory Id="INSTALLFOLDER" Name="PasswordManager" />
+      </Directory>
     </StandardDirectory>
     <StandardDirectory Id="ProgramMenuFolder">
       <Directory Id="ProgramMenuDir" Name="PasswordManager" />
@@ -59,6 +81,7 @@
     <Feature Id="ProductFeature" Title="!(loc.ProductName)" Level="1" Description="!(loc.ProductFeatureDescription)" Display="expand" ConfigurableDirectory="INSTALLFOLDER">
       <ComponentGroupRef Id="AppFiles" />
       <ComponentRef Id="StartMenuShortcut" />
+      <ComponentRef Id="InstallerLanguage" />
     </Feature>
     <Feature Id="DesktopShortcutFeature" Title="!(loc.DesktopFeatureTitle)" Description="!(loc.DesktopFeatureDescription)" Level="1">
       <Level Value="0" Condition="NOT CREATE_DESKTOP_SHORTCUT" />
@@ -73,6 +96,12 @@
       <RemoveFolder Id="CleanUpShortCut" Directory="ProgramMenuDir" On="uninstall" />
     </Component>
 
+    <!-- Idioma escolhido no instalador; o app pode ler na 1ª execução para pré-selecionar o idioma.
+         Componente próprio (Guid novo) para a desinstalação remover exatamente o que instalou. -->
+    <Component Id="InstallerLanguage" Directory="INSTALLFOLDER" Guid="F2DA711B-5365-41FA-9708-206066A4B6F9">
+      <RegistryValue Root="HKCU" Key="Software\PasswordManager" Name="installerLanguage" Type="string" Value="[INSTALLER_LANGUAGE]" KeyPath="yes" />
+    </Component>
+
     <!-- Atalho na Área de Trabalho (opcional) -->
     <Component Id="DesktopShortcut" Directory="DesktopFolder" Guid="C43AD99D-12E0-4698-85B3-6B1C711B766D">
       <Shortcut Id="DesktopShortcut" Name="!(loc.ShortcutName)" Description="!(loc.ShortcutDescription)"
@@ -83,6 +112,9 @@
     <Icon Id="AppIcon.exe" SourceFile="src\PasswordManager.UI\Assets\logo-password-manager.ico" />
     <Property Id="ARPPRODUCTICON" Value="AppIcon.exe" />
     <Property Id="ARPHELPLINK" Value="https://github.com/DaviVasconcelos/password-manager" />
+    <Property Id="ARPCONTACT" Value="https://github.com/DaviVasconcelos/password-manager" />
+    <Property Id="ARPURLINFOABOUT" Value="https://github.com/DaviVasconcelos/password-manager" />
+    <Property Id="ARPURLUPDATEINFO" Value="https://github.com/DaviVasconcelos/password-manager/releases" />
 
   </Package>
 </Wix>
