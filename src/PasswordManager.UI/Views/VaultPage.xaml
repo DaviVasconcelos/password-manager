@@ -119,6 +119,7 @@
                 <TextBox x:Name="BuscaBox" Grid.Row="0" Grid.Column="0"
                          Style="{StaticResource PMTextBoxStyle}"
                          Text="{x:Bind ViewModel.TermoBusca, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                         TextChanged="OnBuscaTextChanged"
                          x:Uid="VaultPage_BuscaBox" />
                 <ComboBox x:Name="ComboPastas" Grid.Row="0" Grid.Column="1"
                           Style="{StaticResource PMComboBoxStyle}"

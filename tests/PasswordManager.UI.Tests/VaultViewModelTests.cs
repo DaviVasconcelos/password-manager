@@ -550,4 +550,107 @@ public class VaultViewModelTests
         await sut.Vm.ImportarAsync(new byte[] { 0x01 }, "nova-senha", true);
         sut.Vm.FolderOptions.Should().NotBeEmpty();
     }
+
+    [Fact]
+    public async Task SuspenderAutoLock_ComPopupAberto_DevePararTimerESinalizarSupressao()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeTrue();
+
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Vm.AutoLockSuprimido.Should().BeTrue();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task TimerInatividade_ComSupressaoAtiva_NaoDeveTrancarERearmaIntervalo()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        bool trancado = false;
+        sut.Vm.Trancado += () => trancado = true;
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Timers.TimerInatividade.DispararTick();
+
+        sut.Session.Unlocked.Should().BeTrue();
+        trancado.Should().BeFalse();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task NotificarAtividade_ComSupressaoAtiva_NaoDeveReiniciarTimer()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        sut.Vm.SuspenderAutoLock();
+        var startAntes = sut.Timers.TimerInatividade.ChamadasStart;
+
+        sut.Vm.NotificarAtividade();
+
+        sut.Timers.TimerInatividade.ChamadasStart.Should().Be(startAntes);
+        sut.Timers.TimerInatividade.IsRunning.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task RetomarAutoLock_AoZerarContagem_DeveReiniciarIntervaloCheio()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Vm.RetomarAutoLock();
+
+        sut.Vm.AutoLockSuprimido.Should().BeFalse();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeTrue();
+        sut.Timers.TimerInatividade.Interval.Should().Be(TimeSpan.FromMinutes(2));
+    }
+
+    [Fact]
+    public async Task SuspenderAutoLock_Reentrante_DeveExigirMesmoNumeroDeRetomadas()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        sut.Vm.SuspenderAutoLock();
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Vm.RetomarAutoLock();
+        sut.Vm.AutoLockSuprimido.Should().BeTrue();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeFalse();
+
+        sut.Vm.RetomarAutoLock();
+        sut.Vm.AutoLockSuprimido.Should().BeFalse();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LockManual_ComSupressaoAtiva_DeveTrancarELimparSupressao()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        bool trancado = false;
+        sut.Vm.Trancado += () => trancado = true;
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Vm.LockCommand.Execute(null);
+
+        sut.Session.Unlocked.Should().BeFalse();
+        trancado.Should().BeTrue();
+        sut.Vm.AutoLockSuprimido.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task PararTimers_ComSupressaoAtiva_DeveLimparSupressao()
+    {
+        var sut = await CriarSutAsync();
+        sut.Vm.Inicializar();
+        sut.Vm.SuspenderAutoLock();
+
+        sut.Vm.PararTimers();
+
+        sut.Vm.AutoLockSuprimido.Should().BeFalse();
+        sut.Timers.TimerInatividade.IsRunning.Should().BeFalse();
+    }
 }

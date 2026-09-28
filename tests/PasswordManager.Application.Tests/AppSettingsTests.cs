@@ -20,6 +20,13 @@ public class AppSettingsTests
     }
 
     [Fact]
+    public void DefaultAutoLockTimeoutMinutes_DeveSer5Minutos()
+    {
+        AppSettings.DefaultAutoLockTimeoutMinutes.Should().Be(5);
+        AppSettings.Default.AutoLockTimeoutMinutes.Should().Be(5);
+    }
+
+    [Fact]
     public void Validar_ComConfiguracoesPadrao_DevePassarSemLancar()
     {
         var act = () => AppSettings.Default.Validar();

@@ -55,6 +55,7 @@ public sealed partial class ItemEditorContent : UserControl
         AddHandler(PointerMovedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
         AddHandler(PointerPressedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
         AddHandler(KeyDownEvent, new Microsoft.UI.Xaml.Input.KeyEventHandler((s, e) => Atividade?.Invoke()), true);
+        AddHandler(PointerWheelChangedEvent, new Microsoft.UI.Xaml.Input.PointerEventHandler((s, e) => Atividade?.Invoke()), true);
         ViewModel.PropertyChanged += (_, _) => Atividade?.Invoke();
     }
 

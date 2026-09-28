@@ -73,7 +73,7 @@ Objetivos de engenharia demonstrados no projeto:
 | **Força da senha** | Avaliação em `ForcaSenha` (enum) exibida na UI |
 | **Copiar senha** | Cópia para área de transferência com limpeza automática configurável |
 | **TOTP/2FA** | Secret Base32 opcional por item (criptografado no blob), código de 6 dígitos (SHA-1/30 s) com countdown e cópia na `VaultPage` (ADR 0009) |
-| **Auto-lock** | Trancamento por inatividade via `ITimer`/`DispatcherQueueTimer` (padrão 2 min, configurável) |
+| **Auto-lock** | Trancamento por inatividade via `ITimer`/`DispatcherQueueTimer` (padrão 5 min, configurável) |
 | **Troca de senha mestra** | Exige senha atual (verificação em tempo constante), rotaciona salt + blob |
 | **Backup .vault** | Exportar/importar arquivo autocontido criptografado, com opção substituir ou mesclar |
 | **Tema** | Claro / escuro / sistema (`AppSettings.Tema`, `App.AplicarTema` + `DesignTokens.xaml`) |
@@ -299,7 +299,7 @@ Acessíveis pelo diálogo **Configurações** na `VaultPage`:
 
 | Configuração | Padrão | Descrição |
 |--------------|--------|-----------|
-| Timeout de auto-lock | 2 minutos | Tranca por inatividade (não por perda de foco). `ITimer` reiniciado a cada `Pointer`/`Key` |
+| Timeout de auto-lock | 5 minutos | Tranca por inatividade (não por perda de foco). `ITimer` reiniciado a cada `Pointer`/`Key`/`Wheel` |
 | Tempo de limpeza do clipboard | 30 s | Zera a área de transferência após copiar senha |
 | Tamanho padrão do gerador | 20 | Comprimento da senha gerada (8–64) |
 | Conjuntos do gerador | todos ativos | Incluir maiúsculas / minúsculas / números / símbolos |
@@ -440,7 +440,7 @@ Workflow em `.github/workflows/ci.yml` (ADR 0006) — **MSI, não MSIX**:
 
 Arquivado como histórico — não faz mais parte do roadmap ativo. Todos os itens abaixo estão implementados e cobertos por testes:
 
-- **Fase A — Robustez/UX:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (2 min padrão, `ITimer`/`DispatcherQueueTimerAdapter`), Troca de senha mestra (exige senha atual, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`, `DesignTokens.xaml`)
+- **Fase A — Robustez/UX:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (5 min padrão, `ITimer`/`DispatcherQueueTimerAdapter`), Troca de senha mestra (exige senha atual, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`, `DesignTokens.xaml`)
 - **Fase B — Engenharia:** Migrations EF Core (`dotnet-ef 8.0.30`, `VaultDatabaseMigrator.ApplyMigrations` + baseline legado, `has-pending-model-changes` no CI), Testes de ViewModels (72 UI tests desacoplados via `IClipboardService`/`ITimer`/`IIdiomaProvider`, `PasswordManager.Presentation` + `PasswordManager.UI.Tests`), i18n (ADR 0007 — PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`, fallback `pt-BR`/`en-US`)
 
 Detalhes: `AGENTS.md` (seção Roadmap) + `docs/plans/06-testes-viewmodels.md`.

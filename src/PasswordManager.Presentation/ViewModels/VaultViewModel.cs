@@ -39,8 +39,9 @@ public partial class VaultViewModel : ObservableObject
     private static readonly TimeSpan DuracaoInfoBanner = TimeSpan.FromSeconds(4);
     private static readonly TimeSpan IntervaloTotp = TimeSpan.FromSeconds(1);
 
-    private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(2);
+    private TimeSpan _timeoutInatividade = TimeSpan.FromMinutes(5);
     private TimeSpan _tempoLimparClipboard = TimeSpan.FromSeconds(30);
+    private int _supressoesAutoLock;
 
     public ObservableCollection<VaultItem> DisplayedItems { get; } = new();
     public ObservableCollection<OpcoesPasta> FolderOptions { get; } = new();
@@ -166,15 +167,46 @@ public partial class VaultViewModel : ObservableObject
         string.Format(_localization.GetString("VaultPage_ToastSenhaCopiada.Text"), (int)_tempoLimparClipboard.TotalSeconds);
 
     /// <summary>
+    /// Indica se o auto-lock está suprimido (algum popup/modal aberto).
+    /// Enquanto suprimido, o timer de inatividade não tranca o cofre.
+    /// </summary>
+    public bool AutoLockSuprimido => _supressoesAutoLock > 0;
+
+    /// <summary>
     /// Registra atividade do usuário, reiniciando o timer de inatividade.
+    /// Ignorado enquanto o auto-lock está suprimido (popup aberto).
     /// </summary>
     public void NotificarAtividade() => ReiniciarTimerInatividade();
+
+    /// <summary>
+    /// Suspende o auto-lock enquanto um popup/modal está aberto (contagem
+    /// reentrante para diálogos aninhados). O trancamento manual continua
+    /// funcionando normalmente.
+    /// </summary>
+    public void SuspenderAutoLock()
+    {
+        _supressoesAutoLock++;
+        _timerInatividade.Stop();
+    }
+
+    /// <summary>
+    /// Retoma o auto-lock após o fechamento de um popup/modal. Quando a
+    /// contagem zera, reinicia o intervalo cheio (se a sessão segue aberta).
+    /// </summary>
+    public void RetomarAutoLock()
+    {
+        if (_supressoesAutoLock > 0)
+            _supressoesAutoLock--;
+        if (_supressoesAutoLock == 0 && _sessionService.Unlocked)
+            ReiniciarTimerInatividade();
+    }
 
     /// <summary>
     /// Para os timers da página (usado ao navegar para fora do cofre).
     /// </summary>
     public void PararTimers()
     {
+        _supressoesAutoLock = 0;
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
         _timerInfoBanner.Stop();
@@ -346,6 +378,7 @@ public partial class VaultViewModel : ObservableObject
     /// </summary>
     private void Trancar()
     {
+        _supressoesAutoLock = 0;
         _timerLimparClipboard.Stop();
         _timerInatividade.Stop();
         _timerInfoBanner.Stop();
@@ -415,12 +448,27 @@ public partial class VaultViewModel : ObservableObject
 
     private void ReiniciarTimerInatividade()
     {
+        if (AutoLockSuprimido)
+            return;
         _timerInatividade.Stop();
         _timerInatividade.Interval = _timeoutInatividade;
         _timerInatividade.Start();
     }
 
-    private void OnTimerInatividadeTick(object? sender, object args) => Trancar();
+    private void OnTimerInatividadeTick(object? sender, object args)
+    {
+        // Defesa contra corrida: se um popup foi aberto após o agendamento
+        // do tick, apenas rearma o intervalo em vez de trancar.
+        if (AutoLockSuprimido)
+        {
+            _timerInatividade.Stop();
+            _timerInatividade.Interval = _timeoutInatividade;
+            _timerInatividade.Start();
+            return;
+        }
+
+        Trancar();
+    }
 
     /// <summary>
     /// Troca a senha mestra exigindo a senha atual (verificada pelo serviço

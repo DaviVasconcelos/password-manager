@@ -46,10 +46,18 @@ public sealed partial class VaultPage : Page
         AddHandler(PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         AddHandler(PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         AddHandler(KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        // Rolagem com rodinha/touchpad não gera PointerMoved com o ponteiro
+        // parado: sem este handler, ler a lista rolando tranca o cofre.
+        AddHandler(PointerWheelChangedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         // Fallback para compatibilidade com handlers diretos
         PointerMoved += OnPointerMoved;
         PointerPressed += OnPointerPressed;
         KeyDown += OnKeyDown;
+        PointerWheelChanged += OnPointerWheelChanged;
+        // Dropdown do filtro de pastas abre Popup fora da árvore da página:
+        // suspender o auto-lock enquanto a lista está aberta.
+        ComboPastas.DropDownOpened += (_, _) => ViewModel.SuspenderAutoLock();
+        ComboPastas.DropDownClosed += (_, _) => ViewModel.RetomarAutoLock();
     }
 
     protected override void OnNavigatedTo(NavigationEventArgs e)
@@ -69,6 +77,14 @@ public sealed partial class VaultPage : Page
     private void OnPointerPressed(object sender, PointerRoutedEventArgs e) => ViewModel.NotificarAtividade();
 
     private void OnKeyDown(object sender, KeyRoutedEventArgs e) => ViewModel.NotificarAtividade();
+
+    private void OnPointerWheelChanged(object sender, PointerRoutedEventArgs e) => ViewModel.NotificarAtividade();
+
+    /// <summary>
+    /// Digitação na busca (inclui IME/emoji/colagem, que nem sempre geram
+    /// <c>KeyDown</c> por caractere) também reinicia o timer de inatividade.
+    /// </summary>
+    private void OnBuscaTextChanged(object sender, TextChangedEventArgs e) => ViewModel.NotificarAtividade();
 
     private void OnTrancado()
     {
@@ -90,6 +106,7 @@ public sealed partial class VaultPage : Page
     private async Task<ContentDialogResult> MostrarDialogoAsync(ContentDialog dialog)
     {
         _dialogoAberto = dialog;
+        ViewModel.SuspenderAutoLock();
         try
         {
             return await dialog.ShowAsync();
@@ -98,6 +115,7 @@ public sealed partial class VaultPage : Page
         {
             if (_dialogoAberto == dialog)
                 _dialogoAberto = null;
+            ViewModel.RetomarAutoLock();
         }
     }
 
@@ -204,6 +222,7 @@ public sealed partial class VaultPage : Page
         };
         flyout.Items.Add(itemTotp);
         ConfigurarTemaFlyout(flyout);
+        SuprimirAutoLockNoFlyout(flyout);
 
         flyout.ShowAt(elemento);
     }
@@ -313,6 +332,7 @@ public sealed partial class VaultPage : Page
         excluir.Click += async (_, _) => await ConfirmarExclusaoAsync(item);
         flyout.Items.Add(excluir);
         ConfigurarTemaFlyout(flyout);
+        SuprimirAutoLockNoFlyout(flyout);
 
         flyout.ShowAt((FrameworkElement)sender, e.GetPosition((FrameworkElement)sender));
     }
@@ -707,7 +727,7 @@ public sealed partial class VaultPage : Page
     }
 
     /// <summary>
-    /// Anexa handlers de atividade (pointer/key) ao <see cref="ContentDialog"/>
+    /// Anexa handlers de atividade (pointer/key/wheel) ao <see cref="ContentDialog"/>
     /// e ao seu conteúdo para que interações dentro do modal reiniciem o timer
     /// de inatividade. Sem isso, o timer de <see cref="VaultViewModel"/>
     /// continua contando enquanto um diálogo está aberto, trancando o cofre
@@ -718,11 +738,13 @@ public sealed partial class VaultPage : Page
         dialog.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         dialog.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         dialog.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+        dialog.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
         if (dialog.Content is FrameworkElement fe)
         {
             fe.AddHandler(UIElement.PointerMovedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
             fe.AddHandler(UIElement.PointerPressedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
             fe.AddHandler(UIElement.KeyDownEvent, new KeyEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
+            fe.AddHandler(UIElement.PointerWheelChangedEvent, new PointerEventHandler((s, e) => ViewModel.NotificarAtividade()), true);
             // Captura digitação em TextBox/PasswordBox que marca KeyDown como Handled
             fe.Loaded += (_, _) => HookDialogInputs(fe);
         }
@@ -755,6 +777,17 @@ public sealed partial class VaultPage : Page
                     fe.RequestedTheme = App.ObterTemaPendente();
             }
         };
+    }
+
+    /// <summary>
+    /// Suspende o auto-lock enquanto um <see cref="FlyoutBase"/> (MenuFlyout
+    /// de copiar/contexto) está aberto: o popup renderiza fora da árvore da
+    /// página, então pointer/key sobre ele não reiniciam o timer.
+    /// </summary>
+    private void SuprimirAutoLockNoFlyout(FlyoutBase flyout)
+    {
+        flyout.Opened += (_, _) => ViewModel.SuspenderAutoLock();
+        flyout.Closed += (_, _) => ViewModel.RetomarAutoLock();
     }
 
     /// <summary>
@@ -928,7 +961,16 @@ public sealed partial class VaultPage : Page
         picker.FileTypeChoices.Add(_localization.GetString("VaultPage_FilePicker_VaultFilter"), new List<string> { ".vault" });
         picker.SuggestedFileName = $"cofre-{DateTime.Now:yyyyMMdd}.vault";
 
-        return await picker.PickSaveFileAsync();
+        // Picker é modal HWND sem eventos de pointer para a página.
+        ViewModel.SuspenderAutoLock();
+        try
+        {
+            return await picker.PickSaveFileAsync();
+        }
+        finally
+        {
+            ViewModel.RetomarAutoLock();
+        }
     }
 
     private async Task<StorageFile?> EscolherOrigemImportacaoAsync()
@@ -937,7 +979,16 @@ public sealed partial class VaultPage : Page
         WinRT.Interop.InitializeWithWindow.Initialize(picker, App.MainWindowHandle);
         picker.FileTypeFilter.Add(".vault");
 
-        return await picker.PickSingleFileAsync();
+        // Picker é modal HWND sem eventos de pointer para a página.
+        ViewModel.SuspenderAutoLock();
+        try
+        {
+            return await picker.PickSingleFileAsync();
+        }
+        finally
+        {
+            ViewModel.RetomarAutoLock();
+        }
     }
 
     private async Task<string?> PedirSenhaAsync(string titulo, string mensagem)

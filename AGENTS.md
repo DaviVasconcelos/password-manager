@@ -49,7 +49,7 @@ Local password manager (Clean Architecture, C#). WinUI 3 desktop app; SQLite/EF 
 
 Todos os itens abaixo estão implementados e cobertos por testes (314 no total):
 
-- **Fase A:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (2 min padrão, `ITimer`/`DispatcherQueueTimerAdapter` reiniciado a cada pointer/key), Trocar senha mestra (exige senha atual com verificação em tempo constante, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`/`AplicarTemaSalvo` + `RequestedTheme`, `DesignTokens.xaml`).
+- **Fase A:** Configurações (`IAppSettingsService`/`AppSettingsService` + `settings.json` + `SettingsViewModel`/`SettingsContent`), Auto-lock por inatividade (5 min padrão, `ITimer`/`DispatcherQueueTimerAdapter` reiniciado a cada pointer/key/wheel), Trocar senha mestra (exige senha atual com verificação em tempo constante, `CryptographicIntegrityException`), Tema claro/escuro/sistema (`AppSettings.Tema`, `App.AplicarTema`/`AplicarTemaSalvo` + `RequestedTheme`, `DesignTokens.xaml`).
 - **Fase B:** Migrations EF Core (`dotnet-ef 8.0.30`, `VaultDatabaseMigrator.ApplyMigrations` + baseline legado, `has-pending-model-changes` no CI), Testes de ViewModels (72 UI tests desacoplados via `IClipboardService`/`ITimer`/`IIdiomaProvider`, `PasswordManager.Presentation` + `PasswordManager.UI.Tests`), i18n (ADR 0007 — PRI + `Strings/<lang>/Resources.resw`, `ILocalizationService`, fallback `pt-BR`/`en-US`).
 
 Detalhes e decisões: `AGENTS.md` histórico git + `docs/plans/06-testes-viewmodels.md`. Itens removidos do roadmap ativo para manter foco no que falta.

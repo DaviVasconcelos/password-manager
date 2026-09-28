@@ -7,7 +7,7 @@ namespace PasswordManager.Application.Settings;
 /// </summary>
 public sealed record AppSettings
 {
-    public const int DefaultAutoLockTimeoutMinutes = 2;
+    public const int DefaultAutoLockTimeoutMinutes = 5;
     public const int DefaultClipboardCleanTimeSeconds = 30;
     public const int DefaultPasswordGeneratorLength = 20;
 
